@@ -1,0 +1,12 @@
+{
+  "id": "app-settings",
+  "name": "Settings",
+  "version": "1.0.0",
+  "route": "/settings",
+  "entry": "/settings/dapp.js",
+  "styles": "/settings/style.css",
+  "nav": {
+    "label": "Settings",
+    "order": 99
+  }
+}

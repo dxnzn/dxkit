@@ -1,0 +1,26 @@
+#dx-mount h2 {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+#dx-mount h2:first-child {
+  margin-top: 0;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+
+.setting-row label {
+  min-width: 120px;
+}
+
+.setting-row select,
+.setting-row input[type="text"],
+.setting-row input[type="number"] {
+  padding: 0.25rem 0.5rem;
+  min-width: 200px;
+}

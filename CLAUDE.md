@@ -1,0 +1,19 @@
+# CLAUDE.md — DxKit
+
+## Project
+
+Read the @README.md **now** for context and understanding about this project.
+
+There is a Documentation sections that outlines all of the developer documentation that lives in the docs/ directory. Based on the description of the docs provided in the README, selective load and read additional documentation *as necessary* depending on the current sessions tasks.
+
+## Coding Standards
+
+### In-line Commentary
+
+1. **Comment the "why", not the "what"** — skip `// create event bus` above `createEventBus()`. If the code reads clearly, it doesn't need a comment.
+2. **Document implicit contracts** — where the code relies on conventions not visible in the types (e.g., plugin duck-typing, dapp mount/unmount protocol).
+3. **Flag non-obvious behavior** — silent no-ops, fallback chains, ordering dependencies, and cases where failure is intentionally swallowed.
+4. **Keep it to one line** where possible. Multi-line comments only when the contract genuinely requires explanation.
+5. **Skip comments on trivial code** — barrel exports, simple Map wrappers, and self-evident type definitions don't need commentary.
+6. **No `@param` JSDoc on internal functions** — types speak for themselves. Reserve JSDoc for the public API surface.
+7. **No section headers** like `// === Router ===` — file structure should be clear from the code organization itself.

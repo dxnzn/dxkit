@@ -1,0 +1,12 @@
+{
+  "id": "dashboard",
+  "name": "Dashboard",
+  "version": "1.0.0",
+  "route": "/dashboard",
+  "entry": "/dashboard/dapp.js",
+  "styles": "/dashboard/style.css",
+  "nav": {
+    "label": "Dashboard",
+    "order": 1
+  }
+}

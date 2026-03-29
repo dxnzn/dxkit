@@ -1,0 +1,35 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: system-ui, sans-serif;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-height: 100vh;
+}
+
+#app-nav {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+#app-nav a {
+  text-decoration: none;
+  color: inherit;
+  padding: 0.25rem 0.5rem;
+}
+
+#dx-mount {
+  padding: 2rem;
+}
+
+/* Theme-aware styles */
+[data-mode="dark"] body {
+  background: #1a1a1a;
+  color: #e0e0e0;
+}
+
+[data-mode="dark"] #app-nav {
+  border-color: #333;
+}
