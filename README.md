@@ -33,41 +33,6 @@ npm install @dnzn/dxkit-settings
 npm install @dnzn/dxkit-theme
 ```
 
-## Architecture
-
-The shell owns orchestration. The developer owns the DOM. Dapps are self-contained scripts that mount into a provided `#dx-mount` container and interact with plugins and events through the shared `__DXKIT__` context.
-
-```mermaid
-graph TD
-  subgraph DxKit
-    Shell --> Router
-    Shell --> EventBus["Event Bus"]
-    Shell --> PluginRegistry["Plugin Registry"]
-    Shell --> Lifecycle["Lifecycle Manager"]
-
-    PluginRegistry --> Wallet["@dxkit/wallet"]
-    PluginRegistry --> Auth["@dxkit/auth"]
-    PluginRegistry --> Theme["@dxkit/theme"]
-    PluginRegistry --> Settings["@dxkit/settings"]
-
-    Router -->|resolve route| Lifecycle
-  end
-
-  subgraph Developer App
-    Dapp
-    Container["#dx-mount"]
-  end
-
-  Lifecycle -->|load & mount| Dapp
-  Lifecycle -->|mount into| Container
-
-  Dapp -->|window.__DXKIT__| EventBus
-  Dapp -->|window.__DXKIT__| PluginRegistry
-
-  EventBus -->|dx:mount / dx:unmount| Dapp
-  EventBus -->|dx:ready| Shell
-```
-
 ## Documentation
 
 ### Framework

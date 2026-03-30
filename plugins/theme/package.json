@@ -1,12 +1,12 @@
 {
   "name": "@dnzn/dxkit-theme",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "DxKit theme plugin — CSS theme + light/dark/system mode",
   "author": "Denizen. <null@dnzn.dev>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/DxNZN/DxKit",
+    "url": "https://github.com/dxnzn/dxkit",
     "directory": "plugins/theme"
   },
   "homepage": "https://dnzn.dev",
