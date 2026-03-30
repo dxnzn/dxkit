@@ -95,6 +95,41 @@ describe('createShell', () => {
     expect(ctx.getPlugin).toBeDefined();
   });
 
+  it('contains plugin init failure and continues initialization', async () => {
+    const errors: { source: string; error: Error }[] = [];
+    const goodInit = vi.fn();
+
+    const badPlugin: Plugin = {
+      name: 'bad',
+      init: () => {
+        throw new Error('plugin exploded');
+      },
+    };
+    const goodPlugin: Plugin = { name: 'good', init: goodInit };
+
+    shell = createShell({
+      ...testLoaders,
+      plugins: { bad: badPlugin, good: goodPlugin },
+      manifests: [],
+    });
+
+    // Listen for dx:error before init
+    window.addEventListener('dx:error', ((e: CustomEvent) => {
+      errors.push(e.detail);
+    }) as EventListener);
+
+    await shell.init();
+
+    // Bad plugin error was emitted, not thrown
+    expect(errors).toHaveLength(1);
+    expect(errors[0].source).toBe('plugin:bad');
+    expect(errors[0].error.message).toBe('plugin exploded');
+
+    // Good plugin still initialized, shell is functional
+    expect(goodInit).toHaveBeenCalledOnce();
+    expect(window.__DXKIT__).toBeDefined();
+  });
+
   it('accepts inline manifests', async () => {
     shell = createShell({
       ...testLoaders,
@@ -279,6 +314,29 @@ describe('createShell', () => {
     await shell.init();
 
     expect(shell.getManifests()).toHaveLength(0);
+
+    window.fetch = originalFetch;
+  });
+
+  it('rejects manifests missing required fields and emits dx:error', async () => {
+    const errors: { source: string; error: Error }[] = [];
+    window.addEventListener('dx:error', ((e: CustomEvent) => {
+      errors.push(e.detail);
+    }) as EventListener);
+
+    const originalFetch = window.fetch;
+    window.fetch = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ id: 'broken', name: 'Broken' }),
+    })) as any;
+
+    shell = createShell({ ...testLoaders, dapps: [{ manifest: '/broken/manifest.json' }] });
+    await shell.init();
+
+    expect(shell.getManifests()).toHaveLength(0);
+    expect(errors).toHaveLength(1);
+    expect(errors[0].source).toBe('shell:manifest');
+    expect(errors[0].error.message).toContain('missing required fields');
 
     window.fetch = originalFetch;
   });

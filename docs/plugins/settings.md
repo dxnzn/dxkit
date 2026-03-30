@@ -144,6 +144,10 @@ All settings are persisted to localStorage under the configured key (default: `d
 
 Restored on init, before definitions are loaded.
 
+**Security note**: Settings are stored as plaintext JSON in localStorage. Do not store secrets, API keys, tokens, or any sensitive data via the settings API. localStorage is readable by any script running on the same origin.
+
+The localStorage implementation is intended for local development, or where the application use case does not require portable settings or application state persistence (e.g., light/dark theme preference). Future versions will implement backend storage features (TBD).
+
 ## Optional Dapp Toggles
 
 For manifests with `optional: true`, the settings plugin synthesizes boolean toggle definitions under the `_shell` section (labeled "Dapps"). Changing these toggles calls `shell.enableDapp()` / `shell.disableDapp()`, keeping the router in sync.

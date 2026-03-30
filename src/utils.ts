@@ -2,6 +2,7 @@
 export function deepMerge<T extends Record<string, any>>(a: T, b: Partial<T>): T {
   const result = { ...a };
   for (const key of Object.keys(b) as (keyof T)[]) {
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') continue;
     const val = b[key];
     if (
       val !== undefined &&

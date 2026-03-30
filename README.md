@@ -1,6 +1,37 @@
-# DxKit
+# DNZN // DxKit
 
 A headless microframework for building composable dapps. Routing, lifecycle management, event bus, plugin registry — zero DOM ownership.
+
+by **Denizen.** // dnzn.wei
+
+## Release Info
+
+### Project Status
+
+| STATUS | VERSION | AUDIT |
+|:---|:---|:---|
+| `vibe/alpha` | v2026.03.29.000001 | [Self Review](audit/self/dxkit-2026.03.29.000001.md) |
+
+This is alpha software. Let it bake. Do not trust in production without thorough testing and review. 
+
+No warranty.
+
+### Installation
+
+*Framework*
+
+```
+npm install dxkit
+```
+
+*Plugins*
+
+```
+npm install @dxkit/audit
+npm install @dxkit/wallet
+npm install @dxkit/settings
+npm install @dxkit/theme
+```
 
 ## Architecture
 
@@ -39,6 +70,8 @@ graph TD
 
 ## Documentation
 
+### Framework
+
 | DOCUMENT | DESCRIPTION |
 |----------|-------------|
 | [Getting Started](docs/getting-started.md) | Framework overview, core concepts, lifecycle, config, full sample project |
@@ -48,12 +81,20 @@ graph TD
 | [Events Reference](docs/events-reference.md) | Complete event catalog with payloads, organized by source |
 | [API Reference](docs/api-reference.md) | All factory functions, interfaces, and type definitions |
 | [Cookbook](docs/cookbook.md) | Patterns & recipes — DxKit by example |
+
+### Plugins
+
+| DOCUMENT | DESCRIPTION |
+|----------|-------------|
 | [@dxkit/wallet](docs/plugins/wallet.md) | Wallet providers, EIP-1193, local dev, custom providers |
 | [@dxkit/auth](docs/plugins/auth.md) | Passthrough auth, wallet bridging |
 | [@dxkit/theme](docs/plugins/theme.md) | CSS theming, light/dark/system, DOM integration |
 | [@dxkit/settings](docs/plugins/settings.md) | Key-value store, sections, form generation, dapp toggles |
 
+
 ## Development
+
+### Common Helpers
 
 ```bash
 make setup          # Install dependencies and initialize development environment
@@ -83,21 +124,6 @@ Each package (core + plugins) uses `tsup` to produce three output formats from a
 The `exports` field in each `package.json` maps consumers to the right format automatically. IIFE builds attach to a global (`DxKit`, `DxWallet`, `DxAuth`, `DxTheme`, `DxSettings`) for use in static HTML without a build step — the primary deployment target for dapps served from IPFS or `file:///`.
 
 Plugin IIFE builds bundle dxkit core inline (`noExternal: ['dxkit']`). ESM/CJS builds declare it as `external` to avoid duplication when used with a bundler.
-
-## Plugins
-
-Plugins implement **interfaces** — typed contracts (`Wallet`, `Auth`, `Theme`, `Settings`) that define a capability. DxKit ships common implementations for each interface, including providers for local development. Where a plugin accepts providers (like Wallet), app developers can pass their own alongside or instead of the built-in ones.
-
-| PLUGIN | PACKAGE | PROVIDERS | SUMMARY |
-|--------|---------|-----------|---------|
-| Wallet | `@dxkit/wallet` | EIP-1193, Local dev, **custom** | Coordinator + pluggable providers. Pass any `WalletProvider` into `createWallet()`. |
-| Auth | `@dxkit/auth` | Passthrough | Wallet connected = authenticated. No tokens, no sessions. |
-| Theme | `@dxkit/theme` | CSS/DOM | Light/dark/system mode. Sets `data-theme` and `data-mode` on `<html>`. |
-| Settings | `@dxkit/settings` | localStorage | Per-dapp configuration with localStorage persistence. Exposes `dx.settings` API. |
-
-**Wallet** is fully provider-pluggable today — implement the `WalletProvider` interface and pass it into `createWallet({ providers: [...] })`. See [Writing a Custom Provider](docs/plugins/wallet.md#writing-a-custom-provider).
-
-For **Auth**, **Theme**, and **Settings**, the shipped plugins are complete implementations. To customize behavior beyond what their options expose, implement the corresponding interface (`Auth`, `Theme`, or `Plugin` + `Settings`) as a new plugin. See [Plugin Development](docs/plugin-development.md) for the full guide.
 
 ## License
 

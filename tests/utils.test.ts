@@ -52,6 +52,33 @@ describe('deepMerge', () => {
     expect(result).toEqual({ a: 1, b: 2 });
   });
 
+  it('rejects __proto__ keys to prevent prototype pollution', () => {
+    const malicious = JSON.parse('{"__proto__": {"polluted": true}}');
+    const result = deepMerge({ a: 1 }, malicious);
+    expect(result.a).toBe(1);
+    expect(({} as any).polluted).toBeUndefined();
+    expect(Object.hasOwn(result, '__proto__')).toBe(false);
+  });
+
+  it('rejects constructor keys to prevent prototype pollution', () => {
+    const result = deepMerge({ a: 1 }, { constructor: { polluted: true } } as any);
+    expect(result.a).toBe(1);
+    expect(Object.hasOwn(result, 'constructor')).toBe(false);
+  });
+
+  it('rejects prototype keys to prevent prototype pollution', () => {
+    const result = deepMerge({ a: 1 }, { prototype: { polluted: true } } as any);
+    expect(result.a).toBe(1);
+    expect(Object.hasOwn(result, 'prototype')).toBe(false);
+  });
+
+  it('rejects dangerous keys in nested merges', () => {
+    const malicious = JSON.parse('{"nested": {"__proto__": {"polluted": true}}}');
+    const result = deepMerge({ nested: { safe: 1 } }, malicious);
+    expect(result.nested.safe).toBe(1);
+    expect(({} as any).polluted).toBeUndefined();
+  });
+
   it('does not mutate either input', () => {
     const a = { nav: { label: 'Test', order: 0 } };
     const b = { nav: { order: 5 } };

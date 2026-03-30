@@ -138,11 +138,32 @@ export function createShell(config: ShellConfig = {}): Shell {
     isDappEnabled,
   };
 
+  /** Rejects manifests missing fields that would cause silent downstream failures. */
+  function isValidManifest(m: any): m is DappManifest {
+    return (
+      m &&
+      typeof m.id === 'string' &&
+      typeof m.route === 'string' &&
+      typeof m.entry === 'string' &&
+      m.nav &&
+      typeof m.nav.label === 'string'
+    );
+  }
+
   async function loadDappManifest(entry: DappEntry): Promise<DappManifest | null> {
     try {
       const res = await fetch(entry.manifest);
       if (!res.ok) return null;
-      const base: DappManifest = await res.json();
+      const base = await res.json();
+      if (!isValidManifest(base)) {
+        events.emit('dx:error', {
+          source: 'shell:manifest',
+          error: new Error(
+            `Invalid manifest from ${entry.manifest} — missing required fields (id, route, entry, nav.label)`,
+          ),
+        });
+        return null;
+      }
       if (entry.overrides) {
         return deepMerge(base, entry.overrides);
       }
@@ -188,9 +209,17 @@ export function createShell(config: ShellConfig = {}): Shell {
     manifests = await loadManifests();
 
     // Initialize plugins (after manifests are loaded)
-    for (const plugin of Object.values(plugins)) {
+    // Failures are contained — a bad plugin emits dx:error but doesn't crash the shell
+    for (const [name, plugin] of Object.entries(plugins)) {
       if (plugin.init) {
-        await plugin.init(context);
+        try {
+          await plugin.init(context);
+        } catch (err) {
+          events.emit('dx:error', {
+            source: `plugin:${name}`,
+            error: err instanceof Error ? err : new Error(String(err)),
+          });
+        }
       }
     }
 
@@ -205,6 +234,8 @@ export function createShell(config: ShellConfig = {}): Shell {
     routeUnsub = router.onRouteChange(handleRouteChange);
 
     // Global context bridge — dapps access plugins/events via window.__DXKIT__
+    // Frozen to prevent mutation by dapp scripts or third-party code
+    Object.freeze(context);
     window.__DXKIT__ = context;
 
     initialized = true;
