@@ -1,7 +1,7 @@
-import type { Context, SettingDefinition, Theme, ThemeMode } from 'dxkit';
-import '@dxkit/settings';
+import type { Context, SettingDefinition, Theme, ThemeMode } from '@dnzn/dxkit';
+import '@dnzn/dxkit-settings';
 
-declare module 'dxkit' {
+declare module '@dnzn/dxkit' {
   interface EventMap {
     'dx:plugin:theme:changed': { theme: string; mode: ThemeMode; resolved: 'light' | 'dark' };
   }

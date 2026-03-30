@@ -1,5 +1,5 @@
 {
-  "name": "@dxkit/settings",
+  "name": "@dnzn/dxkit-settings",
   "version": "0.1.0",
   "description": "DxKit settings plugin — per-dapp configuration with form generation",
   "author": "Denizen. <null@dnzn.dev>",
@@ -27,6 +27,6 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "dxkit": "workspace:*"
+    "@dnzn/dxkit": "workspace:*"
   }
 }

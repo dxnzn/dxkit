@@ -21,16 +21,16 @@ No warranty.
 *Framework*
 
 ```
-npm install dxkit
+npm install @dnzn/dxkit
 ```
 
 *Plugins*
 
 ```
-npm install @dxkit/audit
-npm install @dxkit/wallet
-npm install @dxkit/settings
-npm install @dxkit/theme
+npm install @dnzn/dxkit-audit
+npm install @dnzn/dxkit-wallet
+npm install @dnzn/dxkit-settings
+npm install @dnzn/dxkit-theme
 ```
 
 ## Architecture

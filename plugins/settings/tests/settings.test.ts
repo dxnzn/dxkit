@@ -1,6 +1,6 @@
-import { createSettings } from '@dxkit/settings';
-import type { Context, DappManifest, Plugin } from 'dxkit';
-import { createEventBus } from 'dxkit';
+import type { Context, DappManifest, Plugin } from '@dnzn/dxkit';
+import { createEventBus } from '@dnzn/dxkit';
+import { createSettings } from '@dnzn/dxkit-settings';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 let testCounter = 0;

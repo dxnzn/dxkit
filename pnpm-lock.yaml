@@ -32,36 +32,36 @@ importers:
 
   plugins/auth:
     dependencies:
-      '@dxkit/wallet':
-        specifier: workspace:*
-        version: link:../wallet
-      dxkit:
+      '@dnzn/dxkit':
         specifier: workspace:*
         version: link:../..
+      '@dnzn/dxkit-wallet':
+        specifier: workspace:*
+        version: link:../wallet
 
   plugins/settings:
     dependencies:
-      dxkit:
+      '@dnzn/dxkit':
         specifier: workspace:*
         version: link:../..
 
   plugins/theme:
     dependencies:
-      '@dxkit/settings':
-        specifier: workspace:*
-        version: link:../settings
-      dxkit:
+      '@dnzn/dxkit':
         specifier: workspace:*
         version: link:../..
+      '@dnzn/dxkit-settings':
+        specifier: workspace:*
+        version: link:../settings
 
   plugins/wallet:
     dependencies:
-      '@dxkit/settings':
-        specifier: workspace:*
-        version: link:../settings
-      dxkit:
+      '@dnzn/dxkit':
         specifier: workspace:*
         version: link:../..
+      '@dnzn/dxkit-settings':
+        specifier: workspace:*
+        version: link:../settings
 
 packages:
 

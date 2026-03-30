@@ -1,5 +1,5 @@
 {
-  "name": "@dxkit/theme",
+  "name": "@dnzn/dxkit-theme",
   "version": "0.1.0",
   "description": "DxKit theme plugin — CSS theme + light/dark/system mode",
   "author": "Denizen. <null@dnzn.dev>",
@@ -27,7 +27,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@dxkit/settings": "workspace:*",
-    "dxkit": "workspace:*"
+    "@dnzn/dxkit-settings": "workspace:*",
+    "@dnzn/dxkit": "workspace:*"
   }
 }

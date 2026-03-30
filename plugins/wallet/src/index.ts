@@ -1,7 +1,7 @@
-import type { Context, SettingDefinition, Wallet, WalletProvider, WalletState } from 'dxkit';
-import '@dxkit/settings';
+import type { Context, SettingDefinition, Wallet, WalletProvider, WalletState } from '@dnzn/dxkit';
+import '@dnzn/dxkit-settings';
 
-declare module 'dxkit' {
+declare module '@dnzn/dxkit' {
   interface EventMap {
     'dx:plugin:wallet:connected': { address: string; chainId: number };
     'dx:plugin:wallet:disconnected': Record<string, never>;

@@ -1,5 +1,5 @@
-import type { DappManifest } from 'dxkit';
-import { createRouter } from 'dxkit';
+import type { DappManifest } from '@dnzn/dxkit';
+import { createRouter } from '@dnzn/dxkit';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 function manifest(overrides: Partial<DappManifest> & { id: string; route: string }): DappManifest {

@@ -1,6 +1,11 @@
-import { createEIP1193Provider, createEthereumWallet, createLocalWalletProvider, createWallet } from '@dxkit/wallet';
-import type { Context, Wallet } from 'dxkit';
-import { createEventBus } from 'dxkit';
+import type { Context, Wallet } from '@dnzn/dxkit';
+import { createEventBus } from '@dnzn/dxkit';
+import {
+  createEIP1193Provider,
+  createEthereumWallet,
+  createLocalWalletProvider,
+  createWallet,
+} from '@dnzn/dxkit-wallet';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 function mockContext(): Context {

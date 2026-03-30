@@ -1,5 +1,5 @@
-import type { DappManifest, Plugin, Shell, ShellConfig } from 'dxkit';
-import { createShell } from 'dxkit';
+import type { DappManifest, Plugin, Shell, ShellConfig } from '@dnzn/dxkit';
+import { createShell } from '@dnzn/dxkit';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /** No-op loaders — avoids happy-dom DOMException on module script injection. */

@@ -7,7 +7,7 @@ export default defineConfig([
     dts: true,
     clean: true,
     sourcemap: true,
-    external: ['dxkit'],
+    external: ['@dnzn/dxkit'],
   },
   {
     entry: ['src/index.ts'],
@@ -16,7 +16,7 @@ export default defineConfig([
     outDir: 'dist',
     outExtension: () => ({ js: '.global.js' }),
     sourcemap: true,
-    noExternal: ['dxkit'],
+    noExternal: ['@dnzn/dxkit'],
     platform: 'browser',
   },
 ]);

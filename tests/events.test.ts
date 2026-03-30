@@ -1,4 +1,4 @@
-import { createEventBus, createEventRegistry } from 'dxkit';
+import { createEventBus, createEventRegistry } from '@dnzn/dxkit';
 import { describe, expect, it, vi } from 'vitest';
 
 describe('EventBus', () => {

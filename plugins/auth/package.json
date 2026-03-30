@@ -1,5 +1,5 @@
 {
-  "name": "@dxkit/auth",
+  "name": "@dnzn/dxkit-auth",
   "version": "0.1.0",
   "description": "DxKit auth plugin — wallet passthrough auth",
   "author": "Denizen. <null@dnzn.dev>",
@@ -27,7 +27,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@dxkit/wallet": "workspace:*",
-    "dxkit": "workspace:*"
+    "@dnzn/dxkit-wallet": "workspace:*",
+    "@dnzn/dxkit": "workspace:*"
   }
 }

@@ -1,6 +1,6 @@
-import { createPassthroughAuth } from '@dxkit/auth';
-import type { Auth, Context, Wallet, WalletState } from 'dxkit';
-import { createEventBus } from 'dxkit';
+import type { Auth, Context, Wallet, WalletState } from '@dnzn/dxkit';
+import { createEventBus } from '@dnzn/dxkit';
+import { createPassthroughAuth } from '@dnzn/dxkit-auth';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 function mockWallet(

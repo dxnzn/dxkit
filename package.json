@@ -1,5 +1,5 @@
 {
-  "name": "dxkit",
+  "name": "@dnzn/dxkit",
   "version": "0.1.0",
   "description": "DxKit — A headless microframework for building composable dapps.",
   "author": "Denizen. <null@dnzn.dev>",

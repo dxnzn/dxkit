@@ -1,5 +1,5 @@
-import type { Plugin } from 'dxkit';
-import { createPluginRegistry } from 'dxkit';
+import type { Plugin } from '@dnzn/dxkit';
+import { createPluginRegistry } from '@dnzn/dxkit';
 import { describe, expect, it } from 'vitest';
 
 function stubPlugin(name: string): Plugin {

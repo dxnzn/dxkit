@@ -1,5 +1,5 @@
 {
-  "name": "@dxkit/wallet",
+  "name": "@dnzn/dxkit-wallet",
   "version": "0.1.0",
   "description": "DxKit wallet plugin — injected wallet (window.ethereum)",
   "author": "Denizen. <null@dnzn.dev>",
@@ -27,7 +27,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@dxkit/settings": "workspace:*",
-    "dxkit": "workspace:*"
+    "@dnzn/dxkit-settings": "workspace:*",
+    "@dnzn/dxkit": "workspace:*"
   }
 }

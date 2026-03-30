@@ -1,7 +1,7 @@
-import type { Auth, AuthState, Context, Wallet } from 'dxkit';
-import '@dxkit/wallet';
+import type { Auth, AuthState, Context, Wallet } from '@dnzn/dxkit';
+import '@dnzn/dxkit-wallet';
 
-declare module 'dxkit' {
+declare module '@dnzn/dxkit' {
   interface EventMap {
     'dx:plugin:auth:authenticated': { address: string };
     'dx:plugin:auth:deauthenticated': Record<string, never>;

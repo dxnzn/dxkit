@@ -1,5 +1,5 @@
-import type { DappManifest, EventBus } from 'dxkit';
-import { createEventBus, createLifecycleManager } from 'dxkit';
+import type { DappManifest, EventBus } from '@dnzn/dxkit';
+import { createEventBus, createLifecycleManager } from '@dnzn/dxkit';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const noopLoader = async () => {};

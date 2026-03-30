@@ -1,6 +1,6 @@
-import type { Context, Plugin, SettingDefinition, Settings, SettingsSection } from 'dxkit';
+import type { Context, Plugin, SettingDefinition, Settings, SettingsSection } from '@dnzn/dxkit';
 
-declare module 'dxkit' {
+declare module '@dnzn/dxkit' {
   interface EventMap {
     'dx:plugin:settings:changed': { dappId: string; key: string; value: unknown };
   }
@@ -233,4 +233,4 @@ export function createSettings(options: SettingsPluginOptions = {}): Plugin & { 
   return plugin;
 }
 
-export type { SettingDefinition, Settings, SettingsSection } from 'dxkit';
+export type { SettingDefinition, Settings, SettingsSection } from '@dnzn/dxkit';

@@ -1,6 +1,6 @@
-import { createCSSTheme } from '@dxkit/theme';
-import type { Context, Theme } from 'dxkit';
-import { createEventBus } from 'dxkit';
+import type { Context, Theme } from '@dnzn/dxkit';
+import { createEventBus } from '@dnzn/dxkit';
+import { createCSSTheme } from '@dnzn/dxkit-theme';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 let testCounter = 0;
