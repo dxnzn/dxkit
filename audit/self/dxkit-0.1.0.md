@@ -3,7 +3,7 @@
 | Field | Value |
 |:---|:---|
 | Project | DxKit |
-| Version | v2026.03.29.000001 |
+| Version | 0.1.0 |
 | Date | 2026.03.29 |
 | Auditor | Self-review by project developers |
 | AI Model | Claude Opus 4.6 (1M context) |

@@ -1,7 +1,15 @@
 {
   "name": "@dxkit/auth",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "DxKit auth plugin — wallet passthrough auth",
+  "author": "Denizen. <null@dnzn.dev>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DxNZN/DxKit",
+    "directory": "plugins/auth"
+  },
+  "homepage": "https://dnzn.dev",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
