@@ -27,7 +27,7 @@ npm install @dnzn/dxkit
 *Plugins*
 
 ```
-npm install @dnzn/dxkit-audit
+npm install @dnzn/dxkit-auth
 npm install @dnzn/dxkit-wallet
 npm install @dnzn/dxkit-settings
 npm install @dnzn/dxkit-theme

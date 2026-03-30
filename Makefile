@@ -4,7 +4,7 @@ PLUGIN_DIRS := $(dir $(PLUGINS))
 # Build order: plugins with no cross-plugin deps first, then their dependents
 PLUGIN_BUILD_ORDER := plugins/settings/ plugins/wallet/ plugins/auth/ plugins/theme/
 
-.PHONY: setup build test test-watch lint lint-fix format clean superclean audit commit
+.PHONY: setup build test test-watch lint lint-fix format clean superclean audit commit publish
 
 setup:
 	pnpm install
@@ -60,6 +60,12 @@ superclean:
 
 commit:
 	npx cz
+
+publish: build test
+	pnpm publish --access public
+	@for dir in $(PLUGIN_BUILD_ORDER); do \
+		(cd $$dir && pnpm publish --access public) || exit 1; \
+	done
 
 audit:
 	@echo
