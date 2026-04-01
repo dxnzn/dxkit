@@ -9,6 +9,7 @@ export interface LifecycleManager {
 
 export type ScriptLoader = (src: string) => Promise<void>;
 export type StyleLoader = (href: string) => Promise<void>;
+export type TemplateLoader = (src: string) => Promise<string>;
 
 /** Default script loader — injects a <script type="module"> into the DOM. */
 function defaultScriptLoader(): ScriptLoader {
@@ -61,13 +62,25 @@ export interface LifecycleManagerOptions {
   scriptLoader?: ScriptLoader;
   /** Override the style loader (useful for testing). */
   styleLoader?: StyleLoader;
+  /** Override the template loader (useful for testing). */
+  templateLoader?: TemplateLoader;
   /** Check if a named plugin is registered. Used for permission enforcement. */
   hasPlugin?: (name: string) => boolean;
+}
+
+/** Default template loader — fetches HTML via fetch(). */
+function defaultTemplateLoader(): TemplateLoader {
+  return async (src: string) => {
+    const res = await fetch(src);
+    if (!res.ok) throw new Error(`Failed to load dapp template: ${src} (${res.status})`);
+    return res.text();
+  };
 }
 
 export function createLifecycleManager(events: EventBus, options: LifecycleManagerOptions = {}): LifecycleManager {
   const loadScript = options.scriptLoader ?? defaultScriptLoader();
   const loadStyle = options.styleLoader ?? defaultStyleLoader();
+  const loadTemplate = options.templateLoader ?? defaultTemplateLoader();
   const hasPlugin = options.hasPlugin ?? (() => true);
   let currentDappId: string | null = null;
 
@@ -98,6 +111,35 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
           source: `lifecycle:${manifest.id}:styles`,
           error: err instanceof Error ? err : new Error(String(err)),
         });
+      }
+    }
+
+    // Template fetch is blocking — the dapp expects a populated container
+    if (manifest.template) {
+      try {
+        const html = await loadTemplate(manifest.template);
+        container.innerHTML = html;
+      } catch (err) {
+        events.emit('dx:error', {
+          source: `lifecycle:${manifest.id}:template`,
+          error: err instanceof Error ? err : new Error(String(err)),
+        });
+        return;
+      }
+    }
+
+    // Load dependency scripts before entry — sequential to preserve order
+    if (manifest.dependencies?.length) {
+      for (const dep of manifest.dependencies) {
+        try {
+          await loadScript(dep);
+        } catch (err) {
+          events.emit('dx:error', {
+            source: `lifecycle:${manifest.id}:dependency`,
+            error: err instanceof Error ? err : new Error(String(err)),
+          });
+          return;
+        }
       }
     }
 

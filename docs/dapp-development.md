@@ -32,6 +32,8 @@ Every dapp declares a `DappManifest`. Here's the full shape:
 | `version` | `string` | yes | — | Semver string |
 | `route` | `string` | yes | — | Path prefix (e.g. `'/tools/sender'`) |
 | `entry` | `string` | yes | — | JS entry point path |
+| `template` | `string` | no | — | HTML template path, injected into container before scripts |
+| `dependencies` | `string[]` | no | — | Additional scripts loaded before entry |
 | `styles` | `string` | no | — | CSS path, lazy-loaded on first mount |
 | `nav.label` | `string` | yes | — | Menu text |
 | `nav.icon` | `string` | no | — | SVG name, URL, or inline SVG |
@@ -320,3 +322,38 @@ window.addEventListener('dx:mount', (e) => {
   // render into wrapper
 });
 ```
+
+## HTML Templates
+
+Declare a `template` path in the manifest. The shell fetches the HTML and injects it into the container **before** scripts load, so your mount handler receives a pre-populated container.
+
+```json
+{
+  "template": "/my-dapp/template.html",
+  "entry": "/my-dapp/app.js"
+}
+```
+
+```js
+window.addEventListener('dx:mount', (e) => {
+  if (e.detail.id !== 'my-dapp') return;
+  // container.innerHTML is already set from template.html
+  const btn = e.detail.container.querySelector('#submit-btn');
+  btn.addEventListener('click', onSubmit);
+});
+```
+
+Template loading is **blocking** — if the fetch fails, the dapp does not mount and `dx:error` is emitted with source `lifecycle:<id>:template`.
+
+## Script Dependencies
+
+Dapps that split logic across multiple files can declare `dependencies` — scripts loaded sequentially before the entry point.
+
+```json
+{
+  "dependencies": ["/my-dapp/lib/domain-logic.js"],
+  "entry": "/my-dapp/app.js"
+}
+```
+
+Dependencies use the same script loader as the entry. They are loaded once and cached — subsequent mounts skip already-loaded scripts. If a dependency fails to load, the mount is aborted and `dx:error` is emitted with source `lifecycle:<id>:dependency`.

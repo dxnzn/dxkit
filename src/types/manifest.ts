@@ -15,6 +15,10 @@ export interface DappManifest {
   route: string;
   /** Compiled JS entry point, relative to dapp root. */
   entry: string;
+  /** HTML template path, relative to dapp root. Injected into container before scripts load. */
+  template?: string;
+  /** Additional scripts loaded before the entry point (e.g. domain logic modules). */
+  dependencies?: string[];
   /** CSS stylesheet path, relative to dapp root. Lazy-loaded on first mount. */
   styles?: string;
 

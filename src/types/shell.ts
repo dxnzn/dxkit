@@ -27,6 +27,8 @@ export interface ShellConfig {
   scriptLoader?: (src: string) => Promise<void>;
   /** Override the style loader (useful for testing). */
   styleLoader?: (href: string) => Promise<void>;
+  /** Override the template loader (useful for testing). */
+  templateLoader?: (src: string) => Promise<string>;
 }
 
 /** The shell instance returned by createShell(). */

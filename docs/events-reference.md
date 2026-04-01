@@ -160,7 +160,7 @@ An error occurred in the shell or lifecycle.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `source` | `string` | Origin (e.g. `'lifecycle:my-dapp'`, `'lifecycle:my-dapp:styles'`) |
+| `source` | `string` | Origin (e.g. `'lifecycle:my-dapp'`, `'lifecycle:my-dapp:styles'`, `'lifecycle:my-dapp:template'`, `'lifecycle:my-dapp:dependency'`) |
 | `error` | `Error` | The error object |
 
 ```js

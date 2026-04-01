@@ -22,6 +22,7 @@ export function createShell(config: ShellConfig = {}): Shell {
     mode = 'history',
     scriptLoader,
     styleLoader,
+    templateLoader,
   } = config;
 
   const events = createEventBus();
@@ -31,6 +32,7 @@ export function createShell(config: ShellConfig = {}): Shell {
     hasPlugin: (name: string) => registry.has(name),
     scriptLoader,
     styleLoader,
+    templateLoader,
   });
   let manifests: DappManifest[] = [];
   let router = createRouter({ mode, basePath, manifests: [] });

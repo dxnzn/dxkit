@@ -86,6 +86,7 @@ function createLifecycleManager(
 interface LifecycleManagerOptions {
   scriptLoader?: (src: string) => Promise<void>;
   styleLoader?: (href: string) => Promise<void>;
+  templateLoader?: (src: string) => Promise<string>;
   hasPlugin?: (name: string) => boolean;
 }
 ```
@@ -336,6 +337,7 @@ interface ShellConfig {
   mode?: 'history' | 'hash'; // default: 'history'
   scriptLoader?: (src: string) => Promise<void>;
   styleLoader?: (href: string) => Promise<void>;
+  templateLoader?: (src: string) => Promise<string>;
 }
 ```
 
@@ -358,6 +360,8 @@ interface DappManifest {
   version: string;
   route: string;
   entry: string;
+  template?: string;
+  dependencies?: string[];
   styles?: string;
   nav: {
     label: string;

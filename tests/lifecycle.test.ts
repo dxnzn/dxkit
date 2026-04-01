@@ -274,6 +274,142 @@ describe('LifecycleManager', () => {
     lm.destroy();
   });
 
+  it('injects template HTML into container before loading scripts', async () => {
+    const loadOrder: string[] = [];
+    const lm = createLifecycleManager(events, {
+      scriptLoader: async (src) => {
+        loadOrder.push(`script:${src}`);
+      },
+      templateLoader: async (src) => {
+        loadOrder.push(`template:${src}`);
+        return '<div id="app">Template Content</div>';
+      },
+    });
+
+    const m = { ...manifest('templated'), template: '/dapps/templated/template.html' };
+    await lm.mount(m, container);
+
+    expect(loadOrder[0]).toBe('template:/dapps/templated/template.html');
+    expect(loadOrder[1]).toBe('script:/dapps/templated/app.js');
+    expect(container.innerHTML).toBe('<div id="app">Template Content</div>');
+    expect(lm.getCurrentDapp()).toBe('templated');
+
+    lm.destroy();
+  });
+
+  it('aborts mount when template fails to load', async () => {
+    const lm = createLifecycleManager(events, {
+      scriptLoader: noopLoader,
+      templateLoader: async () => {
+        throw new Error('404');
+      },
+    });
+
+    const errorHandler = vi.fn();
+    const mountedHandler = vi.fn();
+    events.on('dx:error', errorHandler);
+    events.on('dx:dapp:mounted', mountedHandler);
+
+    const m = { ...manifest('bad-tpl'), template: '/missing.html' };
+    await lm.mount(m, container);
+
+    expect(errorHandler).toHaveBeenCalledOnce();
+    expect(errorHandler.mock.calls[0][0].source).toBe('lifecycle:bad-tpl:template');
+    expect(mountedHandler).not.toHaveBeenCalled();
+    expect(lm.getCurrentDapp()).toBeNull();
+
+    lm.destroy();
+  });
+
+  it('loads template before dependencies and entry', async () => {
+    const loadOrder: string[] = [];
+    const lm = createLifecycleManager(events, {
+      scriptLoader: async (src) => {
+        loadOrder.push(`script:${src}`);
+      },
+      templateLoader: async (src) => {
+        loadOrder.push(`template:${src}`);
+        return '<p>hi</p>';
+      },
+    });
+
+    const m = {
+      ...manifest('full'),
+      template: '/dapps/full/tpl.html',
+      dependencies: ['/lib/dep.js'],
+    };
+    await lm.mount(m, container);
+
+    expect(loadOrder).toEqual(['template:/dapps/full/tpl.html', 'script:/lib/dep.js', 'script:/dapps/full/app.js']);
+
+    lm.destroy();
+  });
+
+  it('skips template loading when not declared', async () => {
+    const templateLoader = vi.fn();
+    const lm = createLifecycleManager(events, {
+      scriptLoader: noopLoader,
+      templateLoader,
+    });
+
+    await lm.mount(manifest('no-tpl'), container);
+
+    expect(templateLoader).not.toHaveBeenCalled();
+    lm.destroy();
+  });
+
+  it('loads dependencies before entry script', async () => {
+    const loadOrder: string[] = [];
+    const trackingLoader = async (src: string) => {
+      loadOrder.push(src);
+    };
+
+    const lm = createLifecycleManager(events, { scriptLoader: trackingLoader });
+    const m = { ...manifest('multi'), dependencies: ['/lib/a.js', '/lib/b.js'] };
+    await lm.mount(m, container);
+
+    expect(loadOrder).toEqual(['/lib/a.js', '/lib/b.js', '/dapps/multi/app.js']);
+    expect(lm.getCurrentDapp()).toBe('multi');
+
+    lm.destroy();
+  });
+
+  it('aborts mount when a dependency fails to load', async () => {
+    const lm = createLifecycleManager(events, {
+      scriptLoader: async (src: string) => {
+        if (src.includes('bad')) throw new Error(`Failed: ${src}`);
+      },
+    });
+
+    const errorHandler = vi.fn();
+    const mountedHandler = vi.fn();
+    events.on('dx:error', errorHandler);
+    events.on('dx:dapp:mounted', mountedHandler);
+
+    const m = { ...manifest('broken-dep'), dependencies: ['/lib/bad.js'] };
+    await lm.mount(m, container);
+
+    expect(errorHandler).toHaveBeenCalledOnce();
+    expect(errorHandler.mock.calls[0][0].source).toBe('lifecycle:broken-dep:dependency');
+    expect(mountedHandler).not.toHaveBeenCalled();
+    expect(lm.getCurrentDapp()).toBeNull();
+
+    lm.destroy();
+  });
+
+  it('skips dependency loading when none declared', async () => {
+    const loader = vi.fn(async () => {});
+    const lm = createLifecycleManager(events, { scriptLoader: loader });
+
+    await lm.mount(manifest('simple'), container);
+
+    // Only the entry script should be loaded
+    expect(loader).toHaveBeenCalledOnce();
+    expect(loader).toHaveBeenCalledWith('/dapps/simple/app.js');
+
+    lm.destroy();
+  });
+
   it('destroy() unmounts the current dapp', async () => {
     const lm = createLifecycleManager(events, { scriptLoader: noopLoader });
     const handler = vi.fn();
