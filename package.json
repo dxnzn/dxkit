@@ -1,6 +1,6 @@
 {
   "name": "@dnzn/dxkit",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "DxKit — A headless microframework for building composable dapps.",
   "author": "Denizen. <null@dnzn.dev>",
   "license": "MIT",
@@ -36,30 +36,6 @@
   "config": {
     "commitizen": {
       "path": "cz-conventional-changelog"
-    },
-    "commit-and-tag-version": {
-      "bumpFiles": [
-        {
-          "filename": "package.json",
-          "type": "json"
-        },
-        {
-          "filename": "plugins/auth/package.json",
-          "type": "json"
-        },
-        {
-          "filename": "plugins/wallet/package.json",
-          "type": "json"
-        },
-        {
-          "filename": "plugins/settings/package.json",
-          "type": "json"
-        },
-        {
-          "filename": "plugins/theme/package.json",
-          "type": "json"
-        }
-      ]
     }
   },
   "devDependencies": {
