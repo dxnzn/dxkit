@@ -4,7 +4,7 @@ PLUGIN_DIRS := $(dir $(PLUGINS))
 # Build order: plugins with no cross-plugin deps first, then their dependents
 PLUGIN_BUILD_ORDER := plugins/settings/ plugins/wallet/ plugins/auth/ plugins/theme/
 
-.PHONY: setup build test test-watch lint lint-fix format clean superclean audit commit publish
+.PHONY: setup build test test-watch lint lint-fix format clean superclean audit commit publish release
 
 setup:
 	pnpm install
@@ -60,6 +60,13 @@ superclean:
 
 commit:
 	npx cz
+
+release: build test
+	npx commit-and-tag-version
+	@echo
+	@echo "Release tagged. Review the changelog, then run:"
+	@echo "  make publish"
+	@echo "  git push --follow-tags"
 
 publish: build test
 	pnpm publish --access public
