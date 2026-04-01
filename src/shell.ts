@@ -37,6 +37,7 @@ export function createShell(config: ShellConfig = {}): Shell {
   let mountContainer: HTMLElement | null = null;
   let routeUnsub: (() => void) | null = null;
   let initialized = false;
+  let currentPath: string | null = null;
   const enabledState = new Map<string, boolean>();
 
   function getEnabledManifests(): DappManifest[] {
@@ -262,13 +263,23 @@ export function createShell(config: ShellConfig = {}): Shell {
   }
 
   async function mountDapp(manifest: DappManifest): Promise<void> {
-    // Skip if already mounted
-    if (lifecycle.getCurrentDapp() === manifest.id) return;
+    const path = router.getCurrentPath();
+
+    // Same dapp, different sub-path — notify without re-mounting
+    if (lifecycle.getCurrentDapp() === manifest.id) {
+      if (currentPath !== null && currentPath !== path) {
+        const previousPath = currentPath;
+        currentPath = path;
+        events.emit('dx:route:subpath', { id: manifest.id, path, previousPath });
+      }
+      return;
+    }
 
     const container = getMountContainer();
     if (!container) return;
 
-    await lifecycle.mount(manifest, container, router.getCurrentPath());
+    await lifecycle.mount(manifest, container, path);
+    currentPath = path;
   }
 
   // Lazily resolved — developer must provide <div id="dx-mount"> in their layout

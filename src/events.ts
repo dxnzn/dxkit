@@ -10,6 +10,7 @@ const SHELL_EVENTS = new Set<string>([
   'dx:dapp:disabled',
   'dx:mount',
   'dx:unmount',
+  'dx:route:subpath',
   'dx:error',
   'dx:plugin:registered',
   'dx:event:registered',

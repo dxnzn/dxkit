@@ -105,6 +105,23 @@ Tells a dapp to clean up. Dispatched before the next dapp mounts.
 |-------|------|-------------|
 | `id` | `string` | Dapp ID |
 
+### `dx:route:subpath`
+
+Fired when the path changes within an already-mounted dapp (e.g. `/tools/cic` → `/tools/cic/report`). The dapp is **not** re-mounted — use this event to update internal view state.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Dapp ID |
+| `path` | `string` | New full path |
+| `previousPath` | `string` | Previous full path |
+
+```js
+dx.events.on('dx:route:subpath', ({ id, path, previousPath }) => {
+  if (id !== 'my-dapp') return;
+  updateView(path);
+});
+```
+
 ### `dx:dapp:mounted`
 
 Broadcast after a dapp has been mounted. Distinct from `dx:mount` — this is for observers, not the dapp itself.

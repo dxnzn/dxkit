@@ -223,6 +223,22 @@ window.addEventListener('dx:mount', (e) => {
 });
 ```
 
+### Sub-path Changes
+
+When navigating between sub-paths within the same dapp (e.g. `/dashboard` → `/dashboard/analytics`), the dapp is **not** re-mounted. Instead, the shell emits `dx:route:subpath`:
+
+```js
+window.addEventListener('dx:route:subpath', (e) => {
+  if (e.detail.id !== 'dashboard') return;
+
+  const subPath = e.detail.path.replace('/dashboard', '') || '/';
+  const prevSub = e.detail.previousPath.replace('/dashboard', '') || '/';
+
+  // Update internal view state
+  transitionView(prevSub, subPath);
+});
+```
+
 To navigate between sub-paths from within the dapp:
 
 ```js

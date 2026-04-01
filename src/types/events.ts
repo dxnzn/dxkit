@@ -16,6 +16,7 @@ export interface EventMap {
   'dx:dapp:disabled': { id: string };
   'dx:mount': { id: string; container: HTMLElement; path: string }; // dispatched to dapp — tells it to render (distinct from dx:dapp:mounted broadcast)
   'dx:unmount': { id: string };
+  'dx:route:subpath': { id: string; path: string; previousPath: string }; // fired when sub-path changes within an already-mounted dapp
   'dx:error': { source: string; error: Error };
   'dx:plugin:registered': { name: string };
   'dx:event:registered': { source: string; events: string[] };

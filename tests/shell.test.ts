@@ -380,6 +380,85 @@ describe('createShell', () => {
     expect(plugins.test).toBe(plugin);
   });
 
+  describe('sub-path notifications', () => {
+    const dapp: DappManifest = {
+      id: 'tools',
+      name: 'Tools',
+      version: '0.0.1',
+      route: '/tools',
+      entry: 'data:text/javascript,',
+      nav: { label: 'Tools' },
+    };
+
+    it('emits dx:route:subpath when sub-path changes within same dapp', async () => {
+      shell = createShell({ ...testLoaders, manifests: [dapp] });
+      await shell.init();
+
+      const handler = vi.fn();
+      window.addEventListener('dx:route:subpath', ((e: CustomEvent) => {
+        handler(e.detail);
+      }) as EventListener);
+
+      // Initial mount at /tools
+      shell.navigate('/tools');
+      // Allow route change to process
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Navigate to sub-path within the same dapp
+      shell.navigate('/tools/cic');
+      await new Promise((r) => setTimeout(r, 0));
+
+      expect(handler).toHaveBeenCalledOnce();
+      expect(handler).toHaveBeenCalledWith({
+        id: 'tools',
+        path: '/tools/cic',
+        previousPath: '/tools',
+      });
+
+      window.removeEventListener('dx:route:subpath', handler);
+    });
+
+    it('does not emit dx:route:subpath when navigating to same path', async () => {
+      shell = createShell({ ...testLoaders, manifests: [dapp] });
+      await shell.init();
+
+      const handler = vi.fn();
+      window.addEventListener('dx:route:subpath', handler);
+
+      shell.navigate('/tools');
+      await new Promise((r) => setTimeout(r, 0));
+
+      shell.navigate('/tools');
+      await new Promise((r) => setTimeout(r, 0));
+
+      expect(handler).not.toHaveBeenCalled();
+      window.removeEventListener('dx:route:subpath', handler);
+    });
+
+    it('emits dx:route:subpath with correct previous path on multiple sub-path changes', async () => {
+      shell = createShell({ ...testLoaders, manifests: [dapp] });
+      await shell.init();
+
+      const calls: any[] = [];
+      window.addEventListener('dx:route:subpath', ((e: CustomEvent) => {
+        calls.push(e.detail);
+      }) as EventListener);
+
+      shell.navigate('/tools');
+      await new Promise((r) => setTimeout(r, 0));
+
+      shell.navigate('/tools/a');
+      await new Promise((r) => setTimeout(r, 0));
+
+      shell.navigate('/tools/b');
+      await new Promise((r) => setTimeout(r, 0));
+
+      expect(calls).toHaveLength(2);
+      expect(calls[0]).toEqual({ id: 'tools', path: '/tools/a', previousPath: '/tools' });
+      expect(calls[1]).toEqual({ id: 'tools', path: '/tools/b', previousPath: '/tools/a' });
+    });
+  });
+
   describe('enable/disable dapps', () => {
     const required: DappManifest = {
       id: 'home',

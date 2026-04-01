@@ -485,6 +485,7 @@ interface EventMap {
   'dx:dapp:disabled': { id: string };
   'dx:mount': { id: string; container: HTMLElement; path: string };
   'dx:unmount': { id: string };
+  'dx:route:subpath': { id: string; path: string; previousPath: string };
   'dx:error': { source: string; error: Error };
   'dx:plugin:registered': { name: string };
   'dx:event:registered': { source: string; events: string[] };
