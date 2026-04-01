@@ -36,6 +36,15 @@
   "config": {
     "commitizen": {
       "path": "cz-conventional-changelog"
+    },
+    "commit-and-tag-version": {
+      "bumpFiles": [
+        { "filename": "package.json", "type": "json" },
+        { "filename": "plugins/auth/package.json", "type": "json" },
+        { "filename": "plugins/wallet/package.json", "type": "json" },
+        { "filename": "plugins/settings/package.json", "type": "json" },
+        { "filename": "plugins/theme/package.json", "type": "json" }
+      ]
     }
   },
   "devDependencies": {
