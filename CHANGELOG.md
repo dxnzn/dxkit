@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.3](https://github.com/dxnzn/dxkit/compare/v0.1.2...v0.1.3) (2026-04-01)
+
+
+### Bug Fixes
+
+* **release:** bump all plugin versions in lockstep with core ([e95a789](https://github.com/dxnzn/dxkit/commit/e95a789d52d3adceb6bfa9b15096394f9b7d2a5f))
+
 ## 0.1.2 (2026-04-01)
 
 
