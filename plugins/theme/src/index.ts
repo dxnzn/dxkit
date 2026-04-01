@@ -14,6 +14,8 @@ export interface CSSThemeOptions {
   defaultMode?: ThemeMode;
   /** localStorage key prefix. Default: 'dxkit:theme'. */
   storageKey?: string;
+  /** Called after DOM attributes are set — use for side-effects like favicon/meta-color updates. */
+  onApply?: (state: { theme: string; mode: ThemeMode; resolved: 'light' | 'dark' }) => void;
 }
 
 /**
@@ -26,7 +28,7 @@ export interface CSSThemeOptions {
  * Declares settings so the settings plugin can render theme/mode controls.
  */
 export function createCSSTheme(options: CSSThemeOptions = {}): Theme {
-  const { themes = ['default'], defaultMode = 'system', storageKey = 'dxkit:theme' } = options;
+  const { themes = ['default'], defaultMode = 'system', storageKey = 'dxkit:theme', onApply } = options;
 
   let currentTheme = themes[0];
   let currentMode: ThemeMode = defaultMode;
@@ -49,8 +51,10 @@ export function createCSSTheme(options: CSSThemeOptions = {}): Theme {
   function applyToDOM(): void {
     if (typeof document === 'undefined') return;
     const el = document.documentElement;
+    const resolved = resolveMode();
     el.setAttribute('data-theme', currentTheme);
-    el.setAttribute('data-mode', resolveMode());
+    el.setAttribute('data-mode', resolved);
+    onApply?.({ theme: currentTheme, mode: currentMode, resolved });
   }
 
   function canUseStorage(): boolean {

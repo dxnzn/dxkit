@@ -45,6 +45,7 @@ interface CSSThemeOptions {
   themes?: string[];        // default: ['default']
   defaultMode?: ThemeMode;  // default: 'system'
   storageKey?: string;      // default: 'dxkit:theme'
+  onApply?: (state: { theme: string; mode: ThemeMode; resolved: 'light' | 'dark' }) => void;
 }
 ```
 
@@ -53,6 +54,26 @@ interface CSSThemeOptions {
 | `themes` | `string[]` | `['default']` | Available theme names. First is the initial theme. |
 | `defaultMode` | `ThemeMode` | `'system'` | Initial mode: `'light'`, `'dark'`, or `'system'` |
 | `storageKey` | `string` | `'dxkit:theme'` | localStorage key for persistence |
+| `onApply` | `function` | — | Called after DOM attributes are set — use for side-effects like favicon/meta-color updates |
+
+### `onApply` Hook
+
+Use `onApply` for DOM side-effects that go beyond `data-theme`/`data-mode` attributes:
+
+```js
+const theme = createCSSTheme({
+  themes: ['default', 'midnight'],
+  onApply({ theme, mode, resolved }) {
+    // Update favicon per theme
+    document.querySelector('link[rel="icon"]').href = `/favicon-${theme}.svg`;
+    // Update meta theme-color
+    document.querySelector('meta[name="theme-color"]').content =
+      resolved === 'dark' ? '#0d0d0d' : '#ffffff';
+  },
+});
+```
+
+`onApply` fires on init, mode changes, theme changes, and system preference changes.
 
 ## API
 

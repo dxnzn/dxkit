@@ -336,6 +336,45 @@ describe('createCSSTheme', () => {
     expect(theme.getMode()).toBe('light');
   });
 
+  it('calls onApply on init', async () => {
+    const onApply = vi.fn();
+    theme = createCSSTheme({ storageKey, themes: ['default'], defaultMode: 'dark', onApply });
+    await theme.init!(ctx);
+
+    expect(onApply).toHaveBeenCalledWith({ theme: 'default', mode: 'dark', resolved: 'dark' });
+  });
+
+  it('calls onApply on setMode()', async () => {
+    const onApply = vi.fn();
+    theme = createCSSTheme({ storageKey, onApply });
+    await theme.init!(ctx);
+    onApply.mockClear();
+
+    theme.setMode('light');
+
+    expect(onApply).toHaveBeenCalledWith({ theme: 'default', mode: 'light', resolved: 'light' });
+  });
+
+  it('calls onApply on setTheme()', async () => {
+    const onApply = vi.fn();
+    theme = createCSSTheme({ storageKey, themes: ['default', 'cyber'], defaultMode: 'dark', onApply });
+    await theme.init!(ctx);
+    onApply.mockClear();
+
+    theme.setTheme('cyber');
+
+    expect(onApply).toHaveBeenCalledWith({ theme: 'cyber', mode: 'dark', resolved: 'dark' });
+  });
+
+  it('does not call onApply when not provided', async () => {
+    // Ensures no error when onApply is omitted
+    theme = createCSSTheme({ storageKey });
+    await theme.init!(ctx);
+    theme.setMode('dark');
+    theme.setTheme('default');
+    // No assertion needed — just verifying no throw
+  });
+
   it('seeds current values into settings store on init', async () => {
     const events = createEventBus();
     const settingsStore = new Map<string, unknown>();
