@@ -6,6 +6,14 @@ Read the @README.md **now** for context and understanding about this project.
 
 There is a Documentation sections that outlines all of the developer documentation that lives in the docs/ directory. Based on the description of the docs provided in the README, selective load and read additional documentation *as necessary* depending on the current sessions tasks.
 
+## Git Commits
+
+1. **Conventional commits** — `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`. Scope is optional: `feat(theme): add onApply hook`. Use `!` suffix to signal breaking changes: `feat!: rename entry to entrypoint` or `feat(manifest)!: remove styles field`. Breaking changes must also include a `BREAKING CHANGE:` footer in the body explaining what changed and how consumers should migrate.
+2. **Subject line under 72 characters.** Use the body for detail.
+3. **Body describes the "why" and the shape of the change** — not a diff recap, but enough context that an agent reviewing the commit can understand intent, trade-offs, and what areas were affected without reading every file.
+4. **Reference updated docs** — if docs were changed to reflect the commit, include `See: docs/<file> (lines x-y)` in the body so reviewers and agents can jump straight to the relevant documentation.
+5. **Co-author line** — always end with `Co-Authored-By: <model> <noreply@anthropic.com>`.
+
 ## Coding Standards
 
 ### In-line Commentary
