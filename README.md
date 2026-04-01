@@ -90,6 +90,12 @@ The `exports` field in each `package.json` maps consumers to the right format au
 
 Plugin IIFE builds bundle dxkit core inline (`noExternal: ['dxkit']`). ESM/CJS builds declare it as `external` to avoid duplication when used with a bundler.
 
+## Development Team
+
+| Name | GPG Key |
+|:-----|:--------|
+| Denizen. | [`0DC6C60CFBD5E456`](https://keys.openpgp.org/search?q=CD435BB6A7BED718D95616450DC6C60CFBD5E456) |
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
