@@ -39,13 +39,20 @@
     }
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.9",
-    "commit-and-tag-version": "^12.7.1",
-    "commitizen": "^4.3.1",
+    "@biomejs/biome": "^2.5.1",
+    "commit-and-tag-version": "^12.7.3",
+    "commitizen": "^4.3.2",
     "cz-conventional-changelog": "^3.3.0",
-    "happy-dom": "^17.4.4",
+    "happy-dom": "^20.10.6",
     "tsup": "^8.4.0",
     "typescript": "^5.8.3",
-    "vitest": "^3.2.4"
+    "vite": "^7.3.6",
+    "vitest": "^4.1.9"
+  },
+  "pnpm": {
+    "overrides": {
+      "fast-uri": "^3.1.2",
+      "fast-xml-builder": "^1.1.9"
+    }
   }
 }
