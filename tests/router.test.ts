@@ -144,4 +144,50 @@ describe('Router', () => {
     expect(router.resolve('/')?.id).toBe('home');
     router.destroy();
   });
+
+  // Regression: in hash mode, assigning location.hash fires an async 'hashchange'.
+  // navigate() must not ALSO notify explicitly or listeners fire twice per navigation.
+  describe('hash mode notifications', () => {
+    const tick = () => new Promise((r) => setTimeout(r, 0));
+
+    it('navigate() to a new hash notifies listeners exactly once', async () => {
+      const router = createRouter({
+        mode: 'hash',
+        basePath: '/',
+        manifests: [manifest({ id: 'a', route: '/a' }), manifest({ id: 'b', route: '/b' })],
+      });
+
+      router.navigate('/a');
+      await tick(); // let the initial hashchange settle before observing
+
+      const handler = vi.fn();
+      router.onRouteChange(handler);
+      router.navigate('/b'); // different hash -> hashchange (async) is the only notification
+      await tick();
+
+      expect(handler).toHaveBeenCalledTimes(1);
+      expect(handler.mock.calls[0][0]?.id).toBe('b');
+      router.destroy();
+    });
+
+    it('navigate() to the current hash still notifies (no hashchange fires)', async () => {
+      const router = createRouter({
+        mode: 'hash',
+        basePath: '/',
+        manifests: [manifest({ id: 'a', route: '/a' })],
+      });
+
+      router.navigate('/a');
+      await tick();
+
+      const handler = vi.fn();
+      router.onRouteChange(handler);
+      router.navigate('/a'); // same hash -> assignment fires nothing -> explicit notify required
+      await tick();
+
+      expect(handler).toHaveBeenCalledTimes(1);
+      expect(handler.mock.calls[0][0]?.id).toBe('a');
+      router.destroy();
+    });
+  });
 });

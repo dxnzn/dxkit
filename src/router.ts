@@ -64,12 +64,21 @@ export function createRouter(config: RouterConfig): Router {
     const fullPath = basePath === '/' ? path : basePath + path;
 
     if (mode === 'hash') {
-      window.location.hash = `#${fullPath}`;
+      const target = `#${fullPath}`;
+      // Assigning a *different* hash fires 'hashchange' (async) -> onHashChange -> notifyListeners.
+      // Notifying explicitly here too would double-notify, double-mounting the target dapp.
+      // Assigning the *same* hash fires no 'hashchange', so notify manually to preserve
+      // same-route navigation (subpath/refresh semantics).
+      if (window.location.hash === target) {
+        notifyListeners();
+      } else {
+        window.location.hash = target;
+      }
     } else {
+      // pushState does NOT fire 'popstate' — the explicit notify is the only notification.
       window.history.pushState(null, '', fullPath);
+      notifyListeners();
     }
-
-    notifyListeners();
   }
 
   function notifyListeners(): void {

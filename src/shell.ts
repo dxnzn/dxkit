@@ -40,6 +40,9 @@ export function createShell(config: ShellConfig = {}): Shell {
   let routeUnsub: (() => void) | null = null;
   let initialized = false;
   let currentPath: string | null = null;
+  // Set synchronously before mountDapp's first await so concurrent calls for the
+  // same dapp (e.g. a duplicate route notification) can't both pass the mount guard.
+  let pendingMountId: string | null = null;
   const enabledState = new Map<string, boolean>();
 
   function getEnabledManifests(): DappManifest[] {
@@ -267,7 +270,7 @@ export function createShell(config: ShellConfig = {}): Shell {
   async function mountDapp(manifest: DappManifest): Promise<void> {
     const path = router.getCurrentPath();
 
-    // Same dapp, different sub-path — notify without re-mounting
+    // Already mounted — same dapp, different sub-path → notify without re-mounting
     if (lifecycle.getCurrentDapp() === manifest.id) {
       if (currentPath !== null && currentPath !== path) {
         const previousPath = currentPath;
@@ -277,11 +280,21 @@ export function createShell(config: ShellConfig = {}): Shell {
       return;
     }
 
+    // A mount for this same dapp is already in flight — drop the duplicate. The in-flight
+    // call sets currentDappId/currentPath when it finishes; re-running here would emit a
+    // second dx:mount. (Not a sub-path: the duplicate resolves to the same path.)
+    if (pendingMountId === manifest.id) return;
+
     const container = getMountContainer();
     if (!container) return;
 
-    await lifecycle.mount(manifest, container, path);
-    currentPath = path;
+    pendingMountId = manifest.id;
+    try {
+      await lifecycle.mount(manifest, container, path);
+      currentPath = path;
+    } finally {
+      pendingMountId = null;
+    }
   }
 
   // Lazily resolved — developer must provide <div id="dx-mount"> in their layout

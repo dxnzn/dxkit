@@ -459,6 +459,131 @@ describe('createShell', () => {
     });
   });
 
+  describe('mount de-duplication (double-mount regression)', () => {
+    const tick = () => new Promise((r) => setTimeout(r, 0));
+
+    const dappA: DappManifest = {
+      id: 'a',
+      name: 'A',
+      version: '0.0.1',
+      route: '/a',
+      entry: '/dapps/a/app.js',
+      nav: { label: 'A' },
+    };
+    const dappB: DappManifest = {
+      id: 'b',
+      name: 'B',
+      version: '0.0.1',
+      route: '/b',
+      entry: '/dapps/b/app.js',
+      nav: { label: 'B' },
+    };
+
+    function countMounts(id: string): { count: () => number; cleanup: () => void } {
+      let n = 0;
+      const handler = (e: Event) => {
+        if ((e as CustomEvent).detail.id === id) n += 1;
+      };
+      window.addEventListener('dx:mount', handler);
+      return { count: () => n, cleanup: () => window.removeEventListener('dx:mount', handler) };
+    }
+
+    /** Entry loader that holds the first load open until release() — widens the in-flight window. */
+    function deferredEntryLoader(): { loader: ShellConfig['scriptLoader']; release: () => void } {
+      let release!: () => void;
+      let started = false;
+      const first = new Promise<void>((res) => {
+        release = res;
+      });
+      const loader: ShellConfig['scriptLoader'] = (_src: string) => {
+        if (!started) {
+          started = true;
+          return first;
+        }
+        // A concurrent load of the same script resolves immediately — mirrors the real
+        // loader, where the second caller finds the <script> already injected.
+        return Promise.resolve();
+      };
+      return { loader, release };
+    }
+
+    it('hash mode: cross-route navigate mounts the target exactly once', async () => {
+      shell = createShell({ ...testLoaders, mode: 'hash', manifests: [dappA, dappB] });
+      await shell.init();
+
+      shell.navigate('/a');
+      await tick();
+
+      const mounts = countMounts('b');
+      shell.navigate('/b');
+      await tick();
+
+      expect(mounts.count()).toBe(1);
+      expect(shell.getCurrentRoute()).toBe('/b');
+      mounts.cleanup();
+    });
+
+    it('history mode: cross-route navigate mounts the target exactly once', async () => {
+      shell = createShell({ ...testLoaders, mode: 'history', manifests: [dappA, dappB] });
+      await shell.init();
+
+      shell.navigate('/a');
+      await tick();
+
+      const mounts = countMounts('b');
+      shell.navigate('/b');
+      await tick();
+
+      expect(mounts.count()).toBe(1);
+      expect(shell.getCurrentRoute()).toBe('/b');
+      mounts.cleanup();
+    });
+
+    it('drops a duplicate notification while a mount of the same dapp is in flight', async () => {
+      const { loader, release } = deferredEntryLoader();
+      shell = createShell({ scriptLoader: loader, styleLoader: async () => {}, mode: 'history', manifests: [dappB] });
+      await shell.init();
+
+      const mounts = countMounts('b');
+      // First navigate suspends inside lifecycle.mount on the held entry load;
+      // the second is a duplicate notification for the same dapp and must be dropped.
+      shell.navigate('/b');
+      shell.navigate('/b');
+      release();
+      await tick();
+
+      expect(mounts.count()).toBe(1);
+      mounts.cleanup();
+    });
+
+    it('hash mode: navigating to the current route still resolves (no silent no-op)', async () => {
+      shell = createShell({ ...testLoaders, mode: 'hash', manifests: [dappA] });
+      await shell.init();
+
+      shell.navigate('/a');
+      await tick();
+
+      const changed = vi.fn();
+      window.addEventListener('dx:route:changed', changed);
+      shell.navigate('/a'); // same route — must still run resolution, not no-op
+      await tick();
+
+      expect(changed).toHaveBeenCalledTimes(1);
+      window.removeEventListener('dx:route:changed', changed);
+    });
+
+    it('hash mode: booting directly at a route mounts exactly once', async () => {
+      const mounts = countMounts('b');
+      window.location.hash = '#/b';
+      shell = createShell({ ...testLoaders, mode: 'hash', manifests: [dappA, dappB] });
+      await shell.init();
+      await tick(); // allow the pre-init hashchange to flush
+
+      expect(mounts.count()).toBe(1);
+      mounts.cleanup();
+    });
+  });
+
   describe('enable/disable dapps', () => {
     const required: DappManifest = {
       id: 'home',

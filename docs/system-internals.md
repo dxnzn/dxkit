@@ -116,6 +116,8 @@ sequenceDiagram
     Shell->>Bus: emit('dx:route:changed', { path, manifest })
 ```
 
+**Mount de-duplication.** The shell mounts each dapp once per activation. A route change to the *already-mounted* dapp doesn't re-mount — it emits `dx:route:subpath` if the sub-path changed, otherwise it's a no-op. Because `mount()` is async (it awaits script/style/template loads), the shell also tracks an in-flight mount id: a second route notification for the same dapp that arrives *while its mount is still loading* is dropped, so `dx:mount` fires exactly once even under overlapping navigations.
+
 ## Router Internals
 
 ### Path Normalization
@@ -158,6 +160,8 @@ Manifests: ['/tools/sender', '/tools', '/blog']
 | Server requirement | Needs catch-all route | Works with any static server |
 
 Hash mode is useful for static hosting, IPFS, and `file:///` environments where the server can't rewrite URLs.
+
+**Notification semantics.** `navigate()` notifies route listeners exactly once per call. In hash mode, assigning a *new* `location.hash` fires an asynchronous `hashchange`, so `navigate()` lets that event drive the notification rather than notifying inline (doing both would double-notify and double-mount the target dapp). Assigning the *same* hash fires no `hashchange`, so `navigate()` notifies explicitly in that case. History mode always notifies explicitly — `pushState()` fires no `popstate`.
 
 ## Lifecycle Manager Internals
 
