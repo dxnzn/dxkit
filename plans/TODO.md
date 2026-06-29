@@ -25,3 +25,14 @@ Today `@dxkit/settings`, `@dxkit/theme`, and `@dxkit/wallet` all access `localSt
 - [ ] Refactor `@dxkit/theme` to use `dx.storage`
 - [ ] Refactor `@dxkit/wallet` to use `dx.storage`
 - [ ] Update docs and README
+
+## TypeScript 6 Upgrade
+
+Bump `typescript` from `^5.8.3` to `^6.x`. Held back during the 2026-06 dependency refresh because it's a major with potential type-checking breaks and fixes no security advisory.
+
+### Requirements
+
+- [ ] Bump `typescript` to `^6.x` in root `package.json`
+- [ ] `pnpm -r build` clean (tsup + DTS emit for core and all plugins)
+- [ ] `pnpm test` and `pnpm lint` clean
+- [ ] Review TS 6 breaking changes / new strictness against `tsconfig.json` and fix any surfaced type errors
