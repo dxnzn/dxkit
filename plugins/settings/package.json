@@ -1,6 +1,6 @@
 {
   "name": "@dnzn/dxkit-settings",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "DxKit settings plugin — per-dapp configuration with form generation",
   "author": "Denizen. <null@dnzn.dev>",
   "license": "MIT",

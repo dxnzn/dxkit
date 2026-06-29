@@ -1,6 +1,6 @@
 {
   "name": "@dnzn/dxkit-wallet",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "DxKit wallet plugin — injected wallet (window.ethereum)",
   "author": "Denizen. <null@dnzn.dev>",
   "license": "MIT",

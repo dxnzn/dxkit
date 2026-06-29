@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.5](https://github.com/dxnzn/dxkit/compare/v0.1.4...v0.1.5) (2026-06-29)
+
+
+### Bug Fixes
+
+* **router:** mount target dapp once per hash-mode navigation ([419a0c7](https://github.com/dxnzn/dxkit/commit/419a0c7eac1d443317ecd920757c6cf11ec72a0d))
+
 ## [0.1.4](https://github.com/dxnzn/dxkit/compare/v0.1.3...v0.1.4) (2026-04-01)
 
 ## [0.1.3](https://github.com/dxnzn/dxkit/compare/v0.1.2...v0.1.3) (2026-04-01)
