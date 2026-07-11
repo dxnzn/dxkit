@@ -38,14 +38,14 @@ confidence.
 - ✓ Triple build output per package (ESM / CJS / IIFE) via tsup — existing
 - ✓ Test suite on vitest + happy-dom — existing
 
+<!-- Validated in Phase 1: Diagnostics — Surface Silent Failures (0.2.0) -->
+- ✓ Emit `dx:error` (source `shell:mount`) when `#dx-mount` container can't be resolved — validated Phase 1
+- ✓ Emit `dx:error` on `localStorage` read/write failures (wallet, theme, settings) — validated Phase 1
+- ✓ Emit `dx:error` and clear the mount container on post-injection (entry/dependency) load failure — validated Phase 1
+
 ### Active
 
 <!-- The 0.2.0 hardening + docs-truth milestone. Hypotheses until shipped and validated. -->
-
-**Hardening — surface silent failures**
-- [ ] Emit `dx:error` when `#dx-mount` container can't be resolved (instead of silent skip)
-- [ ] Emit `dx:error` on `localStorage` read/write failures (wallet, theme, settings)
-- [ ] Emit `dx:error` and clear/restore container on entry-script load failure (no stale DOM)
 
 **Hardening — robustness guards**
 - [ ] Optional load timeouts for script/style/template fetches (no hang-forever mounts)
@@ -127,4 +127,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-11 after initialization*
+*Last updated: 2026-07-11 — Phase 1 complete (diagnostics: silent failures now surface via `dx:error`)*
