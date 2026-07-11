@@ -138,6 +138,8 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
             source: `lifecycle:${manifest.id}:dependency`,
             error: err instanceof Error ? err : new Error(String(err)),
           });
+          // Post-injection failure — clear any template HTML so no stale dapp DOM remains addressable.
+          container.innerHTML = '';
           return;
         }
       }
@@ -151,6 +153,8 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
         source: `lifecycle:${manifest.id}`,
         error: err instanceof Error ? err : new Error(String(err)),
       });
+      // Post-injection failure — clear any template HTML so no stale dapp DOM remains addressable.
+      container.innerHTML = '';
       return;
     }
 

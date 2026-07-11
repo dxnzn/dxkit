@@ -318,6 +318,35 @@ describe('createShell', () => {
     window.fetch = originalFetch;
   });
 
+  it('emits dx:error (source shell:mount) when #dx-mount is absent, without throwing', async () => {
+    // No <div id="dx-mount"> in the DOM at all — exercises lazy getMountContainer() returning null.
+    container.remove();
+
+    const dapp: DappManifest = {
+      id: 'nomount',
+      name: 'NoMount',
+      version: '0.0.1',
+      route: '/nomount',
+      entry: 'data:text/javascript,',
+      nav: { label: 'NoMount' },
+    };
+
+    shell = createShell({ ...testLoaders, manifests: [dapp] });
+
+    const errors: { source: string; error: Error }[] = [];
+    window.addEventListener('dx:error', ((e: CustomEvent) => {
+      errors.push(e.detail);
+    }) as EventListener);
+
+    await shell.init();
+    shell.navigate('/nomount');
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(errors).toHaveLength(1);
+    expect(errors[0].source).toBe('shell:mount');
+    expect(errors[0].error.message).toContain('nomount');
+  });
+
   it('rejects manifests missing required fields and emits dx:error', async () => {
     const errors: { source: string; error: Error }[] = [];
     window.addEventListener('dx:error', ((e: CustomEvent) => {

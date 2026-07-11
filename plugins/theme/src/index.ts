@@ -75,8 +75,13 @@ export function createCSSTheme(options: CSSThemeOptions = {}): Theme {
           mode: currentMode,
         }),
       );
-    } catch {
-      /* storage full or blocked */
+    } catch (err) {
+      dx?.events.emit('dx:error', {
+        source: 'plugin:theme:storage:write',
+        error: new Error(`Theme persist failed: ${err instanceof Error ? err.message : String(err)}`, {
+          cause: err,
+        }),
+      });
     }
   }
 
@@ -88,8 +93,14 @@ export function createCSSTheme(options: CSSThemeOptions = {}): Theme {
       const saved = JSON.parse(raw);
       if (saved.theme && themes.includes(saved.theme)) currentTheme = saved.theme;
       if (saved.mode && ['light', 'dark', 'system'].includes(saved.mode)) currentMode = saved.mode;
-    } catch {
-      /* corrupted — use defaults */
+    } catch (err) {
+      dx?.events.emit('dx:error', {
+        source: 'plugin:theme:storage:read',
+        error: new Error(
+          `Theme restore failed (corrupted data) — falling back to defaults: ${err instanceof Error ? err.message : String(err)}`,
+          { cause: err },
+        ),
+      });
     }
   }
 

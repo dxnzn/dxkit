@@ -397,6 +397,52 @@ describe('LifecycleManager', () => {
     lm.destroy();
   });
 
+  it('clears the mount container when entry script fails after a template was injected', async () => {
+    const lm = createLifecycleManager(events, {
+      scriptLoader: failLoader,
+      templateLoader: async () => '<div id="app">Template Content</div>',
+    });
+
+    const errorHandler = vi.fn();
+    events.on('dx:error', errorHandler);
+
+    const m = { ...manifest('tpl-entry-fail'), template: '/dapps/tpl-entry-fail/tpl.html' };
+    await lm.mount(m, container);
+
+    expect(container.innerHTML).toBe('');
+    expect(errorHandler).toHaveBeenCalledOnce();
+    expect(errorHandler.mock.calls[0][0].source).toBe('lifecycle:tpl-entry-fail');
+    expect(lm.getCurrentDapp()).toBeNull();
+
+    lm.destroy();
+  });
+
+  it('clears the mount container when a dependency fails after a template was injected', async () => {
+    const lm = createLifecycleManager(events, {
+      scriptLoader: async (src: string) => {
+        if (src.includes('bad')) throw new Error(`Failed: ${src}`);
+      },
+      templateLoader: async () => '<div id="app">Template Content</div>',
+    });
+
+    const errorHandler = vi.fn();
+    events.on('dx:error', errorHandler);
+
+    const m = {
+      ...manifest('tpl-dep-fail'),
+      template: '/dapps/tpl-dep-fail/tpl.html',
+      dependencies: ['/lib/bad.js'],
+    };
+    await lm.mount(m, container);
+
+    expect(container.innerHTML).toBe('');
+    expect(errorHandler).toHaveBeenCalledOnce();
+    expect(errorHandler.mock.calls[0][0].source).toBe('lifecycle:tpl-dep-fail:dependency');
+    expect(lm.getCurrentDapp()).toBeNull();
+
+    lm.destroy();
+  });
+
   it('skips dependency loading when none declared', async () => {
     const loader = vi.fn(async () => {});
     const lm = createLifecycleManager(events, { scriptLoader: loader });

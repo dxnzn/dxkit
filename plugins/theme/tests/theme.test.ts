@@ -375,6 +375,71 @@ describe('createCSSTheme', () => {
     // No assertion needed — just verifying no throw
   });
 
+  describe('storage failure diagnostics', () => {
+    it('emits dx:error with source plugin:theme:storage:write when setItem throws', async () => {
+      theme = createCSSTheme({ storageKey, themes: ['default'] });
+      await theme.init!(ctx);
+
+      const errorHandler = vi.fn();
+      ctx.events.on('dx:error', errorHandler);
+
+      const setItemSpy = vi.spyOn(localStorage, 'setItem').mockImplementation(() => {
+        throw new Error('QuotaExceededError');
+      });
+
+      try {
+        theme.setMode('dark');
+
+        expect(errorHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            source: 'plugin:theme:storage:write',
+            error: expect.any(Error),
+          }),
+        );
+      } finally {
+        setItemSpy.mockRestore();
+      }
+    });
+
+    it('emits dx:error with source plugin:theme:storage:read on corrupted restore and falls back to defaults', async () => {
+      localStorage.setItem(storageKey, '{not valid json!!!');
+
+      const errorHandler = vi.fn();
+      ctx.events.on('dx:error', errorHandler);
+
+      theme = createCSSTheme({ storageKey, themes: ['default', 'ocean'], defaultMode: 'system' });
+      await theme.init!(ctx);
+
+      expect(errorHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'plugin:theme:storage:read',
+          error: expect.any(Error),
+        }),
+      );
+      expect(theme.getTheme()).toBe('default');
+      expect(theme.getMode()).toBe('system');
+    });
+
+    it('emits no dx:error when storage is unavailable', async () => {
+      const original = (globalThis as any).localStorage;
+      // @ts-expect-error simulate localStorage being unavailable (SSR/private mode)
+      delete (globalThis as any).localStorage;
+
+      try {
+        const errorHandler = vi.fn();
+        ctx.events.on('dx:error', errorHandler);
+
+        theme = createCSSTheme({ storageKey, themes: ['default'] });
+        await theme.init!(ctx);
+        theme.setMode('dark');
+
+        expect(errorHandler).not.toHaveBeenCalled();
+      } finally {
+        (globalThis as any).localStorage = original;
+      }
+    });
+  });
+
   it('seeds current values into settings store on init', async () => {
     const events = createEventBus();
     const settingsStore = new Map<string, unknown>();

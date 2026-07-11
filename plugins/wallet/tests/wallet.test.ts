@@ -455,6 +455,75 @@ describe('createWallet', () => {
     expect(wallet.getActiveProvider()).toBeNull();
   });
 
+  describe('storage failure diagnostics', () => {
+    it('emits dx:error with source plugin:wallet:storage:write when setItem throws', async () => {
+      wallet = createWallet({ providers: [createLocalWalletProvider()] });
+      await wallet.init!(ctx);
+
+      const errorHandler = vi.fn();
+      ctx.events.on('dx:error', errorHandler);
+
+      const setItemSpy = vi.spyOn(localStorage, 'setItem').mockImplementation(() => {
+        throw new Error('QuotaExceededError');
+      });
+
+      try {
+        await wallet.connect();
+
+        expect(errorHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            source: 'plugin:wallet:storage:write',
+            error: expect.any(Error),
+          }),
+        );
+      } finally {
+        setItemSpy.mockRestore();
+      }
+    });
+
+    it('emits dx:error with source plugin:wallet:storage:read when getItem throws', async () => {
+      const errorHandler = vi.fn();
+      ctx.events.on('dx:error', errorHandler);
+
+      const getItemSpy = vi.spyOn(localStorage, 'getItem').mockImplementation(() => {
+        throw new Error('SecurityError');
+      });
+
+      try {
+        wallet = createWallet({ providers: [createLocalWalletProvider()] });
+        await wallet.init!(ctx);
+
+        expect(errorHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            source: 'plugin:wallet:storage:read',
+            error: expect.any(Error),
+          }),
+        );
+      } finally {
+        getItemSpy.mockRestore();
+      }
+    });
+
+    it('emits no dx:error when storage is unavailable', async () => {
+      const original = (globalThis as any).localStorage;
+      // @ts-expect-error simulate localStorage being unavailable (SSR/private mode)
+      delete (globalThis as any).localStorage;
+
+      try {
+        const errorHandler = vi.fn();
+        ctx.events.on('dx:error', errorHandler);
+
+        wallet = createWallet({ providers: [createLocalWalletProvider()] });
+        await wallet.init!(ctx);
+        await wallet.connect();
+
+        expect(errorHandler).not.toHaveBeenCalled();
+      } finally {
+        (globalThis as any).localStorage = original;
+      }
+    });
+  });
+
   it('calls wallet_revokePermissions on disconnect when setting enabled', async () => {
     const mock = mockEIP1193Provider();
     (window as any).ethereum = mock;

@@ -459,6 +459,74 @@ describe('createSettings', () => {
     });
   });
 
+  describe('storage failure diagnostics', () => {
+    it('emits dx:error with source plugin:settings:storage:write when setItem throws', async () => {
+      plugin = createSettings({ storageKey: uniqueStorageKey() });
+      await plugin.init!(ctx);
+      const api = plugin.getSettingsAPI();
+
+      const errorHandler = vi.fn();
+      ctx.events.on('dx:error', errorHandler);
+
+      const setItemSpy = vi.spyOn(localStorage, 'setItem').mockImplementation(() => {
+        throw new Error('QuotaExceededError');
+      });
+
+      try {
+        api.set('blog', 'postsPerPage', 42);
+
+        expect(errorHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            source: 'plugin:settings:storage:write',
+            error: expect.any(Error),
+          }),
+        );
+      } finally {
+        setItemSpy.mockRestore();
+      }
+    });
+
+    it('emits dx:error with source plugin:settings:storage:read on corrupted restore and falls back to defaults', async () => {
+      const key = uniqueStorageKey();
+      localStorage.setItem(key, '{not valid json!!!');
+
+      const errorHandler = vi.fn();
+      ctx.events.on('dx:error', errorHandler);
+
+      plugin = createSettings({ storageKey: key });
+      await plugin.init!(ctx);
+      const api = plugin.getSettingsAPI();
+
+      expect(errorHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'plugin:settings:storage:read',
+          error: expect.any(Error),
+        }),
+      );
+      expect(api.get('blog', 'defaultCategory')).toBe('all');
+    });
+
+    it('emits no dx:error when storage is unavailable', async () => {
+      const original = (globalThis as any).localStorage;
+      // @ts-expect-error simulate localStorage being unavailable (SSR/private mode)
+      delete (globalThis as any).localStorage;
+
+      try {
+        const errorHandler = vi.fn();
+        ctx.events.on('dx:error', errorHandler);
+
+        plugin = createSettings({ storageKey: uniqueStorageKey() });
+        await plugin.init!(ctx);
+        const api = plugin.getSettingsAPI();
+        api.set('blog', 'postsPerPage', 5);
+
+        expect(errorHandler).not.toHaveBeenCalled();
+      } finally {
+        (globalThis as any).localStorage = original;
+      }
+    });
+  });
+
   describe('dapp toggle wiring', () => {
     it('calls ctx.enableDapp when toggle set to true', async () => {
       const manifests: DappManifest[] = [
