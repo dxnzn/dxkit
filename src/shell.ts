@@ -286,7 +286,13 @@ export function createShell(config: ShellConfig = {}): Shell {
     if (pendingMountId === manifest.id) return;
 
     const container = getMountContainer();
-    if (!container) return;
+    if (!container) {
+      events.emit('dx:error', {
+        source: 'shell:mount',
+        error: new Error(`Mount failed for "${manifest.id}" — #dx-mount container not found in the DOM`),
+      });
+      return;
+    }
 
     pendingMountId = manifest.id;
     try {
