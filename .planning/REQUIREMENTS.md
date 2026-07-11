@@ -10,7 +10,7 @@ Requirements for the 0.2.0 hardening milestone. Each maps to a roadmap phase.
 ### Diagnostics — surface silent failures
 
 - [x] **DIAG-01**: Shell emits `dx:error` when the `#dx-mount` container can't be resolved (instead of silently skipping the mount)
-- [ ] **DIAG-02**: Plugins emit `dx:error` when a `localStorage` read/write fails (wallet, theme, settings) rather than swallowing it
+- [x] **DIAG-02**: Plugins emit `dx:error` when a `localStorage` read/write fails (wallet, theme, settings) rather than swallowing it
 - [x] **DIAG-03**: On entry-script load failure, the shell emits `dx:error` and clears/restores the mount container so stale dapp DOM is not left visible
 
 ### Robustness
@@ -70,7 +70,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | DIAG-01 | Phase 1 | Complete |
-| DIAG-02 | Phase 1 | Pending |
+| DIAG-02 | Phase 1 | Complete |
 | DIAG-03 | Phase 1 | Complete |
 | ROB-01 | Phase 2 | Pending |
 | ROB-02 | Phase 2 | Pending |

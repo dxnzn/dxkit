@@ -23,7 +23,7 @@ audit surfaced filled in.
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Diagnostics — Surface Silent Failures** - `dx:error` fires for every previously-silent failure path (missing mount, storage errors, entry-load failures)
+- [x] **Phase 1: Diagnostics — Surface Silent Failures** - `dx:error` fires for every previously-silent failure path (missing mount, storage errors, entry-load failures) (completed 2026-07-11)
 - [ ] **Phase 2: Robustness — Load Guards, Caching & Handler Cleanup** - Mounts can't hang, router/template work isn't repeated, and disabled dapps stop leaking settings handlers
 - [ ] **Phase 3: Security — Sanitization & Storage Isolation** - Templates can be sanitized before injection and wallet storage keys no longer collide across apps
 - [ ] **Phase 4: Testing — Stress, Edge-Case & Regression Coverage** - Concurrent-navigation, manifest-validation, and settings-cleanup behavior gets dedicated test coverage
@@ -42,10 +42,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. A `dx:error` event fires — identifying the plugin and the failed operation — when a `localStorage` read or write fails in the wallet, theme, or settings plugin.
   3. A `dx:error` event fires and the mount container is cleared/restored (no stale dapp DOM left visible) when an entry-script fails to load.
 
-**Plans**: 1/2 plans executed
+**Plans**: 2/2 plans complete
 
 - [x] 01-01-PLAN.md — Shell/lifecycle mount diagnostics: emit `dx:error` on missing `#dx-mount` (DIAG-01) + clear container on entry/dependency load failure (DIAG-03)
-- [ ] 01-02-PLAN.md — Plugin storage diagnostics: emit `dx:error` on localStorage read/write failure in settings, theme, wallet (DIAG-02)
+- [x] 01-02-PLAN.md — Plugin storage diagnostics: emit `dx:error` on localStorage read/write failure in settings, theme, wallet (DIAG-02)
 
 ### Phase 2: Robustness — Load Guards, Caching & Handler Cleanup
 
@@ -107,7 +107,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Diagnostics — Surface Silent Failures | 1/2 | In Progress|  |
+| 1. Diagnostics — Surface Silent Failures | 2/2 | Complete   | 2026-07-11 |
 | 2. Robustness — Load Guards, Caching & Handler Cleanup | 0/TBD | Not started | - |
 | 3. Security — Sanitization & Storage Isolation | 0/TBD | Not started | - |
 | 4. Testing — Stress, Edge-Case & Regression Coverage | 0/TBD | Not started | - |
