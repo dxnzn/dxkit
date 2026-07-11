@@ -38,7 +38,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. A `dx:error` event fires (with a descriptive payload) when the shell can't resolve `#dx-mount`, instead of the mount silently no-op'ing.
   2. A `dx:error` event fires — identifying the plugin and the failed operation — when a `localStorage` read or write fails in the wallet, theme, or settings plugin.
   3. A `dx:error` event fires and the mount container is cleared/restored (no stale dapp DOM left visible) when an entry-script fails to load.
-**Plans**: TBD
+**Plans**: 2 plans
+- [ ] 01-01-PLAN.md — Shell/lifecycle mount diagnostics: emit `dx:error` on missing `#dx-mount` (DIAG-01) + clear container on entry/dependency load failure (DIAG-03)
+- [ ] 01-02-PLAN.md — Plugin storage diagnostics: emit `dx:error` on localStorage read/write failure in settings, theme, wallet (DIAG-02)
 
 ### Phase 2: Robustness — Load Guards, Caching & Handler Cleanup
 **Goal**: Mounts can't hang indefinitely, redundant router/template work is eliminated, and settings handlers don't leak across a disabled dapp.
@@ -88,7 +90,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Diagnostics — Surface Silent Failures | 0/TBD | Not started | - |
+| 1. Diagnostics — Surface Silent Failures | 0/2 | Not started | - |
 | 2. Robustness — Load Guards, Caching & Handler Cleanup | 0/TBD | Not started | - |
 | 3. Security — Sanitization & Storage Isolation | 0/TBD | Not started | - |
 | 4. Testing — Stress, Edge-Case & Regression Coverage | 0/TBD | Not started | - |
