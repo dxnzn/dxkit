@@ -51,8 +51,13 @@ export function createSettings(options: SettingsPluginOptions = {}): Plugin & { 
         data[dappId] = Object.fromEntries(values);
       }
       localStorage.setItem(storageKey, JSON.stringify(data));
-    } catch {
-      /* storage full or blocked */
+    } catch (err) {
+      dx?.events.emit('dx:error', {
+        source: 'plugin:settings:storage:write',
+        error: new Error(`Settings persist failed: ${err instanceof Error ? err.message : String(err)}`, {
+          cause: err,
+        }),
+      });
     }
   }
 
@@ -69,8 +74,14 @@ export function createSettings(options: SettingsPluginOptions = {}): Plugin & { 
         }
         store.set(dappId, map);
       }
-    } catch {
-      /* corrupted — use defaults */
+    } catch (err) {
+      dx?.events.emit('dx:error', {
+        source: 'plugin:settings:storage:read',
+        error: new Error(
+          `Settings restore failed (corrupted data) — falling back to defaults: ${err instanceof Error ? err.message : String(err)}`,
+          { cause: err },
+        ),
+      });
     }
   }
 
