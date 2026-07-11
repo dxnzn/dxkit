@@ -77,7 +77,11 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-None yet.
+3 open (from Phase 1 code review, `01-REVIEW.md`):
+
+- WR-01 — surface `loadDappManifest` fetch/parse failures (`src/shell.ts`)
+- WR-02 — wallet connect empty-accounts yields `undefined` address (`plugins/wallet`)
+- WR-03 — surface wallet auto-reconnect failure on init (`plugins/wallet`) → tagged `resolves_phase: 3` (bundle with SEC-02)
 
 ### Blockers/Concerns
 
