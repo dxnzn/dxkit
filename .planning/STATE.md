@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 1
-current_phase_name: Diagnostics — Surface Silent Failures
+current_phase: 01
+current_phase_name: diagnostics-surface-silent-failures
 status: executing
-stopped_at: Phase 1 context gathered
-last_updated: "2026-07-11T21:54:03.831Z"
+stopped_at: Completed 01-01-PLAN.md
+last_updated: "2026-07-11T22:10:10.229Z"
 last_activity: 2026-07-11
-last_activity_desc: ROADMAP.md created for the 0.2.0 hardening milestone; all 15 v1 requirements mapped across 5 phases
+last_activity_desc: Phase 01 execution started
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
   percent: 0
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-11)
 
 **Core value:** DxKit stays trustworthy for real use — failures are visible (never silent), documented behavior matches actual behavior, and the alpha is stable enough to build on with confidence.
-**Current focus:** Phase 1 - Diagnostics — Surface Silent Failures
+**Current focus:** Phase 01 — diagnostics-surface-silent-failures
 
 ## Current Position
 
-Phase: 1 of 5 (Diagnostics — Surface Silent Failures)
-Plan: 0 of TBD in current phase
+Phase: 01 (diagnostics-surface-silent-failures) — EXECUTING
+Plan: 2 of 2
 Status: Ready to execute
-Last activity: 2026-07-11 — ROADMAP.md created for the 0.2.0 hardening milestone; all 15 v1 requirements mapped across 5 phases
+Last activity: 2026-07-11 — Phase 01 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -55,6 +55,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: -
 
 *Updated after each plan completion*
+| Phase 01 P01 | 4min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,8 @@ Recent decisions affecting current work:
 - Milestone-wide: Docs pass (Phase 5) = verify-against-code + slop cleanup + gap-fill; sequenced last so it reflects final 0.2.0 behavior.
 - Milestone-wide: Breaking changes allowed but must be justified and carry `BREAKING CHANGE:` footers + migration notes.
 - Milestone-wide: TS6 migration, new routing features, storage encryption, and cross-dapp state sharing are explicitly out of scope for this milestone.
+- [Phase 01-01]: shell:mount emit follows the existing shell:manifest wrapped-message convention — Consistency with in-file dx:error emit sites (D-02/D-03)
+- [Phase 01-01]: Container clear applied only to the two post-injection catches (dependency-loop, entry-script) — Template-catch returns before/at injection so no stale DOM exists there (D-12 scope boundary)
 
 ### Pending Todos
 
@@ -87,6 +90,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-11T21:18:53.464Z
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-diagnostics-surface-silent-failures/01-CONTEXT.md
+Last session: 2026-07-11T22:09:55.325Z
+Stopped at: Completed 01-01-PLAN.md
+Resume file: 
