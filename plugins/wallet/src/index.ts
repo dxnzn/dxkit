@@ -163,22 +163,43 @@ export function createWallet(options: WalletOptions): Wallet {
   let state: WalletState = { connected: false, address: null, chainId: null, provider: null };
   const handlers = new Set<(state: WalletState) => void>();
 
+  function canUseStorage(): boolean {
+    try {
+      return typeof localStorage !== 'undefined' && typeof localStorage.setItem === 'function';
+    } catch {
+      return false;
+    }
+  }
+
   function persistProvider(providerId: string | null): void {
+    if (!canUseStorage()) return;
     try {
       if (providerId) {
         localStorage.setItem(STORAGE_KEY, providerId);
       } else {
         localStorage.removeItem(STORAGE_KEY);
       }
-    } catch {
-      /* localStorage unavailable */
+    } catch (err) {
+      dx?.events.emit('dx:error', {
+        source: 'plugin:wallet:storage:write',
+        error: new Error(`Wallet provider persist failed: ${err instanceof Error ? err.message : String(err)}`, {
+          cause: err,
+        }),
+      });
     }
   }
 
   function getPersistedProvider(): string | null {
+    if (!canUseStorage()) return null;
     try {
       return localStorage.getItem(STORAGE_KEY);
-    } catch {
+    } catch (err) {
+      dx?.events.emit('dx:error', {
+        source: 'plugin:wallet:storage:read',
+        error: new Error(`Wallet provider restore failed: ${err instanceof Error ? err.message : String(err)}`, {
+          cause: err,
+        }),
+      });
       return null;
     }
   }
