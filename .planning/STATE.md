@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 2
-current_phase_name: Robustness — Load Guards, Caching & Handler Cleanup
-status: "Phase 1 shipped — PR #1"
-stopped_at: Completed 01-01-PLAN.md
-last_updated: "2026-07-11T22:47:14.109Z"
-last_activity: 2026-07-11
+current_phase: 3
+current_phase_name: Security — Sanitization & Storage Isolation
+status: "Phase 2 shipped — PR #2"
+stopped_at: Completed 02-03-PLAN.md
+last_updated: "2026-07-12T05:31:49.543Z"
+last_activity: 2026-07-12
 progress:
   total_phases: 5
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
-  percent: 20
+  completed_phases: 2
+  total_plans: 6
+  completed_plans: 6
+  percent: 40
 ---
 
 # Project State
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-11)
 
 **Core value:** DxKit stays trustworthy for real use — failures are visible (never silent), documented behavior matches actual behavior, and the alpha is stable enough to build on with confidence.
-**Current focus:** Phase 01 — diagnostics-surface-silent-failures
+**Current focus:** Phase 02 — robustness-load-guards-caching-handler-cleanup
 
 ## Current Position
 
-Phase: 2 — Robustness — Load Guards, Caching & Handler Cleanup
+Phase: 3 — Security — Sanitization & Storage Isolation
 Plan: Not started
-Status: Phase 1 shipped — PR #1
-Last activity: 2026-07-11
+Status: Phase 2 shipped — PR #2
+Last activity: 2026-07-12
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -38,7 +38,7 @@ Progress: [░░░░░░░░░░] 0%
 
 **Velocity:**
 
-- Total plans completed: 2
+- Total plans completed: 6
 - Average duration: - min
 - Total execution time: 0 hours
 
@@ -47,6 +47,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01 | 2 | - | - |
+| 02 | 4 | - | - |
 
 **Recent Trend:**
 
@@ -56,6 +57,10 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 | Phase 01 P01 | 4min | 2 tasks | 4 files |
 | Phase 01 P02 | 15min | 3 tasks | 6 files |
+| Phase 02 P01 | 3min | 2 tasks | 2 files |
+| Phase 02 P02 | 4min | 2 tasks | 2 files |
+| Phase 02 P03 | 5min | 2 tasks | 2 files |
+| Phase 02 P04 | 4min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -73,6 +78,12 @@ Recent decisions affecting current work:
 - [Phase 01-01]: Container clear applied only to the two post-injection catches (dependency-loop, entry-script) — Template-catch returns before/at injection so no stale DOM exists there (D-12 scope boundary)
 - [Phase 01]: Wallet canUseStorage() guard copied verbatim from settings/theme to preserve D-07 silent-on-unavailable behavior
 - [Phase 01]: New storage-failure dx:error sites use fresh Error with cause: err, distinct from existing shell/lifecycle convention of re-deriving/passing the caught error
+- [Phase 02-01]: timeout is per-fetch (D-01), 30000ms default ships enabled as a breaking change (D-02), timeout: 0/Infinity opt-out restores hang-forever (D-03), built-in loaders true-abort via node removal / AbortController (D-06), custom loaders get a Promise.race hang guard with unchanged type signatures (D-07) — Matches ROB-01 plan decisions in 02-CONTEXT.md; un-hangable mounts by default is the point of ROB-01
+- [Phase 02-02]: Router sort snapshot uses array spread (not a live reference to config.manifests) so post-construction mutation of the caller's array cannot affect resolution (D-08), locked in by a dedicated regression test
+- [Phase 02-03]: cleanup(dappId) matches keyHandlers entries by ${dappId}: prefix, which naturally excludes _shell:* bridge handlers without a special-case check (D-14)
+- [Phase 02-03]: dx:dapp:disabled subscription stored as a Listener from context.events.on() (not a bare unsubscribe fn) and torn down via .off() in destroy(), mirroring the auth plugin's subscribe/unsubscribe lifecycle
+- [Phase 02-03]: No subscription to dx:unmount — cleanup fires only on dx:dapp:disabled so handlers survive normal navigation-away (D-15)
+- [Phase 02-04]: cacheTemplates defaults to true (D-09), cache wraps outermost above the timeout-wrapped loadTemplate loader so a cache hit skips the fetch and its timeout entirely (D-11/D-12), clearTemplateCache()/invalidateTemplate(url) give full-reset and single-URL invalidation (D-10) — closure-held Map<url, html>, no module-level singleton
 
 ### Pending Todos
 
@@ -96,7 +107,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-11T22:15:46.685Z
-Stopped at: Completed 01-01-PLAN.md
+Last session: 2026-07-12T04:46:06.108Z
+Stopped at: Completed 02-03-PLAN.md
 Resume file: 
 None

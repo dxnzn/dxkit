@@ -15,10 +15,10 @@ Requirements for the 0.2.0 hardening milestone. Each maps to a roadmap phase.
 
 ### Robustness
 
-- [ ] **ROB-01**: Lifecycle manager accepts an optional load timeout for script/style/template fetches so a hung URL can't freeze a mount indefinitely
-- [ ] **ROB-02**: Router caches its length-sorted manifests so `resolve()` does not re-sort on every navigation
-- [ ] **ROB-03**: Templates are cached by URL with explicit invalidation, avoiding re-fetch on repeated mounts of the same dapp
-- [ ] **ROB-04**: Settings handlers registered by a dapp are cleaned up when that dapp is disabled via `disableDapp()` (no leaked handlers, no firing on disabled dapps)
+- [x] **ROB-01**: Lifecycle manager accepts an optional load timeout for script/style/template fetches so a hung URL can't freeze a mount indefinitely
+- [x] **ROB-02**: Router caches its length-sorted manifests so `resolve()` does not re-sort on every navigation
+- [x] **ROB-03**: Templates are cached by URL with explicit invalidation, avoiding re-fetch on repeated mounts of the same dapp
+- [x] **ROB-04**: Settings handlers registered by a dapp are cleaned up when that dapp is disabled via `disableDapp()` (no leaked handlers, no firing on disabled dapps)
 
 ### Security
 
@@ -72,10 +72,10 @@ Which phases cover which requirements. Populated during roadmap creation.
 | DIAG-01 | Phase 1 | Complete |
 | DIAG-02 | Phase 1 | Complete |
 | DIAG-03 | Phase 1 | Complete |
-| ROB-01 | Phase 2 | Pending |
-| ROB-02 | Phase 2 | Pending |
-| ROB-03 | Phase 2 | Pending |
-| ROB-04 | Phase 2 | Pending |
+| ROB-01 | Phase 2 | Complete |
+| ROB-02 | Phase 2 | Complete |
+| ROB-03 | Phase 2 | Complete |
+| ROB-04 | Phase 2 | Complete |
 | SEC-01 | Phase 3 | Pending |
 | SEC-02 | Phase 3 | Pending |
 | TEST-01 | Phase 4 | Pending |

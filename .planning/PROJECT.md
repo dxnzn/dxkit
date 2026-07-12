@@ -43,19 +43,25 @@ confidence.
 - ✓ Emit `dx:error` on `localStorage` read/write failures (wallet, theme, settings) — validated Phase 1
 - ✓ Emit `dx:error` and clear the mount container on post-injection (entry/dependency) load failure — validated Phase 1
 
+<!-- Validated in Phase 2: Robustness — Load Guards, Caching & Handler Cleanup (0.2.0) -->
+- ✓ Optional per-fetch load timeout with true abort (script/style/template; 30s default, `timeout: 0`/`Infinity` opt-out) — validated Phase 2
+- ✓ Router length-sort hoisted to construction; `resolve()` reuses the cached sort — validated Phase 2
+- ✓ Template caching by URL with `clearTemplateCache()` / `invalidateTemplate(url)` — validated Phase 2
+- ✓ Settings handlers registered via `onChange()`/`onAnyChange()` pruned when a dapp is disabled — validated Phase 2
+
 ### Active
 
 <!-- The 0.2.0 hardening + docs-truth milestone. Hypotheses until shipped and validated. -->
 
-**Hardening — robustness guards**
-- [ ] Optional load timeouts for script/style/template fetches (no hang-forever mounts)
-- [ ] Cache sorted manifests in the router (avoid re-sort on every resolve)
-- [ ] Template caching by URL with explicit invalidation
+**Hardening — robustness guards** — ✓ validated Phase 2
+- [x] Optional load timeouts for script/style/template fetches (no hang-forever mounts)
+- [x] Cache sorted manifests in the router (avoid re-sort on every resolve)
+- [x] Template caching by URL with explicit invalidation
 
 **Hardening — test coverage**
 - [ ] Stress tests for concurrent navigation and mount races (fast A→B→A with slow loaders)
 - [ ] Manifest-validation edge-case tests (bad route formats, merge behavior)
-- [ ] Settings handler cleanup + tests for `disableDapp()` (no handler leaks / firing on disabled dapps)
+- [x] Settings handler cleanup + tests for `disableDapp()` (no handler leaks / firing on disabled dapps) — validated Phase 2
 
 **Hardening — security posture**
 - [ ] Optional template sanitizer hook on the lifecycle manager
@@ -127,4 +133,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-11 — Phase 1 complete (diagnostics: silent failures now surface via `dx:error`)*
+*Last updated: 2026-07-12 — Phase 2 complete (robustness: load timeouts, router sort cache, template URL cache, settings handler cleanup on disable)*
