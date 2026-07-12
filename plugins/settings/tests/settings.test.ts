@@ -527,6 +527,118 @@ describe('createSettings', () => {
     });
   });
 
+  describe('handler cleanup on disable (ROB-04)', () => {
+    it('removes onChange and onAnyChange handlers for a dapp once it is disabled', async () => {
+      plugin = createSettings({ storageKey: uniqueStorageKey() });
+      await plugin.init!(ctx);
+      const api = plugin.getSettingsAPI();
+
+      const changeHandler = vi.fn();
+      const anyChangeHandler = vi.fn();
+      api.onChange('blog', 'postsPerPage', changeHandler);
+      api.onAnyChange('blog', anyChangeHandler);
+
+      ctx.events.emit('dx:dapp:disabled', { id: 'blog' });
+
+      api.set('blog', 'postsPerPage', 99);
+
+      expect(changeHandler).not.toHaveBeenCalled();
+      expect(anyChangeHandler).not.toHaveBeenCalled();
+    });
+
+    it('preserves the _shell toggle-bridge handler after the disabled dapp is cleaned up', async () => {
+      const manifests: DappManifest[] = [
+        {
+          id: 'hello',
+          name: 'Hello',
+          version: '0.0.1',
+          route: '/hello',
+          entry: 'hello/app.js',
+          nav: { label: 'Hello' },
+          optional: true,
+        },
+      ];
+
+      const ctxOptional = mockContext(manifests);
+      plugin = createSettings({ storageKey: uniqueStorageKey() });
+      await plugin.init!(ctxOptional);
+      const api = plugin.getSettingsAPI();
+
+      // Disabling 'hello' prunes its own handlers but must not touch the
+      // '_shell:hello' toggle-bridge handler registered by loadDefinitions().
+      ctxOptional.events.emit('dx:dapp:disabled', { id: 'hello' });
+
+      api.set('_shell', 'hello', true);
+      expect(ctxOptional.enableDapp).toHaveBeenCalledWith('hello');
+
+      api.set('_shell', 'hello', false);
+      expect(ctxOptional.disableDapp).toHaveBeenCalledWith('hello');
+    });
+
+    it('does not clean up handlers on dx:unmount — handlers survive normal navigation-away', async () => {
+      plugin = createSettings({ storageKey: uniqueStorageKey() });
+      await plugin.init!(ctx);
+      const api = plugin.getSettingsAPI();
+
+      const handler = vi.fn();
+      api.onChange('blog', 'postsPerPage', handler);
+
+      ctx.events.emit('dx:unmount', { id: 'blog' });
+
+      api.set('blog', 'postsPerPage', 42);
+
+      expect(handler).toHaveBeenCalledOnce();
+      expect(handler).toHaveBeenCalledWith(42);
+    });
+
+    it('does not delete a colon-prefixed sibling dapp id handlers (WR-02 regression)', async () => {
+      const manifests: DappManifest[] = [
+        {
+          id: 'foo',
+          name: 'Foo',
+          version: '0.0.1',
+          route: '/foo',
+          entry: 'foo/app.js',
+          nav: { label: 'Foo' },
+        },
+        {
+          id: 'foo:bar',
+          name: 'Foo Bar',
+          version: '0.0.1',
+          route: '/foo-bar',
+          entry: 'foo-bar/app.js',
+          nav: { label: 'Foo Bar' },
+        },
+      ];
+
+      const ctxColliding = mockContext(manifests);
+      plugin = createSettings({ storageKey: uniqueStorageKey() });
+      await plugin.init!(ctxColliding);
+      const api = plugin.getSettingsAPI();
+
+      const fooBarHandler = vi.fn();
+      api.onChange('foo:bar', 'someKey', fooBarHandler);
+
+      // Before the WR-02 fix, cleanup('foo') matched keys via `${dappId}:` prefix, so
+      // 'foo:bar:someKey' (an unrelated dapp) was wrongly swept up by disabling 'foo'.
+      ctxColliding.events.emit('dx:dapp:disabled', { id: 'foo' });
+
+      api.set('foo:bar', 'someKey', 'value');
+
+      expect(fooBarHandler).toHaveBeenCalledWith('value');
+    });
+
+    it('unsubscribes on destroy — dx:dapp:disabled after destroy does not throw', async () => {
+      plugin = createSettings({ storageKey: uniqueStorageKey() });
+      await plugin.init!(ctx);
+
+      await plugin.destroy!();
+      plugin = undefined as unknown as ReturnType<typeof createSettings>; // avoid double-destroy in afterEach
+
+      expect(() => ctx.events.emit('dx:dapp:disabled', { id: 'blog' })).not.toThrow();
+    });
+  });
+
   describe('dapp toggle wiring', () => {
     it('calls ctx.enableDapp when toggle set to true', async () => {
       const manifests: DappManifest[] = [
