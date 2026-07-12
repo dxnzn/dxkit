@@ -18,6 +18,11 @@ export function createRouter(config: RouterConfig): Router {
   const { mode, basePath, manifests } = config;
   const listeners = new Set<(manifest: DappManifest | null) => void>();
 
+  // Longest prefix wins — /tools/sender matches before /tools.
+  // Snapshotted once at construction (router is immutable; shell.rebuildRouter() re-creates
+  // this closure on manifest changes) so resolve() never re-sorts on the hot navigation path.
+  const sorted = [...manifests].sort((a, b) => b.route.length - a.route.length);
+
   // Strip basePath prefix, ensure leading slash, remove trailing slash
   function normalizePath(path: string): string {
     let normalized = path;
@@ -35,9 +40,6 @@ export function createRouter(config: RouterConfig): Router {
 
   function resolve(path: string): DappManifest | null {
     const normalized = normalizePath(path);
-
-    // Longest prefix wins — /tools/sender matches before /tools
-    const sorted = [...manifests].sort((a, b) => b.route.length - a.route.length);
 
     for (const manifest of sorted) {
       if (normalized === manifest.route || normalized.startsWith(`${manifest.route}/`)) {

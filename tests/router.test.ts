@@ -145,6 +145,57 @@ describe('Router', () => {
     router.destroy();
   });
 
+  // Regression (ROB-02/D-08): the length-sort is snapshotted once at construction, not
+  // recomputed on every resolve() call — the router is immutable and fully rebuilt by
+  // shell.rebuildRouter() whenever manifests change.
+  describe('construction-time sort caching', () => {
+    it('longest prefix still wins after the sort is hoisted', () => {
+      const router = createRouter({
+        mode: 'history',
+        basePath: '/',
+        manifests: [manifest({ id: 'tools', route: '/tools' }), manifest({ id: 'sender', route: '/tools/sender' })],
+      });
+
+      expect(router.resolve('/tools/sender/x')?.id).toBe('sender');
+      router.destroy();
+    });
+
+    it('mutating the original manifests array after construction does not affect resolution', () => {
+      const manifests = [manifest({ id: 'tools', route: '/tools' })];
+      const router = createRouter({
+        mode: 'history',
+        basePath: '/',
+        manifests,
+      });
+
+      // Pushing a new, longer-prefix manifest onto the *original* array post-construction
+      // must not change resolve() output — the sorted snapshot was taken at construction time.
+      manifests.push(manifest({ id: 'sender', route: '/tools/sender' }));
+
+      expect(router.resolve('/tools/sender')?.id).toBe('tools');
+      router.destroy();
+    });
+
+    it('repeated resolve() calls return consistent results across navigations', () => {
+      const router = createRouter({
+        mode: 'history',
+        basePath: '/',
+        manifests: [
+          manifest({ id: 'tools', route: '/tools' }),
+          manifest({ id: 'sender', route: '/tools/sender' }),
+          manifest({ id: 'blog', route: '/blog' }),
+        ],
+      });
+
+      for (let i = 0; i < 3; i++) {
+        expect(router.resolve('/tools/sender')?.id).toBe('sender');
+        expect(router.resolve('/tools/other')?.id).toBe('tools');
+        expect(router.resolve('/blog')?.id).toBe('blog');
+      }
+      router.destroy();
+    });
+  });
+
   // Regression: in hash mode, assigning location.hash fires an async 'hashchange'.
   // navigate() must not ALSO notify explicitly or listeners fire twice per navigation.
   describe('hash mode notifications', () => {
