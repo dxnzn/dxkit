@@ -1,6 +1,6 @@
 import type { DappManifest, EventBus } from '@dnzn/dxkit';
 import { createEventBus, createLifecycleManager } from '@dnzn/dxkit';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const noopLoader = async () => {};
 const failLoader = async (src: string) => {
@@ -467,5 +467,320 @@ describe('LifecycleManager', () => {
 
     expect(handler).toHaveBeenCalledWith({ id: 'hello' });
     expect(lm.getCurrentDapp()).toBeNull();
+  });
+
+  describe('load timeout', () => {
+    const neverResolves = () => new Promise<never>(() => {});
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('style timeout is non-blocking — dx:error fires but the mount continues', async () => {
+      const lm = createLifecycleManager(events, {
+        scriptLoader: noopLoader,
+        styleLoader: neverResolves,
+        timeout: 30,
+      });
+
+      const errorHandler = vi.fn();
+      const mountedHandler = vi.fn();
+      events.on('dx:error', errorHandler);
+      events.on('dx:dapp:mounted', mountedHandler);
+
+      const m = { ...manifest('slow-css'), styles: '/dapps/slow-css/style.css' };
+      const mountPromise = lm.mount(m, container);
+      await vi.advanceTimersByTimeAsync(30);
+      await mountPromise;
+
+      expect(errorHandler).toHaveBeenCalledOnce();
+      expect(errorHandler.mock.calls[0][0].source).toBe('lifecycle:slow-css:styles');
+      expect(mountedHandler).toHaveBeenCalledWith({ id: 'slow-css' });
+      expect(lm.getCurrentDapp()).toBe('slow-css');
+
+      lm.destroy();
+    });
+
+    it('template timeout aborts the mount — dx:error fires, no dx:mount, container not left with stale HTML', async () => {
+      const lm = createLifecycleManager(events, {
+        scriptLoader: noopLoader,
+        templateLoader: neverResolves,
+        timeout: 30,
+      });
+
+      const errorHandler = vi.fn();
+      const mountedHandler = vi.fn();
+      events.on('dx:error', errorHandler);
+      events.on('dx:dapp:mounted', mountedHandler);
+
+      const m = { ...manifest('slow-tpl'), template: '/dapps/slow-tpl/tpl.html' };
+      const mountPromise = lm.mount(m, container);
+      await vi.advanceTimersByTimeAsync(30);
+      await mountPromise;
+
+      expect(errorHandler).toHaveBeenCalledOnce();
+      expect(errorHandler.mock.calls[0][0].source).toBe('lifecycle:slow-tpl:template');
+      expect(mountedHandler).not.toHaveBeenCalled();
+      expect(container.innerHTML).toBe('');
+      expect(lm.getCurrentDapp()).toBeNull();
+
+      lm.destroy();
+    });
+
+    it('dependency timeout aborts the mount and clears the container', async () => {
+      const lm = createLifecycleManager(events, {
+        scriptLoader: (src: string) => (src.includes('dep') ? neverResolves() : Promise.resolve()),
+        templateLoader: async () => '<div id="app">Template Content</div>',
+        timeout: 30,
+      });
+
+      const errorHandler = vi.fn();
+      const mountedHandler = vi.fn();
+      events.on('dx:error', errorHandler);
+      events.on('dx:dapp:mounted', mountedHandler);
+
+      const m = {
+        ...manifest('slow-dep'),
+        template: '/dapps/slow-dep/tpl.html',
+        dependencies: ['/lib/dep.js'],
+      };
+      const mountPromise = lm.mount(m, container);
+      await vi.advanceTimersByTimeAsync(30);
+      await mountPromise;
+
+      expect(errorHandler).toHaveBeenCalledOnce();
+      expect(errorHandler.mock.calls[0][0].source).toBe('lifecycle:slow-dep:dependency');
+      expect(mountedHandler).not.toHaveBeenCalled();
+      expect(container.innerHTML).toBe('');
+      expect(lm.getCurrentDapp()).toBeNull();
+
+      lm.destroy();
+    });
+
+    it('entry timeout aborts the mount and clears the container', async () => {
+      const lm = createLifecycleManager(events, {
+        scriptLoader: neverResolves,
+        timeout: 30,
+      });
+
+      const errorHandler = vi.fn();
+      const mountedHandler = vi.fn();
+      events.on('dx:error', errorHandler);
+      events.on('dx:dapp:mounted', mountedHandler);
+
+      const m = manifest('slow-entry');
+      const mountPromise = lm.mount(m, container);
+      await vi.advanceTimersByTimeAsync(30);
+      await mountPromise;
+
+      expect(errorHandler).toHaveBeenCalledOnce();
+      expect(errorHandler.mock.calls[0][0].source).toBe('lifecycle:slow-entry');
+      expect(mountedHandler).not.toHaveBeenCalled();
+      expect(container.innerHTML).toBe('');
+      expect(lm.getCurrentDapp()).toBeNull();
+
+      lm.destroy();
+    });
+
+    it.each([
+      0,
+      Infinity,
+    ])('timeout: %s disables the guard — a slow-but-eventually-resolving loader is awaited to completion', async (timeoutValue) => {
+      const lm = createLifecycleManager(events, {
+        scriptLoader: () => new Promise((resolve) => setTimeout(resolve, 60_000)),
+        timeout: timeoutValue,
+      });
+
+      const errorHandler = vi.fn();
+      const mountedHandler = vi.fn();
+      events.on('dx:error', errorHandler);
+      events.on('dx:dapp:mounted', mountedHandler);
+
+      const m = manifest('slow-but-fine');
+      const mountPromise = lm.mount(m, container);
+      await vi.advanceTimersByTimeAsync(60_000);
+      await mountPromise;
+
+      expect(errorHandler).not.toHaveBeenCalled();
+      expect(mountedHandler).toHaveBeenCalledWith({ id: 'slow-but-fine' });
+      expect(lm.getCurrentDapp()).toBe('slow-but-fine');
+
+      lm.destroy();
+    });
+
+    it('custom (opaque) loader hang guard fires dx:error via Promise.race even though the underlying load keeps running', async () => {
+      let resolveHang: () => void = () => {};
+      const hangingButEventuallyResolves = () =>
+        new Promise<void>((resolve) => {
+          resolveHang = resolve;
+        });
+
+      const lm = createLifecycleManager(events, {
+        scriptLoader: hangingButEventuallyResolves,
+        timeout: 30,
+      });
+
+      const errorHandler = vi.fn();
+      events.on('dx:error', errorHandler);
+
+      const m = manifest('opaque-hang');
+      const mountPromise = lm.mount(m, container);
+      await vi.advanceTimersByTimeAsync(30);
+      await mountPromise;
+
+      expect(errorHandler).toHaveBeenCalledOnce();
+      expect(errorHandler.mock.calls[0][0].source).toBe('lifecycle:opaque-hang');
+      expect(lm.getCurrentDapp()).toBeNull();
+
+      // Underlying load resolves later in the background (documented degradation, D-07) —
+      // must not throw or double-emit once the race already settled.
+      resolveHang();
+      await Promise.resolve();
+      expect(errorHandler).toHaveBeenCalledOnce();
+
+      lm.destroy();
+    });
+
+    it('custom loader that settles before its timeout clears the pending timer (WR-01 regression)', async () => {
+      const lm = createLifecycleManager(events, {
+        scriptLoader: noopLoader,
+        timeout: 30,
+      });
+
+      await lm.mount(manifest('fast-custom'), container);
+
+      // Before the WR-01 fix, withTimeout() never cleared its setTimeout on the resolved
+      // branch of the race, leaving a live timer per load until it eventually fired a no-op
+      // rejection into an already-settled result.
+      expect(vi.getTimerCount()).toBe(0);
+
+      lm.destroy();
+    });
+
+    it('default 30000ms timeout applies when no timeout option is given', async () => {
+      const lm = createLifecycleManager(events, { scriptLoader: neverResolves });
+
+      const errorHandler = vi.fn();
+      events.on('dx:error', errorHandler);
+
+      const m = manifest('default-timeout');
+      const mountPromise = lm.mount(m, container);
+
+      await vi.advanceTimersByTimeAsync(29_999);
+      expect(errorHandler).not.toHaveBeenCalled();
+
+      await vi.advanceTimersByTimeAsync(1);
+      await mountPromise;
+
+      expect(errorHandler).toHaveBeenCalledOnce();
+      expect(errorHandler.mock.calls[0][0].error.message).toContain('30000ms');
+
+      lm.destroy();
+    });
+  });
+
+  describe('template cache', () => {
+    it('reuses a cached template across repeated mounts of the same URL — the loader is called once', async () => {
+      const templateLoader = vi.fn(async () => '<div id="app">Template Content</div>');
+      const lm = createLifecycleManager(events, { scriptLoader: noopLoader, templateLoader });
+
+      const m = { ...manifest('cached'), template: '/dapps/cached/tpl.html' };
+      await lm.mount(m, container);
+      expect(container.innerHTML).toBe('<div id="app">Template Content</div>');
+
+      lm.unmount();
+      await lm.mount(m, container);
+      expect(container.innerHTML).toBe('<div id="app">Template Content</div>');
+
+      expect(templateLoader).toHaveBeenCalledOnce();
+
+      lm.destroy();
+    });
+
+    it('clearTemplateCache() forces a refetch on the next mount', async () => {
+      const templateLoader = vi.fn(async () => '<div id="app">Template Content</div>');
+      const lm = createLifecycleManager(events, { scriptLoader: noopLoader, templateLoader });
+
+      const m = { ...manifest('cleared'), template: '/dapps/cleared/tpl.html' };
+      await lm.mount(m, container);
+      lm.unmount();
+
+      lm.clearTemplateCache();
+      await lm.mount(m, container);
+
+      expect(templateLoader).toHaveBeenCalledTimes(2);
+
+      lm.destroy();
+    });
+
+    it('invalidateTemplate(url) forces a refetch of only that URL — other cached templates are unaffected', async () => {
+      const templateLoader = vi.fn(async (src: string) => `<div>${src}</div>`);
+      const lm = createLifecycleManager(events, { scriptLoader: noopLoader, templateLoader });
+
+      const urlA = '/dapps/a/tpl.html';
+      const urlB = '/dapps/b/tpl.html';
+      const mA = { ...manifest('a'), template: urlA };
+      const mB = { ...manifest('b'), template: urlB };
+
+      await lm.mount(mA, container);
+      lm.unmount();
+      await lm.mount(mB, container);
+      lm.unmount();
+      expect(templateLoader).toHaveBeenCalledTimes(2);
+
+      lm.invalidateTemplate(urlA);
+
+      await lm.mount(mA, container);
+      lm.unmount();
+      await lm.mount(mB, container);
+      lm.unmount();
+
+      // A refetched (invalidated), B stayed cached (2 initial + 1 refetch of A = 3)
+      expect(templateLoader).toHaveBeenCalledTimes(3);
+      expect(templateLoader).toHaveBeenCalledWith(urlA);
+
+      lm.destroy();
+    });
+
+    it('does not cache a failed template fetch — a subsequent mount calls the loader again', async () => {
+      const templateLoader = vi.fn(async () => {
+        throw new Error('404');
+      });
+      const lm = createLifecycleManager(events, { scriptLoader: noopLoader, templateLoader });
+
+      const errorHandler = vi.fn();
+      events.on('dx:error', errorHandler);
+
+      const m = { ...manifest('failing'), template: '/dapps/failing/tpl.html' };
+      await lm.mount(m, container);
+      await lm.mount(m, container);
+
+      expect(templateLoader).toHaveBeenCalledTimes(2);
+      expect(errorHandler).toHaveBeenCalledTimes(2);
+
+      lm.destroy();
+    });
+
+    it('cacheTemplates: false disables caching — every mount refetches the template', async () => {
+      const templateLoader = vi.fn(async () => '<div id="app">Template Content</div>');
+      const lm = createLifecycleManager(events, {
+        scriptLoader: noopLoader,
+        templateLoader,
+        cacheTemplates: false,
+      });
+
+      const m = { ...manifest('uncached'), template: '/dapps/uncached/tpl.html' };
+      await lm.mount(m, container);
+      lm.unmount();
+      await lm.mount(m, container);
+
+      expect(templateLoader).toHaveBeenCalledTimes(2);
+
+      lm.destroy();
+    });
   });
 });
