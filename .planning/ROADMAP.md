@@ -24,7 +24,7 @@ audit surfaced filled in.
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Diagnostics — Surface Silent Failures** - `dx:error` fires for every previously-silent failure path (missing mount, storage errors, entry-load failures) (completed 2026-07-11)
-- [ ] **Phase 2: Robustness — Load Guards, Caching & Handler Cleanup** - Mounts can't hang, router/template work isn't repeated, and disabled dapps stop leaking settings handlers
+- [x] **Phase 2: Robustness — Load Guards, Caching & Handler Cleanup** - Mounts can't hang, router/template work isn't repeated, and disabled dapps stop leaking settings handlers (completed 2026-07-12)
 - [ ] **Phase 3: Security — Sanitization & Storage Isolation** - Templates can be sanitized before injection and wallet storage keys no longer collide across apps
 - [ ] **Phase 4: Testing — Stress, Edge-Case & Regression Coverage** - Concurrent-navigation, manifest-validation, and settings-cleanup behavior gets dedicated test coverage
 - [ ] **Phase 5: Documentation — Truth Pass** - Every doc and the README are verified against 0.2.0 code, slop is removed, and CSP/security gaps are filled
@@ -59,7 +59,16 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Repeated mounts of the same dapp reuse a template cached by URL rather than re-fetching it, with an explicit invalidation path.
   4. Handlers a dapp registered via `onChange()`/`onAnyChange()` stop firing and are removed once that dapp is disabled via `disableDapp()`.
 
-**Plans**: TBD
+**Plans**: 4/4 plans complete
+**Wave 1**
+
+- [x] 02-01-PLAN.md — ROB-01 lifecycle per-fetch load timeout + true abort (30s default, `timeout: 0`/`Infinity` opt-out) [wave 1]
+- [x] 02-02-PLAN.md — ROB-02 router length-sort cache hoisted to construction [wave 1]
+- [x] 02-03-PLAN.md — ROB-04 settings handler cleanup on `dx:dapp:disabled` [wave 1]
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 02-04-PLAN.md — ROB-03 template-by-URL cache + `clearTemplateCache`/`invalidateTemplate` [wave 2, depends 02-01]
 
 ### Phase 3: Security — Sanitization & Storage Isolation
 
@@ -108,7 +117,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Diagnostics — Surface Silent Failures | 2/2 | Complete    | 2026-07-11 |
-| 2. Robustness — Load Guards, Caching & Handler Cleanup | 0/TBD | Not started | - |
+| 2. Robustness — Load Guards, Caching & Handler Cleanup | 4/4 | Complete    | 2026-07-12 |
 | 3. Security — Sanitization & Storage Isolation | 0/TBD | Not started | - |
 | 4. Testing — Stress, Edge-Case & Regression Coverage | 0/TBD | Not started | - |
 | 5. Documentation — Truth Pass | 0/TBD | Not started | - |

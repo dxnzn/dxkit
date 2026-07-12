@@ -1,4 +1,4 @@
-import type { Context, Plugin, SettingDefinition, Settings, SettingsSection } from '@dnzn/dxkit';
+import type { Context, Listener, Plugin, SettingDefinition, Settings, SettingsSection } from '@dnzn/dxkit';
 
 declare module '@dnzn/dxkit' {
   interface EventMap {
@@ -28,12 +28,15 @@ export function createSettings(options: SettingsPluginOptions = {}): Plugin & { 
   // Section labels: sectionId -> human-readable label
   const sectionLabels = new Map<string, string>();
 
-  // Change handlers: 'dappId:key' -> Set<handler>
-  const keyHandlers = new Map<string, Set<(value: unknown) => void>>();
+  // Change handlers: dappId -> key -> Set<handler>. Nested (not a colon-joined composite
+  // key) so cleanup() can prune by exact dappId without prefix-matching — a dapp id that is
+  // itself a colon-prefix of another dapp id (e.g. 'foo' vs 'foo:bar') can't collide (WR-02).
+  const keyHandlers = new Map<string, Map<string, Set<(value: unknown) => void>>>();
   // Any-change handlers: dappId -> Set<handler>
   const dappHandlers = new Map<string, Set<(key: string, value: unknown) => void>>();
 
   let dx: Context | null = null;
+  let disabledListener: Listener | null = null;
 
   function canUseStorage(): boolean {
     try {
@@ -134,6 +137,13 @@ export function createSettings(options: SettingsPluginOptions = {}): Plugin & { 
     }
   }
 
+  // Prunes a disabled dapp's own handlers by exact dappId — the '_shell' toggle-bridge
+  // handlers live under their own '_shell' entry and are untouched by another dapp's cleanup.
+  function cleanup(dappId: string): void {
+    keyHandlers.delete(dappId);
+    dappHandlers.delete(dappId);
+  }
+
   const settingsAPI: Settings = {
     get<T = unknown>(dappId: string, key: string): T | undefined {
       const dappStore = store.get(dappId);
@@ -147,7 +157,7 @@ export function createSettings(options: SettingsPluginOptions = {}): Plugin & { 
       persist();
 
       // Notify key-specific handlers
-      const kHandlers = keyHandlers.get(`${dappId}:${key}`);
+      const kHandlers = keyHandlers.get(dappId)?.get(key);
       if (kHandlers) {
         for (const handler of kHandlers) handler(value);
       }
@@ -200,10 +210,11 @@ export function createSettings(options: SettingsPluginOptions = {}): Plugin & { 
     },
 
     onChange(dappId: string, key: string, handler: (value: unknown) => void): () => void {
-      const mapKey = `${dappId}:${key}`;
-      if (!keyHandlers.has(mapKey)) keyHandlers.set(mapKey, new Set());
-      keyHandlers.get(mapKey)!.add(handler);
-      return () => keyHandlers.get(mapKey)?.delete(handler);
+      if (!keyHandlers.has(dappId)) keyHandlers.set(dappId, new Map());
+      const byKey = keyHandlers.get(dappId)!;
+      if (!byKey.has(key)) byKey.set(key, new Set());
+      byKey.get(key)!.add(handler);
+      return () => byKey.get(key)?.delete(handler);
     },
 
     onAnyChange(dappId: string, handler: (key: string, value: unknown) => void): () => void {
@@ -226,11 +237,17 @@ export function createSettings(options: SettingsPluginOptions = {}): Plugin & { 
       // Load setting definitions from manifests and plugins
       loadDefinitions(context);
 
+      // Prune a disabled dapp's own handlers so it stops receiving setting changes
+      // it registered — does NOT subscribe to dx:unmount, cleanup is disable-only.
+      disabledListener = context.events.on('dx:dapp:disabled', ({ id }) => cleanup(id));
+
       // Inject onto context — dapps access via dx.settings
       (context as any).settings = settingsAPI;
     },
 
     async destroy(): Promise<void> {
+      disabledListener?.off();
+      disabledListener = null;
       keyHandlers.clear();
       dappHandlers.clear();
       dx = null;
