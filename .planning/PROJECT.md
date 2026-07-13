@@ -49,6 +49,12 @@ confidence.
 - ✓ Template caching by URL with `clearTemplateCache()` / `invalidateTemplate(url)` — validated Phase 2
 - ✓ Settings handlers registered via `onChange()`/`onAnyChange()` pruned when a dapp is disabled — validated Phase 2
 
+<!-- Validated in Phase 3: Security — Sanitization & Storage Isolation (0.2.0) -->
+- ✓ Optional fail-closed `sanitizeTemplate` hook on the lifecycle manager, run on fetched template HTML before `innerHTML` injection (unchanged behavior when unconfigured) — validated Phase 3
+- ✓ Configurable wallet `storageKey` so multiple DxKit apps on one origin persist wallet selection independently — validated Phase 3
+- ✓ Wallet connect throws on empty accounts (no `undefined` address) and auto-reconnect failures surface via `dx:error` — validated Phase 3
+- ✓ `ShellConfig.lifecycle` nested options group replaces flat loader passthrough (breaking, D-04/D-05); sanitizer/timeout/cacheTemplates now reachable from `createShell()` — validated Phase 3
+
 ### Active
 
 <!-- The 0.2.0 hardening + docs-truth milestone. Hypotheses until shipped and validated. -->
@@ -63,9 +69,9 @@ confidence.
 - [ ] Manifest-validation edge-case tests (bad route formats, merge behavior)
 - [x] Settings handler cleanup + tests for `disableDapp()` (no handler leaks / firing on disabled dapps) — validated Phase 2
 
-**Hardening — security posture**
-- [ ] Optional template sanitizer hook on the lifecycle manager
-- [ ] Configurable wallet storage key (avoid same-origin collisions)
+**Hardening — security posture** — ✓ validated Phase 3 (CSP guidance deferred to Phase 5 docs pass)
+- [x] Optional template sanitizer hook on the lifecycle manager
+- [x] Configurable wallet storage key (avoid same-origin collisions)
 - [ ] CSP guidance documented for `innerHTML` templates + external scripts
 
 **Docs — truth pass**
@@ -133,4 +139,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-12 — Phase 2 complete (robustness: load timeouts, router sort cache, template URL cache, settings handler cleanup on disable)*
+*Last updated: 2026-07-12 — Phase 3 complete (security: fail-closed template sanitizer hook, wallet storage key isolation + connect/reconnect fixes, nested `ShellConfig.lifecycle` options group)*

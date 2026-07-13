@@ -25,7 +25,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Diagnostics — Surface Silent Failures** - `dx:error` fires for every previously-silent failure path (missing mount, storage errors, entry-load failures) (completed 2026-07-11)
 - [x] **Phase 2: Robustness — Load Guards, Caching & Handler Cleanup** - Mounts can't hang, router/template work isn't repeated, and disabled dapps stop leaking settings handlers (completed 2026-07-12)
-- [ ] **Phase 3: Security — Sanitization & Storage Isolation** - Templates can be sanitized before injection and wallet storage keys no longer collide across apps
+- [x] **Phase 3: Security — Sanitization & Storage Isolation** - Templates can be sanitized before injection and wallet storage keys no longer collide across apps (completed 2026-07-12)
 - [ ] **Phase 4: Testing — Stress, Edge-Case & Regression Coverage** - Concurrent-navigation, manifest-validation, and settings-cleanup behavior gets dedicated test coverage
 - [ ] **Phase 5: Documentation — Truth Pass** - Every doc and the README are verified against 0.2.0 code, slop is removed, and CSP/security gaps are filled
 
@@ -81,7 +81,15 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. With no sanitizer configured, template injection behavior is unchanged from 0.1.5 (backward-compatible default).
   3. The wallet plugin's storage key is configurable via options, so two DxKit apps on the same origin persist wallet selection independently.
 
-**Plans**: TBD
+**Plans**: 3/3 plans complete
+**Wave 1**
+
+- [x] 03-01-PLAN.md — SEC-01 sanitizer hook: `TemplateSanitizer` + `sanitizeTemplate` on `LifecycleManagerOptions`, fail-closed slot before `innerHTML` [wave 1]
+- [x] 03-02-PLAN.md — SEC-02 wallet `storageKey` isolation + folded WR-02 empty-accounts throw / WR-03 reconnect `dx:error` [wave 1]
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 03-03-PLAN.md — D-04/D-05 `ShellConfig.lifecycle` nested group (BREAKING) + flat-loader runtime throw + shell test migration [wave 2, depends 03-01]
 
 ### Phase 4: Testing — Stress, Edge-Case & Regression Coverage
 
@@ -118,6 +126,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Diagnostics — Surface Silent Failures | 2/2 | Complete    | 2026-07-11 |
 | 2. Robustness — Load Guards, Caching & Handler Cleanup | 4/4 | Complete    | 2026-07-12 |
-| 3. Security — Sanitization & Storage Isolation | 0/TBD | Not started | - |
+| 3. Security — Sanitization & Storage Isolation | 3/3 | Complete    | 2026-07-12 |
 | 4. Testing — Stress, Edge-Case & Regression Coverage | 0/TBD | Not started | - |
 | 5. Documentation — Truth Pass | 0/TBD | Not started | - |

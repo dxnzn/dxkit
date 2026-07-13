@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 3
-current_phase_name: Security — Sanitization & Storage Isolation
-status: "Phase 2 shipped — PR #2"
-stopped_at: Completed 02-03-PLAN.md
-last_updated: "2026-07-12T05:31:49.543Z"
+current_phase: 4
+current_phase_name: Testing — Stress, Edge-Case & Regression Coverage
+status: "Phase 03 shipped — PR #3"
+stopped_at: Completed 03-03-PLAN.md
+last_updated: "2026-07-13T00:06:30.074Z"
 last_activity: 2026-07-12
 progress:
   total_phases: 5
-  completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
-  percent: 40
+  completed_phases: 3
+  total_plans: 9
+  completed_plans: 9
+  percent: 60
 ---
 
 # Project State
@@ -23,13 +23,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-11)
 
 **Core value:** DxKit stays trustworthy for real use — failures are visible (never silent), documented behavior matches actual behavior, and the alpha is stable enough to build on with confidence.
-**Current focus:** Phase 02 — robustness-load-guards-caching-handler-cleanup
+**Current focus:** Phase 03 — security-sanitization-storage-isolation
 
 ## Current Position
 
-Phase: 3 — Security — Sanitization & Storage Isolation
+Phase: 4 — Testing — Stress, Edge-Case & Regression Coverage
 Plan: Not started
-Status: Phase 2 shipped — PR #2
+Status: Phase 03 shipped — PR #3
 Last activity: 2026-07-12
 
 Progress: [░░░░░░░░░░] 0%
@@ -38,7 +38,7 @@ Progress: [░░░░░░░░░░] 0%
 
 **Velocity:**
 
-- Total plans completed: 6
+- Total plans completed: 9
 - Average duration: - min
 - Total execution time: 0 hours
 
@@ -48,6 +48,7 @@ Progress: [░░░░░░░░░░] 0%
 |-------|-------|-------|----------|
 | 01 | 2 | - | - |
 | 02 | 4 | - | - |
+| 03 | 3 | - | - |
 
 **Recent Trend:**
 
@@ -61,6 +62,9 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02 P02 | 4min | 2 tasks | 2 files |
 | Phase 02 P03 | 5min | 2 tasks | 2 files |
 | Phase 02 P04 | 4min | 2 tasks | 2 files |
+| Phase 03 P01 | 8min | 2 tasks | 3 files |
+| Phase 03 P02 | 10 min | 3 tasks | 2 files |
+| Phase 03 P03 | 10min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -84,6 +88,14 @@ Recent decisions affecting current work:
 - [Phase 02-03]: dx:dapp:disabled subscription stored as a Listener from context.events.on() (not a bare unsubscribe fn) and torn down via .off() in destroy(), mirroring the auth plugin's subscribe/unsubscribe lifecycle
 - [Phase 02-03]: No subscription to dx:unmount — cleanup fires only on dx:dapp:disabled so handlers survive normal navigation-away (D-15)
 - [Phase 02-04]: cacheTemplates defaults to true (D-09), cache wraps outermost above the timeout-wrapped loadTemplate loader so a cache hit skips the fetch and its timeout entirely (D-11/D-12), clearTemplateCache()/invalidateTemplate(url) give full-reset and single-URL invalidation (D-10) — closure-held Map<url, html>, no module-level singleton
+- [Phase 03-01]: TemplateSanitizer captured once at construction, undefined means pass-through unchanged (no bundled sanitizer) — Preserves zero-runtime-deps posture and 0.1.5 byte-for-byte default behavior per D-01/D-02
+- [Phase 03-01]: Sanitize step lives in its own try/catch nested after the fetch try/catch resolves, with distinct lifecycle:<id>:sanitize error source — Keeps fetch failures and sanitizer failures distinguishable per D-08, avoids RESEARCH Pitfall 1
+- [Phase 03-02]: storageKey used verbatim, no auto-derived prefixing (D-09) — Consumer owns the full literal key; keeps behavior predictable
+- [Phase 03-02]: No migration from legacy 'dxkit:wallet' key when a custom storageKey is set (D-10) — Avoids one app's persisted selection clobbering another's on a shared origin
+- [Phase 03-02]: Reconnect-failure dx:error emits before persistProvider(null) clears the key (D-12) — Preserves existing clear-on-failure behavior while adding required visibility
+- [Phase 03-02]: address! assertions replaced with truthy guards, not just removed (D-11) — connect() now guarantees non-empty address before updateState is called with connected:true; guard encodes that invariant in the type system
+- [Phase 03-03]: Fixed the plan's stated LifecycleManagerOptions import path (./lifecycle.js -> ../lifecycle.js) — src/lifecycle.ts lives one directory above src/types/; the literal path in the plan would not have resolved
+- [Phase 03-03]: BREAKING CHANGE footer placed on the Task 1 commit, not Task 2 — Task 1 lands the actual type removal + runtime throw; Task 2 is pure test migration onto the already-breaking shape
 
 ### Pending Todos
 
@@ -107,7 +119,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-12T04:46:06.108Z
-Stopped at: Completed 02-03-PLAN.md
+Last session: 2026-07-12T23:13:39.246Z
+Stopped at: Completed 03-03-PLAN.md
 Resume file: 
 None

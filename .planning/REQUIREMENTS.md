@@ -22,8 +22,8 @@ Requirements for the 0.2.0 hardening milestone. Each maps to a roadmap phase.
 
 ### Security
 
-- [ ] **SEC-01**: Lifecycle manager exposes an optional template sanitizer hook applied before `innerHTML` injection
-- [ ] **SEC-02**: Wallet plugin storage key is configurable via options so two DxKit apps on the same origin don't collide
+- [x] **SEC-01**: Lifecycle manager exposes an optional template sanitizer hook applied before `innerHTML` injection
+- [x] **SEC-02**: Wallet plugin storage key is configurable via options so two DxKit apps on the same origin don't collide
 
 ### Testing
 
@@ -76,8 +76,8 @@ Which phases cover which requirements. Populated during roadmap creation.
 | ROB-02 | Phase 2 | Complete |
 | ROB-03 | Phase 2 | Complete |
 | ROB-04 | Phase 2 | Complete |
-| SEC-01 | Phase 3 | Pending |
-| SEC-02 | Phase 3 | Pending |
+| SEC-01 | Phase 3 | Complete |
+| SEC-02 | Phase 3 | Complete |
 | TEST-01 | Phase 4 | Pending |
 | TEST-02 | Phase 4 | Pending |
 | TEST-03 | Phase 4 | Pending |
