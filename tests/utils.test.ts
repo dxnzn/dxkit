@@ -22,6 +22,11 @@ describe('deepMerge', () => {
     expect(result).toEqual({ tags: ['x'] });
   });
 
+  it('replaces nested arrays wholesale, not just top-level ones', () => {
+    const result = deepMerge({ nav: { label: 'Test', tags: ['a', 'b'] } }, { nav: { tags: ['x'] } });
+    expect(result).toEqual({ nav: { label: 'Test', tags: ['x'] } });
+  });
+
   it('replaces primitives', () => {
     const result = deepMerge({ name: 'old', count: 1 }, { name: 'new', count: 2 });
     expect(result).toEqual({ name: 'new', count: 2 });
@@ -77,6 +82,18 @@ describe('deepMerge', () => {
     const result = deepMerge({ nested: { safe: 1 } }, malicious);
     expect(result.nested.safe).toBe(1);
     expect(({} as any).polluted).toBeUndefined();
+  });
+
+  it('rejects constructor/prototype keys one level deep in nested merges', () => {
+    const maliciousConstructor = JSON.parse('{"nested": {"constructor": {"polluted": true}}}');
+    const resultConstructor = deepMerge({ nested: { safe: 1 } }, maliciousConstructor);
+    expect(resultConstructor.nested.safe).toBe(1);
+    expect(Object.hasOwn(resultConstructor.nested, 'constructor')).toBe(false);
+
+    const maliciousPrototype = JSON.parse('{"nested": {"prototype": {"polluted": true}}}');
+    const resultPrototype = deepMerge({ nested: { safe: 1 } }, maliciousPrototype);
+    expect(resultPrototype.nested.safe).toBe(1);
+    expect(Object.hasOwn(resultPrototype.nested, 'prototype')).toBe(false);
   });
 
   it('does not mutate either input', () => {
