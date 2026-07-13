@@ -18,7 +18,9 @@ export function createShell(config: ShellConfig = {}): Shell {
   // compile time; untyped JS/IIFE consumers bypass that check, so this runtime guard throws
   // loudly instead of silently constructing a shell with unconfigured loaders.
   const flatLoaderKeys = ['scriptLoader', 'styleLoader', 'templateLoader'] as const;
-  const presentFlatKeys = flatLoaderKeys.filter((key) => key in config);
+  // Object.hasOwn (not `in`) so only own keys trip the guard — `in` also matches
+  // prototype-chain keys, which would misfire on config objects with a non-null prototype.
+  const presentFlatKeys = flatLoaderKeys.filter((key) => Object.hasOwn(config, key));
   if (presentFlatKeys.length > 0) {
     throw new Error(
       `ShellConfig.${presentFlatKeys.join('/')} ${presentFlatKeys.length > 1 ? 'are' : 'is'} no longer supported — ` +
@@ -40,8 +42,10 @@ export function createShell(config: ShellConfig = {}): Shell {
   const eventRegistry = createEventRegistry(events);
   const registry = createPluginRegistry();
   const lifecycle = createLifecycleManager(events, {
-    hasPlugin: (name: string) => registry.has(name),
     ...lifecycleOptions,
+    // Bound last so a consumer-supplied hasPlugin (including `hasPlugin: undefined`) can't
+    // clobber the registry-backed check and disable required-plugin enforcement.
+    hasPlugin: (name: string) => registry.has(name),
   });
   let manifests: DappManifest[] = [];
   let router = createRouter({ mode, basePath, manifests: [] });

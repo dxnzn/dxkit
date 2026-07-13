@@ -411,6 +411,39 @@ describe('createShell', () => {
     expect(plugins.test).toBe(plugin);
   });
 
+  it('a consumer-supplied lifecycle.hasPlugin (including undefined) cannot disable required-plugin enforcement', async () => {
+    const dapp: DappManifest = {
+      id: 'needs-wallet',
+      name: 'Needs Wallet',
+      version: '0.0.1',
+      route: '/',
+      entry: 'needs-wallet/app.js',
+      nav: { label: 'Needs Wallet' },
+      requires: { plugins: ['wallet'] },
+    };
+
+    const errors: { source: string; error: Error }[] = [];
+    window.addEventListener('dx:error', ((e: CustomEvent) => {
+      errors.push(e.detail);
+    }) as EventListener);
+    const mounted = vi.fn();
+    window.addEventListener('dx:dapp:mounted', mounted as EventListener);
+
+    // Untyped/IIFE consumers can pass `lifecycle: { hasPlugin: undefined }` at runtime even
+    // though the ShellConfig type now excludes it — cast past the type guard to exercise the
+    // runtime defense (FIND-1).
+    shell = createShell({
+      plugins: {},
+      manifests: [dapp],
+      lifecycle: { ...testLoaders.lifecycle, hasPlugin: undefined },
+    } as ShellConfig);
+
+    await shell.init();
+
+    expect(mounted).not.toHaveBeenCalled();
+    expect(errors.some((e) => e.source === 'lifecycle:needs-wallet' && e.error.message.includes('wallet'))).toBe(true);
+  });
+
   describe('sub-path notifications', () => {
     const dapp: DappManifest = {
       id: 'tools',

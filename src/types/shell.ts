@@ -24,8 +24,12 @@ export interface ShellConfig {
   basePath?: string;
   /** Routing mode. Default: 'history'. */
   mode?: 'history' | 'hash';
-  /** Lifecycle manager knobs — loaders (script/style/template), timeout, cacheTemplates, sanitizeTemplate. */
-  lifecycle?: LifecycleManagerOptions;
+  /**
+   * Lifecycle manager knobs — loaders (script/style/template), timeout, cacheTemplates,
+   * sanitizeTemplate. `hasPlugin` is shell-owned (bound to the plugin registry) and cannot be
+   * configured here — required-plugin enforcement must not be overridable by consumer config.
+   */
+  lifecycle?: Omit<LifecycleManagerOptions, 'hasPlugin'>;
 }
 
 /** The shell instance returned by createShell(). */
