@@ -4,17 +4,17 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 04
 current_phase_name: testing-stress-edge-case-regression-coverage
-status: executing
+status: verifying
 stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-07-13T19:35:29.398Z"
+last_updated: "2026-07-13T19:42:28.326Z"
 last_activity: 2026-07-13
 last_activity_desc: Phase 04 execution started
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 12
-  completed_plans: 11
-  percent: 60
+  completed_plans: 12
+  percent: 80
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 
 Phase: 04 (testing-stress-edge-case-regression-coverage) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-13 — Phase 04 execution started
 
 Progress: [░░░░░░░░░░] 0%
@@ -68,6 +68,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03 P03 | 10min | 2 tasks | 3 files |
 | Phase 04 P01 | 27min | 2 tasks | 4 files |
 | Phase 04 P03 | 12min | 2 tasks | 3 files |
+| Phase 04 P02 | 15min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -104,6 +105,9 @@ Recent decisions affecting current work:
 - [Phase 04-01]: Sub-path stale-path bug fixed by re-reading router.getCurrentPath() after lifecycle.mount() resolves, emitting a dx:route:subpath catch-up if it moved — pendingMountId dedupe silently dropped sub-path navigations during a pending mount with no side effect, leaving the committed path stale
 - [Phase 04-03]: TEST-03 regression lives in new plugins/settings/tests/integration.test.ts, not appended to shell.test.ts — Keeps the real-wiring vs mocked-context contrast explicit and co-located with the plugin it drives
 - [Phase 04-03]: deepMerge JSDoc reconciled to code truth (null replaces, undefined skips) rather than changing runtime null-handling — Manifest overrides in src/shell.ts depend on null-replaces; an existing test already pins that behavior
+- [Phase 04-02]: normalizeAndValidateManifests() runs once in init() after loadManifests(), before initEnabledState()/createRouter() — Single choke point for route normalization (D-06), tier-uniform validation (D-07), and duplicate-route detection (D-08); enable/disable never changes the manifest list so re-running per rebuildRouter() would be wasted work
+- [Phase 04-02]: shell:route is a new dx:error source for reject-unfixable routes; WR-01 and duplicate-route emits reuse shell:manifest — Follows the colon-hierarchical taxonomy per RESEARCH.md Open Question 1 — route-reject is a distinct routing-table construction problem, while WR-01/duplicate-route are manifest-content conflicts
+- [Phase 04-02]: Duplicate-route manifests are kept in the list, not discarded — First-registered-wins resolution is already guaranteed by router.ts's stable construction-time sort (ES2019+ Array.prototype.sort stability) — the fix only needed to surface the collision via dx:error naming both ids
 
 ### Pending Todos
 
@@ -133,7 +137,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-13T19:35:29.393Z
+Last session: 2026-07-13T19:42:02.018Z
 Stopped at: Completed 04-01-PLAN.md
 Resume file: 
 None
