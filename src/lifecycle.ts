@@ -9,6 +9,11 @@ export interface LifecycleManager {
   clearTemplateCache(): void;
   /** Drop a single cached template by its manifest-declared URL, forcing that one to refetch. */
   invalidateTemplate(url: string): void;
+  /**
+   * Abandon an in-flight (not-yet-committed) mount for `id` — closes the disable-mid-flight
+   * gap where the shell revokes access to a dapp whose mount hasn't reached currentDappId yet.
+   */
+  invalidatePendingMount(id: string): void;
 }
 
 export type ScriptLoader = (src: string) => Promise<void>;
@@ -251,6 +256,12 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
     ? withSanitizeTimeout(options.sanitizeTemplate, timeoutMs)
     : undefined;
   let currentDappId: string | null = null;
+  // Generalizes shell.ts's same-dapp pendingMountId dedupe to cross-dapp supersession (D-01/D-04):
+  // each mount() call captures the generation at its own commit points, so only the single
+  // still-current call at each gate can ever reach currentDappId/dx:mount. Both live in this
+  // closure, never at module scope — multiple shells in one process must not share a counter.
+  let mountGeneration = 0;
+  let inFlightMountId: string | null = null;
 
   // Cache wraps OUTERMOST, above the timeout-wrapped loader (D-11/D-12): a cache hit returns
   // immediately and never touches the fetch or its timeout. Only successful fetches are stored —
@@ -270,7 +281,14 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
   }
 
   async function mount(manifest: DappManifest, container: HTMLElement, path?: string): Promise<void> {
-    // Unmount current dapp if any
+    // Captured once per call; every gate below re-checks isStale() against the live counter so
+    // only the single most-recently-started mount can ever reach a commit point (D-01).
+    const generation = ++mountGeneration;
+    inFlightMountId = manifest.id;
+    const isStale = () => generation !== mountGeneration;
+
+    // Unmount current dapp if any — safe unguarded: nothing async has happened yet, so this
+    // call is by definition still the current generation.
     if (currentDappId) {
       unmount();
     }
@@ -283,6 +301,7 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
           source: `lifecycle:${manifest.id}`,
           error: new Error(`Missing required plugin(s): ${missing.join(', ')}`),
         });
+        inFlightMountId = null;
         return;
       }
     }
@@ -292,10 +311,14 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
       try {
         await loadStyle(manifest.styles);
       } catch (err) {
-        events.emit('dx:error', {
-          source: `lifecycle:${manifest.id}:styles`,
-          error: err instanceof Error ? err : new Error(String(err)),
-        });
+        // A superseded mount's own style failure isn't worth reporting — the newer mount
+        // already owns the container/currentDappId by the time this settles.
+        if (!isStale()) {
+          events.emit('dx:error', {
+            source: `lifecycle:${manifest.id}:styles`,
+            error: err instanceof Error ? err : new Error(String(err)),
+          });
+        }
       }
     }
 
@@ -305,27 +328,39 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
       try {
         html = await loadTemplate(manifest.template);
       } catch (err) {
-        events.emit('dx:error', {
-          source: `lifecycle:${manifest.id}:template`,
-          error: err instanceof Error ? err : new Error(String(err)),
-        });
+        if (!isStale()) {
+          events.emit('dx:error', {
+            source: `lifecycle:${manifest.id}:template`,
+            error: err instanceof Error ? err : new Error(String(err)),
+          });
+          inFlightMountId = null;
+        }
         return;
       }
+      // Re-check immediately before the DOM write (Pitfall 1) — a stale mount must never
+      // inject its template into a container the newer mount now owns.
+      if (isStale()) return;
 
       // Sanitize step gets its own try/catch (D-08) so its failure source is distinguishable
       // from a fetch failure. No sanitizer configured → html passes through unchanged (0.1.5
       // default behavior). Runs after loadTemplate() every time, including cache hits — the
       // templateCache never stores sanitized output (D-06).
       if (sanitizeTemplate) {
+        let sanitized: string;
         try {
-          container.innerHTML = await sanitizeTemplate(html, manifest);
+          sanitized = await sanitizeTemplate(html, manifest);
         } catch (err) {
-          events.emit('dx:error', {
-            source: `lifecycle:${manifest.id}:sanitize`,
-            error: err instanceof Error ? err : new Error(String(err), { cause: err }),
-          });
+          if (!isStale()) {
+            events.emit('dx:error', {
+              source: `lifecycle:${manifest.id}:sanitize`,
+              error: err instanceof Error ? err : new Error(String(err), { cause: err }),
+            });
+            inFlightMountId = null;
+          }
           return;
         }
+        if (isStale()) return; // re-check again — the sanitize await is another commit gate
+        container.innerHTML = sanitized;
       } else {
         container.innerHTML = html;
       }
@@ -337,14 +372,18 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
         try {
           await loadScript(dep);
         } catch (err) {
-          events.emit('dx:error', {
-            source: `lifecycle:${manifest.id}:dependency`,
-            error: err instanceof Error ? err : new Error(String(err)),
-          });
-          // Post-injection failure — clear any template HTML so no stale dapp DOM remains addressable.
-          container.innerHTML = '';
+          if (!isStale()) {
+            events.emit('dx:error', {
+              source: `lifecycle:${manifest.id}:dependency`,
+              error: err instanceof Error ? err : new Error(String(err)),
+            });
+            // Post-injection failure — clear any template HTML so no stale dapp DOM remains addressable.
+            container.innerHTML = '';
+            inFlightMountId = null;
+          }
           return;
         }
+        if (isStale()) return; // superseded mid-loop — don't load further deps for a dead mount
       }
     }
 
@@ -352,16 +391,21 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
     try {
       await loadScript(manifest.entry);
     } catch (err) {
-      events.emit('dx:error', {
-        source: `lifecycle:${manifest.id}`,
-        error: err instanceof Error ? err : new Error(String(err)),
-      });
-      // Post-injection failure — clear any template HTML so no stale dapp DOM remains addressable.
-      container.innerHTML = '';
+      if (!isStale()) {
+        events.emit('dx:error', {
+          source: `lifecycle:${manifest.id}`,
+          error: err instanceof Error ? err : new Error(String(err)),
+        });
+        // Post-injection failure — clear any template HTML so no stale dapp DOM remains addressable.
+        container.innerHTML = '';
+        inFlightMountId = null;
+      }
       return;
     }
+    if (isStale()) return; // final gate before commit
 
     currentDappId = manifest.id;
+    inFlightMountId = null;
 
     // Dapp contract: listen for dx:mount on container, render into it, listen for dx:unmount to teardown
     events.emit('dx:mount', { id: manifest.id, container, path: path ?? manifest.route });
@@ -393,5 +437,22 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
     templateCache.delete(url);
   }
 
-  return { mount, unmount, getCurrentDapp, destroy, clearTemplateCache, invalidateTemplate };
+  function invalidatePendingMount(id: string): void {
+    // Bumping the generation makes the in-flight mount's own isStale() gate fail at its next
+    // check — a no-op if `id` isn't the currently in-flight mount (already superseded or
+    // already committed, in which case getCurrentDapp()/unmount() is the right tool instead).
+    if (inFlightMountId === id) {
+      mountGeneration++;
+    }
+  }
+
+  return {
+    mount,
+    unmount,
+    getCurrentDapp,
+    destroy,
+    clearTemplateCache,
+    invalidateTemplate,
+    invalidatePendingMount,
+  };
 }

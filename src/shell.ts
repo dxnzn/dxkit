@@ -129,7 +129,13 @@ export function createShell(config: ShellConfig = {}): Shell {
     if (enabledState.get(id) === false) return;
 
     enabledState.set(id, false);
-    if (initialized) rebuildRouter();
+    if (initialized) {
+      // rebuildRouter() only acts on lifecycle.getCurrentDapp(), which is null for a mount
+      // still in flight — this closes that gap so a disabled dapp's not-yet-committed mount
+      // is abandoned too (D-03 scenario 1).
+      lifecycle.invalidatePendingMount(id);
+      rebuildRouter();
+    }
     events.emit('dx:dapp:disabled', { id });
   }
 
@@ -310,7 +316,15 @@ export function createShell(config: ShellConfig = {}): Shell {
     pendingMountId = manifest.id;
     try {
       await lifecycle.mount(manifest, container, path);
-      currentPath = path;
+      // Fresh-path commit (D-03 scenario 3): a sub-path navigation that arrived while this
+      // mount was still in flight was silently dropped by the pendingMountId dedupe above —
+      // re-read the browser's actual current path now instead of trusting the value captured
+      // when this call started, and catch up with a dx:route:subpath event if it moved.
+      const freshPath = router.getCurrentPath();
+      if (freshPath !== path && lifecycle.getCurrentDapp() === manifest.id) {
+        events.emit('dx:route:subpath', { id: manifest.id, path: freshPath, previousPath: path });
+      }
+      currentPath = freshPath;
     } finally {
       pendingMountId = null;
     }
