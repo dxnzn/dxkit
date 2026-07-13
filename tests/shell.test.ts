@@ -1,11 +1,13 @@
-import type { DappManifest, Plugin, Shell, ShellConfig } from '@dnzn/dxkit';
+import type { DappManifest, Plugin, ScriptLoader, Shell, ShellConfig } from '@dnzn/dxkit';
 import { createShell } from '@dnzn/dxkit';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /** No-op loaders — avoids happy-dom DOMException on module script injection. */
-const testLoaders: Pick<ShellConfig, 'scriptLoader' | 'styleLoader'> = {
-  scriptLoader: async () => {},
-  styleLoader: async () => {},
+const testLoaders: Pick<ShellConfig, 'lifecycle'> = {
+  lifecycle: {
+    scriptLoader: async () => {},
+    styleLoader: async () => {},
+  },
 };
 
 describe('createShell', () => {
@@ -518,13 +520,13 @@ describe('createShell', () => {
     }
 
     /** Entry loader that holds the first load open until release() — widens the in-flight window. */
-    function deferredEntryLoader(): { loader: ShellConfig['scriptLoader']; release: () => void } {
+    function deferredEntryLoader(): { loader: ScriptLoader; release: () => void } {
       let release!: () => void;
       let started = false;
       const first = new Promise<void>((res) => {
         release = res;
       });
-      const loader: ShellConfig['scriptLoader'] = (_src: string) => {
+      const loader: ScriptLoader = (_src: string) => {
         if (!started) {
           started = true;
           return first;
@@ -570,7 +572,11 @@ describe('createShell', () => {
 
     it('drops a duplicate notification while a mount of the same dapp is in flight', async () => {
       const { loader, release } = deferredEntryLoader();
-      shell = createShell({ scriptLoader: loader, styleLoader: async () => {}, mode: 'history', manifests: [dappB] });
+      shell = createShell({
+        lifecycle: { scriptLoader: loader, styleLoader: async () => {} },
+        mode: 'history',
+        manifests: [dappB],
+      });
       await shell.init();
 
       const mounts = countMounts('b');
@@ -827,6 +833,70 @@ describe('createShell', () => {
 
       expect(shell.getManifests()).toHaveLength(3);
       expect(shell.getEnabledManifests()).toHaveLength(2);
+    });
+  });
+
+  describe('config.lifecycle passthrough (D-03/D-04)', () => {
+    it('a lifecycle.sanitizeTemplate configured via createShell runs during a real mount', async () => {
+      const rawHtml = '<div id="content">hi</div>';
+      const sanitizeTemplate = vi.fn((html: string) => `<!--sanitized-->${html}`);
+      const manifest: DappManifest = {
+        id: 'templated',
+        name: 'Templated',
+        version: '0.0.1',
+        route: '/templated',
+        entry: 'data:text/javascript,',
+        template: '/templated/index.html',
+        nav: { label: 'Templated' },
+      };
+
+      shell = createShell({
+        lifecycle: {
+          scriptLoader: async () => {},
+          styleLoader: async () => {},
+          templateLoader: async (src: string) => (src === manifest.template ? rawHtml : ''),
+          sanitizeTemplate,
+          // Also exercise timeout/cacheTemplates — previously unreachable from createShell() (D-04).
+          timeout: 5000,
+          cacheTemplates: false,
+        },
+        manifests: [manifest],
+      });
+
+      await shell.init();
+      shell.navigate('/templated');
+      await new Promise((r) => setTimeout(r, 0));
+
+      expect(sanitizeTemplate).toHaveBeenCalledWith(rawHtml, expect.objectContaining({ id: 'templated' }));
+      expect(container.innerHTML).toBe(`<!--sanitized-->${rawHtml}`);
+    });
+  });
+
+  describe('flat-loader runtime throw (D-05)', () => {
+    it('throws when scriptLoader is passed at the top level', () => {
+      expect(() => createShell({ scriptLoader: async () => {} } as unknown as ShellConfig)).toThrow(
+        /config\.lifecycle/,
+      );
+    });
+
+    it('throws when styleLoader is passed at the top level', () => {
+      expect(() => createShell({ styleLoader: async () => {} } as unknown as ShellConfig)).toThrow(/config\.lifecycle/);
+    });
+
+    it('throws when templateLoader is passed at the top level', () => {
+      expect(() => createShell({ templateLoader: async () => '' } as unknown as ShellConfig)).toThrow(
+        /config\.lifecycle/,
+      );
+    });
+
+    it('throws once naming all three flat keys when combined', () => {
+      expect(() =>
+        createShell({
+          scriptLoader: async () => {},
+          styleLoader: async () => {},
+          templateLoader: async () => '',
+        } as unknown as ShellConfig),
+      ).toThrow(/config\.lifecycle/);
     });
   });
 });

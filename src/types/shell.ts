@@ -1,3 +1,4 @@
+import type { LifecycleManagerOptions } from '../lifecycle.js';
 import type { Plugin } from './interfaces.js';
 import type { DappManifest } from './manifest.js';
 
@@ -23,12 +24,8 @@ export interface ShellConfig {
   basePath?: string;
   /** Routing mode. Default: 'history'. */
   mode?: 'history' | 'hash';
-  /** Override the script loader (useful for testing). */
-  scriptLoader?: (src: string) => Promise<void>;
-  /** Override the style loader (useful for testing). */
-  styleLoader?: (href: string) => Promise<void>;
-  /** Override the template loader (useful for testing). */
-  templateLoader?: (src: string) => Promise<string>;
+  /** Lifecycle manager knobs — loaders (script/style/template), timeout, cacheTemplates, sanitizeTemplate. */
+  lifecycle?: LifecycleManagerOptions;
 }
 
 /** The shell instance returned by createShell(). */

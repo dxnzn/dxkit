@@ -13,6 +13,19 @@ import { deepMerge } from './utils.js';
  * the layout and mount container.
  */
 export function createShell(config: ShellConfig = {}): Shell {
+  // D-05: the flat scriptLoader/styleLoader/templateLoader fields were removed from ShellConfig
+  // in favor of the nested `lifecycle` group. TypeScript catches this for typed consumers at
+  // compile time; untyped JS/IIFE consumers bypass that check, so this runtime guard throws
+  // loudly instead of silently constructing a shell with unconfigured loaders.
+  const flatLoaderKeys = ['scriptLoader', 'styleLoader', 'templateLoader'] as const;
+  const presentFlatKeys = flatLoaderKeys.filter((key) => key in config);
+  if (presentFlatKeys.length > 0) {
+    throw new Error(
+      `ShellConfig.${presentFlatKeys.join('/')} ${presentFlatKeys.length > 1 ? 'are' : 'is'} no longer supported — ` +
+        `move to config.lifecycle.${presentFlatKeys.join('/')}.`,
+    );
+  }
+
   const {
     plugins = {},
     dapps: dappEntries,
@@ -20,9 +33,7 @@ export function createShell(config: ShellConfig = {}): Shell {
     registryUrl = '/registry.json',
     basePath = '/',
     mode = 'history',
-    scriptLoader,
-    styleLoader,
-    templateLoader,
+    lifecycle: lifecycleOptions = {},
   } = config;
 
   const events = createEventBus();
@@ -30,9 +41,7 @@ export function createShell(config: ShellConfig = {}): Shell {
   const registry = createPluginRegistry();
   const lifecycle = createLifecycleManager(events, {
     hasPlugin: (name: string) => registry.has(name),
-    scriptLoader,
-    styleLoader,
-    templateLoader,
+    ...lifecycleOptions,
   });
   let manifests: DappManifest[] = [];
   let router = createRouter({ mode, basePath, manifests: [] });
