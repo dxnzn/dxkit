@@ -28,13 +28,13 @@ await shell.init();
 
 **IIFE (script tag):**
 ```html
-<script src="https://unpkg.com/@dxkit/wallet/dist/index.global.js"></script>
+<script src="https://unpkg.com/@dnzn/dxkit-wallet/dist/index.global.js"></script>
 <!-- Exposes global: DxWallet -->
 ```
 
 **ESM:**
 ```js
-import { createWallet, createEIP1193Provider, createLocalWalletProvider } from '@dxkit/wallet';
+import { createWallet, createEIP1193Provider, createLocalWalletProvider } from '@dnzn/dxkit-wallet';
 ```
 
 ## Setup

@@ -1,4 +1,4 @@
-import type { Context, Wallet } from '@dnzn/dxkit';
+import type { Context, Wallet, WalletProvider, WalletState } from '@dnzn/dxkit';
 import { createEventBus } from '@dnzn/dxkit';
 import {
   createEIP1193Provider,
@@ -51,6 +51,29 @@ function mockEIP1193Provider(accounts = ['0xabc123'], chainId = '0x1') {
   };
 }
 
+/** A provider that violates the WalletProvider contract by reporting connected: true with no address. */
+function mockBadWalletProvider(): WalletProvider {
+  const handlers = new Set<(state: WalletState) => void>();
+  return {
+    id: 'bad',
+    name: 'Bad Provider',
+    available: () => true,
+    async connect(): Promise<WalletState> {
+      const badState: WalletState = { connected: true, address: null, chainId: 0, provider: null };
+      for (const handler of handlers) handler(badState);
+      return badState;
+    },
+    async disconnect(): Promise<void> {},
+    async sign(): Promise<string> {
+      return '0x';
+    },
+    onStateChange(handler: (state: WalletState) => void): () => void {
+      handlers.add(handler);
+      return () => handlers.delete(handler);
+    },
+  };
+}
+
 // ---------------------------------------------------------------------------
 // createEIP1193Provider
 // ---------------------------------------------------------------------------
@@ -94,6 +117,21 @@ describe('createEIP1193Provider', () => {
   it('connect() throws without window.ethereum', async () => {
     const provider = createEIP1193Provider();
     await expect(provider.connect()).rejects.toThrow('No wallet detected');
+  });
+
+  it('connect() throws when eth_requestAccounts returns an empty array (WR-02)', async () => {
+    const mock = mockEIP1193Provider([]);
+    (window as any).ethereum = mock;
+    const provider = createEIP1193Provider();
+
+    const handler = vi.fn();
+    provider.onStateChange(handler);
+
+    await expect(provider.connect()).rejects.toThrow('Wallet connection request returned no accounts.');
+
+    // No state mutation and no chainId lookup on failure — throw happens before updateState/eth_chainId
+    expect(handler).not.toHaveBeenCalled();
+    expect(mock.request).not.toHaveBeenCalledWith({ method: 'eth_chainId' });
   });
 
   it('disconnect() clears state', async () => {
@@ -344,6 +382,22 @@ describe('createWallet', () => {
     expect(handler).toHaveBeenCalledOnce();
   });
 
+  it('emits dx:error (source plugin:wallet:state) when a provider reports connected without an address, and fires no connected event', async () => {
+    wallet = createWallet({ providers: [mockBadWalletProvider()] });
+    await wallet.init!(ctx);
+
+    const errorHandler = vi.fn();
+    const connectedHandler = vi.fn();
+    ctx.events.on('dx:error', errorHandler);
+    ctx.events.on('dx:plugin:wallet:connected', connectedHandler);
+
+    await wallet.connect();
+
+    expect(errorHandler).toHaveBeenCalledOnce();
+    expect(errorHandler.mock.calls[0][0].source).toBe('plugin:wallet:state');
+    expect(connectedHandler).not.toHaveBeenCalled();
+  });
+
   it('onStateChange() propagates provider state changes', async () => {
     wallet = createWallet({ providers: [createLocalWalletProvider()] });
     await wallet.init!(ctx);
@@ -522,6 +576,89 @@ describe('createWallet', () => {
         (globalThis as any).localStorage = original;
       }
     });
+  });
+
+  describe('storageKey (SEC-02)', () => {
+    afterEach(() => {
+      localStorage.removeItem('dxkit:appA:wallet');
+      localStorage.removeItem('dxkit:appB:wallet');
+      localStorage.removeItem('dxkit:custom:wallet');
+    });
+
+    it('isolates persistence per storageKey with no cross-key bleed', async () => {
+      const walletA = createWallet({ providers: [createLocalWalletProvider()], storageKey: 'dxkit:appA:wallet' });
+      await walletA.init!(mockContext());
+      await walletA.connect();
+
+      expect(localStorage.getItem('dxkit:appA:wallet')).toBe('local');
+      expect(localStorage.getItem('dxkit:wallet')).toBeNull();
+
+      const walletB = createWallet({ providers: [createLocalWalletProvider()], storageKey: 'dxkit:appB:wallet' });
+      await walletB.init!(mockContext());
+      await walletB.connect();
+
+      expect(localStorage.getItem('dxkit:appB:wallet')).toBe('local');
+      // walletB's write did not touch walletA's key
+      expect(localStorage.getItem('dxkit:appA:wallet')).toBe('local');
+
+      await walletA.destroy!();
+      await walletB.destroy!();
+    });
+
+    it('defaults to dxkit:wallet when storageKey is not provided', async () => {
+      wallet = createWallet({ providers: [createLocalWalletProvider()] });
+      await wallet.init!(ctx);
+      await wallet.connect();
+
+      expect(localStorage.getItem('dxkit:wallet')).toBe('local');
+    });
+
+    it('does not read or migrate the legacy dxkit:wallet key when a custom storageKey is set (D-10)', async () => {
+      localStorage.setItem('dxkit:wallet', 'local');
+
+      const custom = createWallet({ providers: [createLocalWalletProvider()], storageKey: 'dxkit:custom:wallet' });
+      await custom.init!(mockContext());
+
+      // Did not auto-reconnect from the legacy key
+      expect(custom.getState().connected).toBe(false);
+      expect(custom.getActiveProvider()).toBeNull();
+      // Legacy entry left untouched
+      expect(localStorage.getItem('dxkit:wallet')).toBe('local');
+
+      await custom.destroy!();
+      localStorage.removeItem('dxkit:wallet');
+    });
+  });
+
+  it('emits dx:error with source plugin:wallet:reconnect and clears the persisted key when auto-reconnect fails (WR-03)', async () => {
+    const failingProvider: WalletProvider = {
+      id: 'failing',
+      name: 'Failing Provider',
+      available: () => true,
+      connect: vi.fn(async () => {
+        throw new Error('Provider rejected reconnect');
+      }),
+      disconnect: async () => {},
+      sign: async () => '',
+      onStateChange: () => () => {},
+    };
+
+    localStorage.setItem('dxkit:wallet', 'failing');
+    wallet = createWallet({ providers: [failingProvider] });
+
+    const errorHandler = vi.fn();
+    ctx.events.on('dx:error', errorHandler);
+
+    await wallet.init!(ctx);
+
+    expect(errorHandler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: 'plugin:wallet:reconnect',
+        error: expect.any(Error),
+      }),
+    );
+    expect(localStorage.getItem('dxkit:wallet')).toBeNull();
+    expect(wallet.getState().connected).toBe(false);
   });
 
   it('calls wallet_revokePermissions on disconnect when setting enabled', async () => {

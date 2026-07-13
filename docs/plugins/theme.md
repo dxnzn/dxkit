@@ -25,13 +25,13 @@ await shell.init();
 
 **IIFE (script tag):**
 ```html
-<script src="https://unpkg.com/@dxkit/theme/dist/index.global.js"></script>
+<script src="https://unpkg.com/@dnzn/dxkit-theme/dist/index.global.js"></script>
 <!-- Exposes global: DxTheme -->
 ```
 
 **ESM:**
 ```js
-import { createCSSTheme } from '@dxkit/theme';
+import { createCSSTheme } from '@dnzn/dxkit-theme';
 ```
 
 ## Setup

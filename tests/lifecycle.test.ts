@@ -531,6 +531,33 @@ describe('LifecycleManager', () => {
       lm.destroy();
     });
 
+    it('sanitize timeout aborts the mount — dx:error fires with source lifecycle:<id>:sanitize, no injection, no dx:dapp:mounted', async () => {
+      const lm = createLifecycleManager(events, {
+        scriptLoader: noopLoader,
+        templateLoader: async () => '<div id="app">Template Content</div>',
+        sanitizeTemplate: neverResolves,
+        timeout: 30,
+      });
+
+      const errorHandler = vi.fn();
+      const mountedHandler = vi.fn();
+      events.on('dx:error', errorHandler);
+      events.on('dx:dapp:mounted', mountedHandler);
+
+      const m = { ...manifest('slow-sanitize'), template: '/dapps/slow-sanitize/tpl.html' };
+      const mountPromise = lm.mount(m, container);
+      await vi.advanceTimersByTimeAsync(30);
+      await mountPromise;
+
+      expect(errorHandler).toHaveBeenCalledOnce();
+      expect(errorHandler.mock.calls[0][0].source).toBe('lifecycle:slow-sanitize:sanitize');
+      expect(mountedHandler).not.toHaveBeenCalled();
+      expect(container.innerHTML).toBe('');
+      expect(lm.getCurrentDapp()).toBeNull();
+
+      lm.destroy();
+    });
+
     it('dependency timeout aborts the mount and clears the container', async () => {
       const lm = createLifecycleManager(events, {
         scriptLoader: (src: string) => (src.includes('dep') ? neverResolves() : Promise.resolve()),
@@ -779,6 +806,141 @@ describe('LifecycleManager', () => {
       await lm.mount(m, container);
 
       expect(templateLoader).toHaveBeenCalledTimes(2);
+
+      lm.destroy();
+    });
+  });
+
+  describe('sanitizeTemplate', () => {
+    it('is called with (html, manifest) and its returned value is injected instead of the raw HTML', async () => {
+      const rawHtml = '<div id="app">Raw</div>';
+      const sanitizeTemplate = vi.fn((html: string) => html.replace('Raw', 'Sanitized'));
+      const lm = createLifecycleManager(events, {
+        scriptLoader: noopLoader,
+        templateLoader: async () => rawHtml,
+        sanitizeTemplate,
+      });
+
+      const m = { ...manifest('sanitized'), template: '/dapps/sanitized/tpl.html' };
+      await lm.mount(m, container);
+
+      expect(sanitizeTemplate).toHaveBeenCalledOnce();
+      expect(sanitizeTemplate).toHaveBeenCalledWith(rawHtml, expect.objectContaining({ id: 'sanitized' }));
+      expect(container.innerHTML).toBe('<div id="app">Sanitized</div>');
+
+      lm.destroy();
+    });
+
+    it('awaits an async sanitizeTemplate before injecting the resolved value', async () => {
+      const rawHtml = '<div id="app">Raw</div>';
+      const sanitizeTemplate = async (html: string) => {
+        await Promise.resolve();
+        return html.replace('Raw', 'AsyncSanitized');
+      };
+      const lm = createLifecycleManager(events, {
+        scriptLoader: noopLoader,
+        templateLoader: async () => rawHtml,
+        sanitizeTemplate,
+      });
+
+      const m = { ...manifest('async-sanitized'), template: '/dapps/async-sanitized/tpl.html' };
+      await lm.mount(m, container);
+
+      expect(container.innerHTML).toBe('<div id="app">AsyncSanitized</div>');
+
+      lm.destroy();
+    });
+
+    it('injects an XSS-shaped payload verbatim when no sanitizeTemplate is configured (unchanged 0.1.5 default)', async () => {
+      const xssPayload = '<img src="x" onerror="alert(1)"><script>alert(2)</script>';
+      const lm = createLifecycleManager(events, {
+        scriptLoader: noopLoader,
+        templateLoader: async () => xssPayload,
+      });
+
+      const m = { ...manifest('unsanitized'), template: '/dapps/unsanitized/tpl.html' };
+      await lm.mount(m, container);
+
+      expect(container.innerHTML).toContain(xssPayload);
+
+      lm.destroy();
+    });
+
+    it('fail-closed: a sanitizeTemplate that throws emits dx:error with source lifecycle:<id>:sanitize and does not inject', async () => {
+      const xssPayload = '<div>payload</div>';
+      const lm = createLifecycleManager(events, {
+        scriptLoader: noopLoader,
+        templateLoader: async () => xssPayload,
+        sanitizeTemplate: () => {
+          throw new Error('sanitizer exploded');
+        },
+      });
+
+      const errorHandler = vi.fn();
+      const mountedHandler = vi.fn();
+      events.on('dx:error', errorHandler);
+      events.on('dx:dapp:mounted', mountedHandler);
+
+      const m = { ...manifest('sanitize-throws'), template: '/dapps/sanitize-throws/tpl.html' };
+      await lm.mount(m, container);
+
+      expect(errorHandler).toHaveBeenCalledOnce();
+      expect(errorHandler.mock.calls[0][0].source).toBe('lifecycle:sanitize-throws:sanitize');
+      expect(container.innerHTML).not.toContain(xssPayload);
+      expect(mountedHandler).not.toHaveBeenCalled();
+      expect(lm.getCurrentDapp()).toBeNull();
+
+      lm.destroy();
+    });
+
+    it('fail-closed: a sanitizeTemplate that rejects emits dx:error with source lifecycle:<id>:sanitize and does not inject', async () => {
+      const xssPayload = '<div>payload</div>';
+      const lm = createLifecycleManager(events, {
+        scriptLoader: noopLoader,
+        templateLoader: async () => xssPayload,
+        sanitizeTemplate: async () => {
+          throw new Error('sanitizer rejected');
+        },
+      });
+
+      const errorHandler = vi.fn();
+      events.on('dx:error', errorHandler);
+
+      const m = { ...manifest('sanitize-rejects'), template: '/dapps/sanitize-rejects/tpl.html' };
+      await lm.mount(m, container);
+
+      expect(errorHandler).toHaveBeenCalledOnce();
+      expect(errorHandler.mock.calls[0][0].source).toBe('lifecycle:sanitize-rejects:sanitize');
+      expect(container.innerHTML).not.toContain(xssPayload);
+
+      lm.destroy();
+    });
+
+    it('re-runs the sanitizer on every mount while the template cache stores only raw HTML (D-06)', async () => {
+      const rawHtml = '<div id="app">Raw</div>';
+      const templateLoader = vi.fn(async () => rawHtml);
+      let strip = true;
+      const sanitizeTemplate = (html: string) => (strip ? html.replace('Raw', 'Stripped') : html);
+
+      const lm = createLifecycleManager(events, {
+        scriptLoader: noopLoader,
+        templateLoader,
+        sanitizeTemplate,
+      });
+
+      const m = { ...manifest('cache-raw'), template: '/dapps/cache-raw/tpl.html' };
+      await lm.mount(m, container);
+      expect(container.innerHTML).toBe('<div id="app">Stripped</div>');
+      lm.unmount();
+
+      // Sanitizer behavior swapped to passthrough for the second mount — the templateCache
+      // still only ever held the raw fetched HTML, so this proves the cache never stored
+      // sanitized output and the sanitizer re-ran fresh on the cache-hit mount.
+      strip = false;
+      await lm.mount(m, container);
+      expect(container.innerHTML).toBe(rawHtml);
+
+      expect(templateLoader).toHaveBeenCalledOnce();
 
       lm.destroy();
     });

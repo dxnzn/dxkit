@@ -44,6 +44,10 @@ export function createEIP1193Provider(): WalletProvider {
       }
 
       const accounts: string[] = await provider.request({ method: 'eth_requestAccounts' });
+      if (accounts.length === 0) {
+        throw new Error('Wallet connection request returned no accounts.');
+      }
+
       const chainIdHex: string = await provider.request({ method: 'eth_chainId' });
       const chainId = parseInt(chainIdHex, 16);
 
@@ -149,13 +153,14 @@ export function createLocalWalletProvider(options?: LocalWalletProviderOptions):
 export interface WalletOptions {
   /** Available wallet providers. First available is used by default. */
   providers: WalletProvider[];
+  /** localStorage key for the persisted provider selection. Default: 'dxkit:wallet'. */
+  storageKey?: string;
 }
-
-const STORAGE_KEY = 'dxkit:wallet';
 
 /** Creates the wallet Context plugin — a coordinator that delegates to pluggable providers. */
 export function createWallet(options: WalletOptions): Wallet {
   const providers = options.providers;
+  const storageKey = options.storageKey ?? 'dxkit:wallet';
   let activeProvider: WalletProvider | null = null;
   let activeUnsub: (() => void) | null = null;
   let dx: Context | null = null;
@@ -175,9 +180,9 @@ export function createWallet(options: WalletOptions): Wallet {
     if (!canUseStorage()) return;
     try {
       if (providerId) {
-        localStorage.setItem(STORAGE_KEY, providerId);
+        localStorage.setItem(storageKey, providerId);
       } else {
-        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(storageKey);
       }
     } catch (err) {
       dx?.events.emit('dx:error', {
@@ -192,7 +197,7 @@ export function createWallet(options: WalletOptions): Wallet {
   function getPersistedProvider(): string | null {
     if (!canUseStorage()) return null;
     try {
-      return localStorage.getItem(STORAGE_KEY);
+      return localStorage.getItem(storageKey);
     } catch (err) {
       dx?.events.emit('dx:error', {
         source: 'plugin:wallet:storage:read',
@@ -210,12 +215,21 @@ export function createWallet(options: WalletOptions): Wallet {
     for (const handler of handlers) handler(state);
 
     if (!dx) return;
-    if (newState.connected && !wasConnected) {
-      dx.events.emit('dx:plugin:wallet:connected', { address: newState.address!, chainId: newState.chainId ?? 0 });
+    // Visible-not-silent contract: a provider claiming connected with no address is a
+    // provider-contract violation — surface it instead of silently dropping the connected
+    // event while wasConnected still flips true underneath (FIND-3).
+    if (newState.connected && !newState.address) {
+      dx.events.emit('dx:error', {
+        source: 'plugin:wallet:state',
+        error: new Error('Wallet provider reported connected state with no address'),
+      });
+    }
+    if (newState.connected && newState.address && !wasConnected) {
+      dx.events.emit('dx:plugin:wallet:connected', { address: newState.address, chainId: newState.chainId ?? 0 });
     } else if (!newState.connected && wasConnected) {
       dx.events.emit('dx:plugin:wallet:disconnected', {});
-    } else if (newState.connected && wasConnected) {
-      dx.events.emit('dx:plugin:wallet:changed', { address: newState.address!, chainId: newState.chainId ?? 0 });
+    } else if (newState.connected && newState.address && wasConnected) {
+      dx.events.emit('dx:plugin:wallet:changed', { address: newState.address, chainId: newState.chainId ?? 0 });
     }
   }
 
@@ -259,8 +273,12 @@ export function createWallet(options: WalletOptions): Wallet {
         if (provider?.available()) {
           try {
             await plugin.connect(savedId);
-          } catch {
-            // Provider no longer available — clear persisted state
+          } catch (err) {
+            // Provider no longer available or connect() rejected — surface the failure, then clear persisted state
+            dx?.events.emit('dx:error', {
+              source: 'plugin:wallet:reconnect',
+              error: err instanceof Error ? err : new Error(String(err), { cause: err }),
+            });
             persistProvider(null);
           }
         }

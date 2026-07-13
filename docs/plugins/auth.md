@@ -26,13 +26,13 @@ await shell.init();
 
 **IIFE (script tag):**
 ```html
-<script src="https://unpkg.com/@dxkit/auth/dist/index.global.js"></script>
+<script src="https://unpkg.com/@dnzn/dxkit-auth/dist/index.global.js"></script>
 <!-- Exposes global: DxAuth -->
 ```
 
 **ESM:**
 ```js
-import { createPassthroughAuth } from '@dxkit/auth';
+import { createPassthroughAuth } from '@dnzn/dxkit-auth';
 ```
 
 ## Setup

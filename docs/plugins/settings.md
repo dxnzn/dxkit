@@ -30,13 +30,13 @@ const value = dx.settings.get('my-dapp', 'refreshInterval');
 
 **IIFE (script tag):**
 ```html
-<script src="https://unpkg.com/@dxkit/settings/dist/index.global.js"></script>
+<script src="https://unpkg.com/@dnzn/dxkit-settings/dist/index.global.js"></script>
 <!-- Exposes global: DxSettings -->
 ```
 
 **ESM:**
 ```js
-import { createSettings } from '@dxkit/settings';
+import { createSettings } from '@dnzn/dxkit-settings';
 ```
 
 ## Setup

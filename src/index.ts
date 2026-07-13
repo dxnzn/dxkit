@@ -1,7 +1,13 @@
 // Types
 
 export { createEventBus, createEventRegistry } from './events.js';
-export type { LifecycleManagerOptions, ScriptLoader, StyleLoader, TemplateLoader } from './lifecycle.js';
+export type {
+  LifecycleManagerOptions,
+  ScriptLoader,
+  StyleLoader,
+  TemplateLoader,
+  TemplateSanitizer,
+} from './lifecycle.js';
 export { createLifecycleManager } from './lifecycle.js';
 export { createPluginRegistry } from './registry.js';
 export { createRouter } from './router.js';
