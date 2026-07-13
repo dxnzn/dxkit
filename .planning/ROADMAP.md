@@ -102,11 +102,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Manifest-validation tests cover invalid route formats, deep-merge override behavior, and multi-match routes, each asserting the correct accept/reject/merge outcome.
   3. A regression test verifies settings handlers registered by a dapp do not fire after that dapp is disabled via `disableDapp()`.
 
-**Plans**: 3 plans
+**Plans**: 1/3 plans executed
 
 **Wave 1**
 
-- [ ] 04-01-PLAN.md — TEST-01: mount-generation guard (last-navigation-wins fix) + `invalidatePendingMount` hook + dedicated stress suite covering the full D-03 race matrix [wave 1]
+- [x] 04-01-PLAN.md — TEST-01: mount-generation guard (last-navigation-wins fix) + `invalidatePendingMount` hook + dedicated stress suite covering the full D-03 race matrix [wave 1]
 - [ ] 04-03-PLAN.md — TEST-03: full-shell settings-cleanup integration regression (real `createShell`→`disableDapp`) + D-09 deepMerge assertions & JSDoc reconcile [wave 1]
 
 **Wave 2** *(blocked on Wave 1 — shares `src/shell.ts` with 04-01)*
@@ -136,5 +136,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Diagnostics — Surface Silent Failures | 2/2 | Complete    | 2026-07-11 |
 | 2. Robustness — Load Guards, Caching & Handler Cleanup | 4/4 | Complete    | 2026-07-12 |
 | 3. Security — Sanitization & Storage Isolation | 3/3 | Complete    | 2026-07-12 |
-| 4. Testing — Stress, Edge-Case & Regression Coverage | 0/3 | Not started | - |
+| 4. Testing — Stress, Edge-Case & Regression Coverage | 1/3 | In Progress|  |
 | 5. Documentation — Truth Pass | 0/TBD | Not started | - |

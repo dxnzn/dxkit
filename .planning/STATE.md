@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 4
-current_phase_name: Testing — Stress, Edge-Case & Regression Coverage
+current_phase: 04
+current_phase_name: testing-stress-edge-case-regression-coverage
 status: executing
-stopped_at: Phase 4 context gathered
-last_updated: "2026-07-13T19:01:20.537Z"
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-07-13T19:31:15.384Z"
 last_activity: 2026-07-13
-last_activity_desc: "Merged PR #3 (phase 03 + docs + review fixes); phase closed"
+last_activity_desc: Phase 04 execution started
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 9
-  completed_plans: 9
+  total_plans: 12
+  completed_plans: 10
   percent: 60
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-11)
 
 **Core value:** DxKit stays trustworthy for real use — failures are visible (never silent), documented behavior matches actual behavior, and the alpha is stable enough to build on with confidence.
-**Current focus:** Phase 03 — security-sanitization-storage-isolation
+**Current focus:** Phase 04 — testing-stress-edge-case-regression-coverage
 
 ## Current Position
 
-Phase: 4 — Testing — Stress, Edge-Case & Regression Coverage
-Plan: Not started
+Phase: 04 (testing-stress-edge-case-regression-coverage) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-07-13 - Merged PR #3 (phase 03 + docs + review fixes); phase closed
+Last activity: 2026-07-13 — Phase 04 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -66,6 +66,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03 P01 | 8min | 2 tasks | 3 files |
 | Phase 03 P02 | 10 min | 3 tasks | 2 files |
 | Phase 03 P03 | 10min | 2 tasks | 3 files |
+| Phase 04 P01 | 27min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -97,6 +98,9 @@ Recent decisions affecting current work:
 - [Phase 03-02]: address! assertions replaced with truthy guards, not just removed (D-11) — connect() now guarantees non-empty address before updateState is called with connected:true; guard encodes that invariant in the type system
 - [Phase 03-03]: Fixed the plan's stated LifecycleManagerOptions import path (./lifecycle.js -> ../lifecycle.js) — src/lifecycle.ts lives one directory above src/types/; the literal path in the plan would not have resolved
 - [Phase 03-03]: BREAKING CHANGE footer placed on the Task 1 commit, not Task 2 — Task 1 lands the actual type removal + runtime throw; Task 2 is pure test migration onto the already-breaking shape
+- [Phase 04-01]: Mount-generation guard (mountGeneration counter + isStale() gating) fixes last-navigation-wins; closure-scoped, never module-level — Multiple shells in one process must not share a counter; generalizes the existing pendingMountId same-dapp dedupe idiom to cross-dapp supersession
+- [Phase 04-01]: invalidatePendingMount(id) added to LifecycleManager, wired from shell.disableDapp(), to close the disable-mid-flight race gap — rebuildRouter() only acts on lifecycle.getCurrentDapp(), which is null for a not-yet-committed mount
+- [Phase 04-01]: Sub-path stale-path bug fixed by re-reading router.getCurrentPath() after lifecycle.mount() resolves, emitting a dx:route:subpath catch-up if it moved — pendingMountId dedupe silently dropped sub-path navigations during a pending mount with no side effect, leaving the committed path stale
 
 ### Pending Todos
 
@@ -126,7 +130,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-13T15:37:46.400Z
-Stopped at: Phase 4 context gathered
+Last session: 2026-07-13T19:31:15.379Z
+Stopped at: Completed 04-01-PLAN.md
 Resume file: 
-.planning/phases/04-testing-stress-edge-case-regression-coverage/04-CONTEXT.md
+None
