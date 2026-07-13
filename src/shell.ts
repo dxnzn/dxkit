@@ -359,6 +359,9 @@ export function createShell(config: ShellConfig = {}): Shell {
     if (manifest) {
       await mountDapp(manifest);
     } else {
+      // An unmatched route must supersede an in-flight mount too, not just a dapp->dapp
+      // transition — otherwise a stale dapp can still commit its DOM under the new URL (D-01).
+      if (pendingMountId) lifecycle.invalidatePendingMount(pendingMountId);
       lifecycle.unmount();
     }
     events.emit('dx:route:changed', {
