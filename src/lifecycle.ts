@@ -14,6 +14,13 @@ export interface LifecycleManager {
 export type ScriptLoader = (src: string) => Promise<void>;
 export type StyleLoader = (href: string) => Promise<void>;
 export type TemplateLoader = (src: string) => Promise<string>;
+/**
+ * Bring-your-own template sanitizer (e.g. DOMPurify). Called with the fetched template HTML
+ * and the mounting manifest, and awaited before injection — the `string | Promise<string>`
+ * return accommodates both sync (DOMPurify) and async (dynamically-imported/policy-driven)
+ * implementations (D-01).
+ */
+export type TemplateSanitizer = (html: string, manifest: DappManifest) => string | Promise<string>;
 
 /** `timeout: 0` or `Infinity` is the documented opt-out that restores hang-forever behavior (D-03). */
 function isTimeoutActive(timeoutMs: number): boolean {
@@ -157,6 +164,14 @@ export interface LifecycleManagerOptions {
    * dev/live-editing so template edits are picked up without an explicit invalidation call.
    */
   cacheTemplates?: boolean;
+  /**
+   * Runs on fetched template HTML immediately before it is written to the mount container,
+   * on every mount (including cache hits) — DxKit ships no built-in sanitizer, this is a
+   * bring-your-own seam (DOMPurify or equivalent). Applies to template HTML only; dapp entry
+   * scripts are trusted code outside its reach (D-14). With no sanitizer configured, injection
+   * is unchanged from 0.1.5. A throw or rejection aborts the mount (D-07).
+   */
+  sanitizeTemplate?: TemplateSanitizer;
 }
 
 /** Default template loader — fetches HTML via fetch(). */
@@ -200,6 +215,8 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
     ? withTimeout(options.templateLoader, timeoutMs, 'template')
     : defaultTemplateLoader(timeoutMs);
   const hasPlugin = options.hasPlugin ?? (() => true);
+  // undefined means "pass through unchanged" — no `??` default, unlike timeoutMs/cacheEnabled above.
+  const sanitizeTemplate = options.sanitizeTemplate;
   let currentDappId: string | null = null;
 
   // Cache wraps OUTERMOST, above the timeout-wrapped loader (D-11/D-12): a cache hit returns
@@ -251,15 +268,33 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
 
     // Template fetch is blocking — the dapp expects a populated container
     if (manifest.template) {
+      let html: string;
       try {
-        const html = await loadTemplate(manifest.template);
-        container.innerHTML = html;
+        html = await loadTemplate(manifest.template);
       } catch (err) {
         events.emit('dx:error', {
           source: `lifecycle:${manifest.id}:template`,
           error: err instanceof Error ? err : new Error(String(err)),
         });
         return;
+      }
+
+      // Sanitize step gets its own try/catch (D-08) so its failure source is distinguishable
+      // from a fetch failure. No sanitizer configured → html passes through unchanged (0.1.5
+      // default behavior). Runs after loadTemplate() every time, including cache hits — the
+      // templateCache never stores sanitized output (D-06).
+      if (sanitizeTemplate) {
+        try {
+          container.innerHTML = await sanitizeTemplate(html, manifest);
+        } catch (err) {
+          events.emit('dx:error', {
+            source: `lifecycle:${manifest.id}:sanitize`,
+            error: err instanceof Error ? err : new Error(String(err)),
+          });
+          return;
+        }
+      } else {
+        container.innerHTML = html;
       }
     }
 
