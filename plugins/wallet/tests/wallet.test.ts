@@ -1,4 +1,4 @@
-import type { Context, Wallet, WalletProvider } from '@dnzn/dxkit';
+import type { Context, Wallet, WalletProvider, WalletState } from '@dnzn/dxkit';
 import { createEventBus } from '@dnzn/dxkit';
 import {
   createEIP1193Provider,
@@ -47,6 +47,29 @@ function mockEIP1193Provider(accounts = ['0xabc123'], chainId = '0x1') {
     }),
     _emit: (event: string, ...args: any[]) => {
       for (const handler of listeners[event] || []) handler(...args);
+    },
+  };
+}
+
+/** A provider that violates the WalletProvider contract by reporting connected: true with no address. */
+function mockBadWalletProvider(): WalletProvider {
+  const handlers = new Set<(state: WalletState) => void>();
+  return {
+    id: 'bad',
+    name: 'Bad Provider',
+    available: () => true,
+    async connect(): Promise<WalletState> {
+      const badState: WalletState = { connected: true, address: null, chainId: 0, provider: null };
+      for (const handler of handlers) handler(badState);
+      return badState;
+    },
+    async disconnect(): Promise<void> {},
+    async sign(): Promise<string> {
+      return '0x';
+    },
+    onStateChange(handler: (state: WalletState) => void): () => void {
+      handlers.add(handler);
+      return () => handlers.delete(handler);
     },
   };
 }
@@ -357,6 +380,22 @@ describe('createWallet', () => {
 
     await wallet.disconnect();
     expect(handler).toHaveBeenCalledOnce();
+  });
+
+  it('emits dx:error (source plugin:wallet:state) when a provider reports connected without an address, and fires no connected event', async () => {
+    wallet = createWallet({ providers: [mockBadWalletProvider()] });
+    await wallet.init!(ctx);
+
+    const errorHandler = vi.fn();
+    const connectedHandler = vi.fn();
+    ctx.events.on('dx:error', errorHandler);
+    ctx.events.on('dx:plugin:wallet:connected', connectedHandler);
+
+    await wallet.connect();
+
+    expect(errorHandler).toHaveBeenCalledOnce();
+    expect(errorHandler.mock.calls[0][0].source).toBe('plugin:wallet:state');
+    expect(connectedHandler).not.toHaveBeenCalled();
   });
 
   it('onStateChange() propagates provider state changes', async () => {

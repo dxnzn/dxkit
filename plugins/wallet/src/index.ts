@@ -215,6 +215,15 @@ export function createWallet(options: WalletOptions): Wallet {
     for (const handler of handlers) handler(state);
 
     if (!dx) return;
+    // Visible-not-silent contract: a provider claiming connected with no address is a
+    // provider-contract violation — surface it instead of silently dropping the connected
+    // event while wasConnected still flips true underneath (FIND-3).
+    if (newState.connected && !newState.address) {
+      dx.events.emit('dx:error', {
+        source: 'plugin:wallet:state',
+        error: new Error('Wallet provider reported connected state with no address'),
+      });
+    }
     if (newState.connected && newState.address && !wasConnected) {
       dx.events.emit('dx:plugin:wallet:connected', { address: newState.address, chainId: newState.chainId ?? 0 });
     } else if (!newState.connected && wasConnected) {
