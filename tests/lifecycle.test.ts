@@ -531,6 +531,33 @@ describe('LifecycleManager', () => {
       lm.destroy();
     });
 
+    it('sanitize timeout aborts the mount — dx:error fires with source lifecycle:<id>:sanitize, no injection, no dx:dapp:mounted', async () => {
+      const lm = createLifecycleManager(events, {
+        scriptLoader: noopLoader,
+        templateLoader: async () => '<div id="app">Template Content</div>',
+        sanitizeTemplate: neverResolves,
+        timeout: 30,
+      });
+
+      const errorHandler = vi.fn();
+      const mountedHandler = vi.fn();
+      events.on('dx:error', errorHandler);
+      events.on('dx:dapp:mounted', mountedHandler);
+
+      const m = { ...manifest('slow-sanitize'), template: '/dapps/slow-sanitize/tpl.html' };
+      const mountPromise = lm.mount(m, container);
+      await vi.advanceTimersByTimeAsync(30);
+      await mountPromise;
+
+      expect(errorHandler).toHaveBeenCalledOnce();
+      expect(errorHandler.mock.calls[0][0].source).toBe('lifecycle:slow-sanitize:sanitize');
+      expect(mountedHandler).not.toHaveBeenCalled();
+      expect(container.innerHTML).toBe('');
+      expect(lm.getCurrentDapp()).toBeNull();
+
+      lm.destroy();
+    });
+
     it('dependency timeout aborts the mount and clears the container', async () => {
       const lm = createLifecycleManager(events, {
         scriptLoader: (src: string) => (src.includes('dep') ? neverResolves() : Promise.resolve()),

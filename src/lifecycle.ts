@@ -63,6 +63,37 @@ function withTimeout<R>(
     });
 }
 
+/**
+ * Bounds the opaque, consumer-supplied sanitizer with the same hang guard used for custom
+ * loaders (D-07) — a never-settling sanitizeTemplate would otherwise reintroduce the
+ * mount-forever hang that Phase 2's timeout machinery eliminated for loaders. A timeout
+ * rejection flows into the mount's existing sanitize catch, so it fails closed exactly like a
+ * sanitizer throw. Honors the timeout: 0/Infinity opt-out (D-03) via isTimeoutActive.
+ */
+function withSanitizeTimeout(sanitizer: TemplateSanitizer, timeoutMs: number): TemplateSanitizer {
+  if (!isTimeoutActive(timeoutMs)) return sanitizer;
+
+  return (html: string, manifest: DappManifest) =>
+    new Promise<string>((resolve, reject) => {
+      // Clear on settle (WR-01 discipline) so a resolved/rejected sanitizer doesn't leave a
+      // stray timer running for the rest of timeoutMs.
+      const timer = setTimeout(() => {
+        reject(new Error(`Timed out sanitizing dapp template after ${timeoutMs}ms: ${manifest.id}`));
+      }, timeoutMs);
+
+      Promise.resolve(sanitizer(html, manifest)).then(
+        (value) => {
+          clearTimeout(timer);
+          resolve(value);
+        },
+        (err) => {
+          clearTimeout(timer);
+          reject(err);
+        },
+      );
+    });
+}
+
 /** Default script loader — injects a <script type="module"> into the DOM. */
 function defaultScriptLoader(timeoutMs: number): ScriptLoader {
   const loaded = new Set<string>();
@@ -216,7 +247,9 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
     : defaultTemplateLoader(timeoutMs);
   const hasPlugin = options.hasPlugin ?? (() => true);
   // undefined means "pass through unchanged" — no `??` default, unlike timeoutMs/cacheEnabled above.
-  const sanitizeTemplate = options.sanitizeTemplate;
+  const sanitizeTemplate = options.sanitizeTemplate
+    ? withSanitizeTimeout(options.sanitizeTemplate, timeoutMs)
+    : undefined;
   let currentDappId: string | null = null;
 
   // Cache wraps OUTERMOST, above the timeout-wrapped loader (D-11/D-12): a cache hit returns
@@ -289,7 +322,7 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
         } catch (err) {
           events.emit('dx:error', {
             source: `lifecycle:${manifest.id}:sanitize`,
-            error: err instanceof Error ? err : new Error(String(err)),
+            error: err instanceof Error ? err : new Error(String(err), { cause: err }),
           });
           return;
         }
