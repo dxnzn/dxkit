@@ -204,6 +204,43 @@ describe('stress: concurrency & mount races (TEST-01, D-01/D-02/D-03)', () => {
     window.removeEventListener('dx:dapp:mounted', mountedDapp);
   });
 
+  it('navigate to an unmatched route while a dapp mount is in flight abandons it — no dx:mount, empty container, no dx:route:subpath (CR-01/D-01)', async () => {
+    const dappATpl: DappManifest = { ...dappA, template: '/dapps/a/tpl.html' };
+    const templateGate = keyedGate<string>();
+    const templateLoader: TemplateLoader = (src) => templateGate.loader(src);
+
+    shell = createShell({
+      lifecycle: { scriptLoader: async () => {}, styleLoader: async () => {}, templateLoader },
+      mode: 'history',
+      manifests: [dappATpl],
+    });
+    await shell.init();
+
+    const mounts = countMounts('a');
+    const subpathEvents: { id: string; path: string; previousPath: string }[] = [];
+    const onSubpath = ((e: CustomEvent) => subpathEvents.push(e.detail)) as EventListener;
+    window.addEventListener('dx:route:subpath', onSubpath);
+
+    shell.navigate('/a');
+    await tick(); // A's mount suspends at the held template gate, container still empty
+
+    shell.navigate('/nowhere'); // no manifest matches — drives handleRouteChange(null)
+    await tick();
+
+    // Release the held template — the now-stale A mount must hit its isStale() gate and
+    // return before writing to the container.
+    templateGate.release('/dapps/a/tpl.html', '<div data-dapp="a">A content</div>');
+    await tick();
+
+    expect(mounts.count()).toBe(0);
+    expect(container.innerHTML).toBe('');
+    expect(subpathEvents).toHaveLength(0);
+    expect(shell.getCurrentRoute()).toBe('/nowhere');
+
+    mounts.cleanup();
+    window.removeEventListener('dx:route:subpath', onSubpath);
+  });
+
   describe('load timeout races navigation (fake timers)', () => {
     beforeEach(() => {
       vi.useFakeTimers();
