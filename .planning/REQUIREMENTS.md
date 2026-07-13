@@ -28,7 +28,7 @@ Requirements for the 0.2.0 hardening milestone. Each maps to a roadmap phase.
 ### Testing
 
 - [x] **TEST-01**: Stress tests cover concurrent navigation and mount races (rapid A→B→A with slow loaders) without double-mount or lost-unmount
-- [x] **TEST-02**: Manifest-validation edge cases are tested (invalid route formats, deep-merge overrides, multi-match routes)
+- [ ] **TEST-02**: Manifest-validation edge cases are tested (invalid route formats, deep-merge overrides, multi-match routes)
 - [x] **TEST-03**: Tests verify settings-handler cleanup on `disableDapp()` (handlers do not fire after disable)
 
 ### Documentation
@@ -79,7 +79,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | SEC-01 | Phase 3 | Complete |
 | SEC-02 | Phase 3 | Complete |
 | TEST-01 | Phase 4 | Complete |
-| TEST-02 | Phase 4 | Complete |
+| TEST-02 | Phase 4 | Pending |
 | TEST-03 | Phase 4 | Complete |
 | DOC-01 | Phase 5 | Pending |
 | DOC-02 | Phase 5 | Pending |
