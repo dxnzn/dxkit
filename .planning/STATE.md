@@ -6,14 +6,14 @@ current_phase: 04
 current_phase_name: testing-stress-edge-case-regression-coverage
 status: executing
 stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-07-13T19:31:15.384Z"
+last_updated: "2026-07-13T19:35:29.398Z"
 last_activity: 2026-07-13
 last_activity_desc: Phase 04 execution started
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 12
-  completed_plans: 10
+  completed_plans: 11
   percent: 60
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 ## Current Position
 
 Phase: 04 (testing-stress-edge-case-regression-coverage) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-07-13 — Phase 04 execution started
 
@@ -67,6 +67,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03 P02 | 10 min | 3 tasks | 2 files |
 | Phase 03 P03 | 10min | 2 tasks | 3 files |
 | Phase 04 P01 | 27min | 2 tasks | 4 files |
+| Phase 04 P03 | 12min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -101,6 +102,8 @@ Recent decisions affecting current work:
 - [Phase 04-01]: Mount-generation guard (mountGeneration counter + isStale() gating) fixes last-navigation-wins; closure-scoped, never module-level — Multiple shells in one process must not share a counter; generalizes the existing pendingMountId same-dapp dedupe idiom to cross-dapp supersession
 - [Phase 04-01]: invalidatePendingMount(id) added to LifecycleManager, wired from shell.disableDapp(), to close the disable-mid-flight race gap — rebuildRouter() only acts on lifecycle.getCurrentDapp(), which is null for a not-yet-committed mount
 - [Phase 04-01]: Sub-path stale-path bug fixed by re-reading router.getCurrentPath() after lifecycle.mount() resolves, emitting a dx:route:subpath catch-up if it moved — pendingMountId dedupe silently dropped sub-path navigations during a pending mount with no side effect, leaving the committed path stale
+- [Phase 04-03]: TEST-03 regression lives in new plugins/settings/tests/integration.test.ts, not appended to shell.test.ts — Keeps the real-wiring vs mocked-context contrast explicit and co-located with the plugin it drives
+- [Phase 04-03]: deepMerge JSDoc reconciled to code truth (null replaces, undefined skips) rather than changing runtime null-handling — Manifest overrides in src/shell.ts depend on null-replaces; an existing test already pins that behavior
 
 ### Pending Todos
 
@@ -130,7 +133,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-13T19:31:15.379Z
+Last session: 2026-07-13T19:35:29.393Z
 Stopped at: Completed 04-01-PLAN.md
 Resume file: 
 None
