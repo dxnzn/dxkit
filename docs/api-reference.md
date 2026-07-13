@@ -88,6 +88,9 @@ interface LifecycleManagerOptions {
   styleLoader?: (href: string) => Promise<void>;
   templateLoader?: (src: string) => Promise<string>;
   hasPlugin?: (name: string) => boolean;
+  timeout?: number;          // per-fetch ms, default: 30000 (0 or Infinity disables)
+  cacheTemplates?: boolean;  // default: true
+  sanitizeTemplate?: (html: string, manifest: DappManifest) => string | Promise<string>;
 }
 ```
 
@@ -335,11 +338,11 @@ interface ShellConfig {
   registryUrl?: string;     // default: '/registry.json'
   basePath?: string;        // default: '/'
   mode?: 'history' | 'hash'; // default: 'history'
-  scriptLoader?: (src: string) => Promise<void>;
-  styleLoader?: (href: string) => Promise<void>;
-  templateLoader?: (src: string) => Promise<string>;
+  lifecycle?: LifecycleManagerOptions;
 }
 ```
+
+See [`createLifecycleManager`](#createlifecyclemanagerevents-options) above for the `LifecycleManagerOptions` shape nested under `lifecycle`.
 
 ### DappEntry
 

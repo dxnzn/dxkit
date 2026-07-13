@@ -154,9 +154,11 @@ DxKit.createShell({
   basePath: '/',           // prefix for all routes (default: '/')
   mode: 'history',         // 'history' or 'hash' (default: 'history')
 
-  // Advanced — override default <script>/<link> injection
-  scriptLoader: (src) => { /* custom */ },
-  styleLoader: (href) => { /* custom */ },
+  // Advanced — lifecycle knobs: loaders, timeout, caching, sanitization
+  lifecycle: {
+    scriptLoader: (src) => { /* custom */ },
+    styleLoader: (href) => { /* custom */ },
+  },
 })
 ```
 
@@ -246,3 +248,12 @@ make serve
 ```
 
 This copies the built IIFE bundles into a local `vendor/` directory and serves the example on `http://localhost:3000`. Requires `make build` from the dxkit root first.
+
+## Further Configuration
+
+The `ShellConfig` example above covers the common path. Two things worth knowing on the current version:
+
+- **`lifecycle` options** — `scriptLoader`, `styleLoader`, and `templateLoader` moved from top-level `ShellConfig` fields into a nested `lifecycle` group, which also adds `timeout`, `cacheTemplates`, and `sanitizeTemplate` for load timeouts, template caching, and bring-your-own template sanitization. Passing the old flat fields to `createShell()` now throws.
+- **Plugin options** — plugins take their own factory options beyond what's shown here, e.g. `@dxkit/wallet`'s `createWallet()` accepts a `storageKey` to override the `localStorage` key used to persist the active provider.
+
+See [Configuration](configuration.md) for the full reference of every shell, lifecycle, and plugin option.
