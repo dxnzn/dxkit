@@ -145,6 +145,33 @@ describe('Router', () => {
     router.destroy();
   });
 
+  // D-08: exact-duplicate routes — resolution stays deterministic (first-registered-wins,
+  // guaranteed by the stable construction-time sort); the dx:error visibility half is
+  // shell-owned and tested in tests/shell.test.ts.
+  describe('duplicate exact routes', () => {
+    it('resolve() returns the first-registered manifest when two share an identical exact route', () => {
+      const router = createRouter({
+        mode: 'history',
+        basePath: '/',
+        manifests: [manifest({ id: 'first', route: '/dup' }), manifest({ id: 'second', route: '/dup' })],
+      });
+
+      expect(router.resolve('/dup')?.id).toBe('first');
+      router.destroy();
+    });
+
+    it('resolve() still returns the first-registered manifest when input order is reversed', () => {
+      const router = createRouter({
+        mode: 'history',
+        basePath: '/',
+        manifests: [manifest({ id: 'second', route: '/dup' }), manifest({ id: 'first', route: '/dup' })],
+      });
+
+      expect(router.resolve('/dup')?.id).toBe('second');
+      router.destroy();
+    });
+  });
+
   // Regression (ROB-02/D-08): the length-sort is snapshotted once at construction, not
   // recomputed on every resolve() call — the router is immutable and fully rebuilt by
   // shell.rebuildRouter() whenever manifests change.
