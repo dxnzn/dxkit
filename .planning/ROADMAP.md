@@ -102,7 +102,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Manifest-validation tests cover invalid route formats, deep-merge override behavior, and multi-match routes, each asserting the correct accept/reject/merge outcome.
   3. A regression test verifies settings handlers registered by a dapp do not fire after that dapp is disabled via `disableDapp()`.
 
-**Plans**: 3/3 plans complete
+**Plans**: 3/3 base plans complete; 1 gap-closure plan added (04-04, CR-01)
 
 **Wave 1**
 
@@ -112,6 +112,10 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Wave 2** *(blocked on Wave 1 — shares `src/shell.ts` with 04-01)*
 
 - [x] 04-02-PLAN.md — TEST-02 + WR-01: shell-owned manifest normalize/reject/tier-validate/duplicate-route `dx:error` + fetch/parse failure emits, with router- and shell-level edge-case tests [wave 2, depends 04-01]
+
+**Gap closure** *(CR-01 from 04-VERIFICATION.md — Truth #4 failed)*
+
+- [ ] 04-04-PLAN.md — TEST-01: close D-01 hole for the dapp→unmatched-route transition — `handleRouteChange`'s null-manifest branch invalidates the in-flight pending mount, plus a stress regression scenario [wave 1, no deps]
 
 ### Phase 5: Documentation — Truth Pass
 
