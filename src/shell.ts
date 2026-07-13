@@ -178,7 +178,16 @@ export function createShell(config: ShellConfig = {}): Shell {
   async function loadDappManifest(entry: DappEntry): Promise<DappManifest | null> {
     try {
       const res = await fetch(entry.manifest);
-      if (!res.ok) return null;
+      if (!res.ok) {
+        // WR-01: non-2xx was previously a silent `return null` — surface it like every other
+        // manifest-load failure below so a misconfigured/unreachable manifest host isn't invisible.
+        const statusInfo = typeof res.status === 'number' ? ` (status ${res.status})` : '';
+        events.emit('dx:error', {
+          source: 'shell:manifest',
+          error: new Error(`Failed to fetch manifest from ${entry.manifest}${statusInfo} — non-OK response`),
+        });
+        return null;
+      }
       const base = await res.json();
       if (!isValidManifest(base)) {
         events.emit('dx:error', {
@@ -193,7 +202,17 @@ export function createShell(config: ShellConfig = {}): Shell {
         return deepMerge(base, entry.overrides);
       }
       return base;
-    } catch {
+    } catch (err) {
+      // WR-01: this catch covers both a network-level fetch throw and a res.json() parse
+      // failure indiscriminately — the message says so rather than pretending to distinguish
+      // them, and `cause` preserves the original error for anyone inspecting dx:error detail.
+      events.emit('dx:error', {
+        source: 'shell:manifest',
+        error: new Error(
+          `Failed to load manifest from ${entry.manifest} — request failed or response was not valid JSON: ${err instanceof Error ? err.message : String(err)}`,
+          { cause: err },
+        ),
+      });
       return null;
     }
   }
@@ -221,6 +240,68 @@ export function createShell(config: ShellConfig = {}): Shell {
     return [];
   }
 
+  /** Leading-slash/trailing-slash subset of router.ts's normalizePath (no basePath stripping —
+   * manifest routes are declared without a basePath prefix). Returns null for the unfixable case
+   * (empty/whitespace-only route). */
+  function normalizeRoute(route: string): string | null {
+    if (route.trim() === '') return null;
+    let normalized = route;
+    if (!normalized.startsWith('/')) normalized = `/${normalized}`;
+    if (normalized.length > 1 && normalized.endsWith('/')) {
+      normalized = normalized.slice(0, -1);
+    }
+    return normalized;
+  }
+
+  /** Single choke point run once per shell lifetime (not per rebuildRouter — enable/disable
+   * doesn't change the manifest list): tier-uniform validation (D-07), route normalization +
+   * reject-unfixable (D-06), and duplicate-route visibility (D-08). */
+  function normalizeAndValidateManifests(list: DappManifest[]): DappManifest[] {
+    const validated: DappManifest[] = [];
+
+    for (const m of list) {
+      if (!isValidManifest(m)) {
+        events.emit('dx:error', {
+          source: 'shell:manifest',
+          error: new Error(
+            `Invalid manifest "${(m as any)?.id ?? 'unknown'}" — missing required fields (id, route, entry, nav.label)`,
+          ),
+        });
+        continue;
+      }
+
+      const normalizedRoute = normalizeRoute(m.route);
+      if (normalizedRoute === null) {
+        events.emit('dx:error', {
+          source: 'shell:route',
+          error: new Error(`Manifest "${m.id}" has an empty or whitespace-only route — discarded`),
+        });
+        continue;
+      }
+
+      validated.push(normalizedRoute === m.route ? m : { ...m, route: normalizedRoute });
+    }
+
+    // D-08: first-registered-wins resolution is already guaranteed by router.ts's stable
+    // construction-time sort — the duplicate manifest is kept, only the collision is surfaced.
+    const seenRoutes = new Map<string, string>();
+    for (const m of validated) {
+      const firstId = seenRoutes.get(m.route);
+      if (firstId) {
+        events.emit('dx:error', {
+          source: 'shell:manifest',
+          error: new Error(
+            `Duplicate route "${m.route}" declared by manifests "${firstId}" and "${m.id}" — "${firstId}" wins (first registered)`,
+          ),
+        });
+      } else {
+        seenRoutes.set(m.route, m.id);
+      }
+    }
+
+    return validated;
+  }
+
   async function init(): Promise<void> {
     if (initialized) return;
 
@@ -231,7 +312,7 @@ export function createShell(config: ShellConfig = {}): Shell {
     }
 
     // Manifests load before plugin init so plugins can read them during init()
-    manifests = await loadManifests();
+    manifests = normalizeAndValidateManifests(await loadManifests());
 
     // Initialize plugins (after manifests are loaded)
     // Failures are contained — a bad plugin emits dx:error but doesn't crash the shell
