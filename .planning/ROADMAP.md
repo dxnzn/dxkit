@@ -26,7 +26,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Diagnostics — Surface Silent Failures** - `dx:error` fires for every previously-silent failure path (missing mount, storage errors, entry-load failures) (completed 2026-07-11)
 - [x] **Phase 2: Robustness — Load Guards, Caching & Handler Cleanup** - Mounts can't hang, router/template work isn't repeated, and disabled dapps stop leaking settings handlers (completed 2026-07-12)
 - [x] **Phase 3: Security — Sanitization & Storage Isolation** - Templates can be sanitized before injection and wallet storage keys no longer collide across apps (completed 2026-07-12)
-- [ ] **Phase 4: Testing — Stress, Edge-Case & Regression Coverage** - Concurrent-navigation, manifest-validation, and settings-cleanup behavior gets dedicated test coverage
+- [x] **Phase 4: Testing — Stress, Edge-Case & Regression Coverage** - Concurrent-navigation, manifest-validation, and settings-cleanup behavior gets dedicated test coverage (completed 2026-07-14)
 - [ ] **Phase 5: Documentation — Truth Pass** - Every doc and the README are verified against 0.2.0 code, slop is removed, and CSP/security gaps are filled
 
 ## Phase Details
@@ -102,7 +102,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Manifest-validation tests cover invalid route formats, deep-merge override behavior, and multi-match routes, each asserting the correct accept/reject/merge outcome.
   3. A regression test verifies settings handlers registered by a dapp do not fire after that dapp is disabled via `disableDapp()`.
 
-**Plans**: 6 plans (5 complete, 1 pending)
+**Plans**: 6/6 plans complete
 
 **Wave 1**
 
@@ -117,7 +117,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] 04-04-PLAN.md — TEST-01: close D-01 hole for the dapp→unmatched-route transition — `handleRouteChange`'s null-manifest branch invalidates the in-flight pending mount, plus a stress regression scenario [wave 1, no deps]
 - [x] 04-05-PLAN.md — TEST-01: close D-01 hole reopened by the `pendingMountId` clobber — guard `mountDapp`'s finally + add `lifecycle.invalidateAnyPendingMount()` (shell-independent), wire it into `handleRouteChange`'s null branch, plus an A→B-overlap-then-unmatched-route stress regression scenario [wave 1, no deps]
-- [ ] 04-06-PLAN.md — TEST-01: close the third D-01 instance (CR-01) — make the shell dedupe slot call-scoped (`pendingMountToken`) and free it on invalidation at both call sites (`handleRouteChange` null branch, `disableDapp`) so a re-navigation to an invalidated dapp mounts fresh, plus A→unmatched→A (WR-11) and disableDapp→enableDapp→re-navigate stress regression scenarios [wave 1, no deps]
+- [x] 04-06-PLAN.md — TEST-01: close the third D-01 instance (CR-01) — make the shell dedupe slot call-scoped (`pendingMountToken`) and free it on invalidation at both call sites (`handleRouteChange` null branch, `disableDapp`) so a re-navigation to an invalidated dapp mounts fresh, plus A→unmatched→A (WR-11) and disableDapp→enableDapp→re-navigate stress regression scenarios [wave 1, no deps]
 
 ### Phase 5: Documentation — Truth Pass
 
@@ -142,5 +142,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Diagnostics — Surface Silent Failures | 2/2 | Complete    | 2026-07-11 |
 | 2. Robustness — Load Guards, Caching & Handler Cleanup | 4/4 | Complete    | 2026-07-12 |
 | 3. Security — Sanitization & Storage Isolation | 3/3 | Complete    | 2026-07-12 |
-| 4. Testing — Stress, Edge-Case & Regression Coverage | 5/5 | Gaps found | - |
+| 4. Testing — Stress, Edge-Case & Regression Coverage | 6/6 | Complete   | 2026-07-14 |
 | 5. Documentation — Truth Pass | 0/TBD | Not started | - |

@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 04
 current_phase_name: testing-stress-edge-case-regression-coverage
 status: executing
-stopped_at: Completed 04-05-PLAN.md
-last_updated: "2026-07-14T01:51:16.823Z"
+stopped_at: Completed 04-06-PLAN.md
+last_updated: "2026-07-14T02:57:55.166Z"
 last_activity: 2026-07-14
 last_activity_desc: Phase 04 execution started
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 14
-  completed_plans: 14
+  total_plans: 15
+  completed_plans: 15
   percent: 80
 ---
 
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 
 ## Current Position
 
-Phase: 04 (testing-stress-edge-case-regression-coverage) — ALL PLANS COMPLETE
-Plan: 5 of 5
-Status: Re-verification found a third D-01 interleaving gap (stale same-id dedupe) — phase open pending gap closure or accepted-risk override
-Last activity: 2026-07-14 — Completed 04-05-PLAN.md
+Phase: 04 (testing-stress-edge-case-regression-coverage) — EXECUTING
+Plan: 2 of 6
+Status: Ready to execute
+Last activity: 2026-07-14 — Phase 04 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -71,6 +71,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04 P02 | 15min | 3 tasks | 3 files |
 | Phase 04 P04 | 10min | 2 tasks | 2 files |
 | Phase 04 P05 | 12min | 2 tasks | 3 files |
+| Phase 04 P06 | 8min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -113,6 +114,7 @@ Recent decisions affecting current work:
 - [Phase 04]: [Phase 04-04]: Reused lifecycle.invalidatePendingMount(id) guarded on truthy pendingMountId at handleRouteChange's null-manifest branch, matching disableDapp's existing wiring, to close CR-01 (D-01 dapp->unmatched-route hole)
 - [Phase 04-05]: invalidateAnyPendingMount() bumps mountGeneration only when inFlightMountId !== null, decoupling unmatched-route invalidation from the corruptible shell-level pendingMountId slot
 - [Phase 04-05]: mountDapp finally guarded (pendingMountId === manifest.id) so a stale settling call cannot clobber a newer mount's in-flight marker
+- [Phase 04-06]: pendingMountToken makes the shell mount dedupe slot call-scoped; releasePendingMount() frees it at both invalidation sites (handleRouteChange null branch, disableDapp) so re-navigation to an invalidated dapp mounts fresh instead of being dropped (CR-01, third D-01 instance)
 
 ### Pending Todos
 
@@ -142,7 +144,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-14T01:51:16.809Z
-Stopped at: Completed 04-05-PLAN.md
+Last session: 2026-07-14T02:57:55.148Z
+Stopped at: Completed 04-06-PLAN.md
 Resume file: 
 None
