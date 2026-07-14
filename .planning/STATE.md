@@ -6,14 +6,14 @@ current_phase: 05
 current_phase_name: documentation-truth-pass
 status: executing
 stopped_at: Completed 05-05-PLAN.md
-last_updated: "2026-07-14T16:03:15.015Z"
+last_updated: "2026-07-14T16:15:09.711Z"
 last_activity: 2026-07-14
 last_activity_desc: Phase 05 execution started
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 23
-  completed_plans: 20
+  completed_plans: 21
   percent: 80
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 ## Current Position
 
 Phase: 05 (documentation-truth-pass) — EXECUTING
-Plan: 6 of 8
+Plan: 7 of 8
 Status: Ready to execute
 Last activity: 2026-07-14 — Phase 05 execution started
 
@@ -78,6 +78,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05 P03 | 15min | 2 tasks | 3 files |
 | Phase 05 P04 | 25min | 2 tasks | 3 files |
 | Phase 05 P05 | 30min | 2 tasks | 6 files |
+| Phase 05 P06 | 35min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -131,6 +132,8 @@ Recent decisions affecting current work:
 - [Phase 05-04]: dapp-development.md and system-internals.md now state the single post-D-16 disable-while-active outcome rule (return to /) per Pitfall 3, without naming a single implementation function
 - [Phase 05-05]: Corrected duck-typing attribution bug and false 'settings should be registered last' claim (duplicated in plugin-development.md and settings.md) by tracing src/shell.ts's register-all-then-init-all loop structure — settings-array discovery is order-independent, but settings must be registered before theme (which writes to dx.settings during its own init())
 - [Phase 05-05]: Added storageKey to wallet.md's WalletOptions table — it was entirely absent despite being the Phase 3 SEC-02 hardening; also added Error Handling subsections (dx:error catalogs) to wallet/theme/settings docs and settings.md's previously-undocumented ROB-04 handler-cleanup-on-disable behavior
+- [Phase 05]: Cookbook Custom Events recipe had the same 'declare module dxkit' bug already fixed elsewhere in Plan 05-02 — fixed to '@dnzn/dxkit'
+- [Phase 05]: Verified development.md's plugin-bundling claim against compiled dist/index.global.js rather than tsup.config.ts intent alone — no plugin config bundles a sibling plugin package, and the noExternal @dnzn/dxkit entry bundles nothing since plugins only type-import from core; rewrote to state the real reason standalone script tags work
 
 ### Pending Todos
 
@@ -161,7 +164,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-14T16:03:14.995Z
+Last session: 2026-07-14T16:14:24.309Z
 Stopped at: Completed 05-05-PLAN.md
 Resume file: 
 None
