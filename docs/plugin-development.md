@@ -37,13 +37,20 @@ const shell = DxKit.createShell({
   plugins: {
     wallet: DxWallet.createWallet({ providers: [DxWallet.createEIP1193Provider()] }),
     auth: DxAuth.createPassthroughAuth(),
-    theme: DxTheme.createCSSTheme(),
-    settings: DxSettings.createSettings(), // should be last
+    settings: DxSettings.createSettings(),
+    theme: DxTheme.createCSSTheme(), // after settings — its init() syncs current theme/mode into dx.settings
   },
 });
 ```
 
-**Init order matters.** Plugins are initialized in config object order. Plugins that depend on other plugins should come after their dependencies. The `settings` plugin should be registered last — it reads setting definitions from all other plugins during its `init()`.
+**Init order matters — but not for everything.** Every plugin in `plugins` is registered before
+any plugin's `init()` runs, so `context.getPlugin()`/`getPlugins()` always sees the full set
+regardless of declaration order — the `settings` plugin discovers every other plugin's static
+`settings` array no matter where it sits in the config. What order *does* control: a plugin's
+init-time view of another plugin's live state, and whether `context.settings` exists yet. Auth
+reads `wallet.getState()` during its own `init()`, so `wallet` must come first. Theme writes its
+current values to `context.settings` during its own `init()`, so `settings` must come first.
+Register a plugin after anything its `init()` depends on.
 
 ## The Init Lifecycle
 
@@ -158,12 +165,12 @@ import '@dxkit/settings'; // brings settings event types into scope
 
 ## Duck-typing Patterns
 
-DxKit uses duck-typing for plugin interop. The settings plugin, for example, checks whether other plugins expose a `getSettingsAPI()` method — it doesn't enforce a TypeScript interface at runtime.
+DxKit uses duck-typing for plugin interop. The shell, for example, checks whether the registered `settings` plugin exposes a `getSettingsAPI()` method when restoring persisted enable/disable state for optional dapps — it doesn't enforce a TypeScript interface at runtime.
 
 This pattern is useful when building plugins that extend other plugins:
 
 ```js
-// In the settings plugin source, it checks:
+// In the shell, restoring persisted enabled/disabled state for optional dapps:
 const settingsPlugin = registry.get('settings');
 if (settingsPlugin && 'getSettingsAPI' in settingsPlugin) {
   const api = settingsPlugin.getSettingsAPI();
