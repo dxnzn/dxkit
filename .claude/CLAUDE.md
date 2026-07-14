@@ -385,6 +385,31 @@ Use these entry points:
 Do not make direct repo edits outside a GSD workflow unless the user explicitly asks to bypass it.
 <!-- GSD:workflow-end -->
 
+## Documentation Ship Gate
+
+Documentation is first-class in this project. `/gsd-docs-update` MUST run (and pass) before `/gsd-ship` may push a branch or create a PR. This gate is blocking, exactly like the security ship gate.
+
+**Marker contract** — `/gsd-docs-update`, when run in this project, must finish by writing a marker to the phase directory of the phase being shipped: `{phase_dir}/{padded_phase}-DOCS.md` with frontmatter:
+
+```yaml
+---
+phase: <padded phase number>
+status: current
+verified_against: <git HEAD sha when the docs pass completed>
+updated: <ISO date>
+---
+```
+
+followed by a short body listing which docs were updated or verified as already accurate (a "no drift found" result is a valid pass — the marker still gets written). Commit the marker with the docs changes.
+
+**Ship gate predicate** — during `/gsd-ship` preflight (alongside the security gate, before any push or `gh pr create`):
+
+1. Resolve `DOCS_FILE={phase_dir}/{padded_phase}-DOCS.md`. If missing → **block** with `DOCS_SHIP_GATE_NO_UPDATE`: tell the user to run `/gsd-docs-update` and re-ship. Do not push; do not create the PR.
+2. If present, read `verified_against` and check freshness: `git log <verified_against>..HEAD -- src/ plugins/*/src/` must be empty. Any source commit after the docs pass → **block** with `DOCS_SHIP_GATE_STALE`: docs were updated before later code changes; re-run `/gsd-docs-update`. (Planning/test/doc-only commits after the marker do not invalidate it.)
+3. `status` must be `current`; any other or missing value fails closed.
+
+This gate applies to phase ships and milestone ships alike. It is never satisfied by intent or by unrelated doc edits — only by the marker written at the end of a completed `/gsd-docs-update` run.
+
 <!-- GSD:profile-start -->
 
 ## Developer Profile

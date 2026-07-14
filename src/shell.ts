@@ -56,6 +56,9 @@ export function createShell(config: ShellConfig = {}): Shell {
   // Set synchronously before mountDapp's first await so concurrent calls for the
   // same dapp (e.g. a duplicate route notification) can't both pass the mount guard.
   let pendingMountId: string | null = null;
+  // Makes slot ownership call-scoped so a stale/invalidated call can't clear a newer
+  // attempt's slot and a re-navigation isn't dropped after invalidation (D-01, CR-01).
+  let pendingMountToken = 0;
   const enabledState = new Map<string, boolean>();
 
   function getEnabledManifests(): DappManifest[] {
@@ -129,7 +132,16 @@ export function createShell(config: ShellConfig = {}): Shell {
     if (enabledState.get(id) === false) return;
 
     enabledState.set(id, false);
-    if (initialized) rebuildRouter();
+    if (initialized) {
+      // rebuildRouter() only acts on lifecycle.getCurrentDapp(), which is null for a mount
+      // still in flight — this closes that gap so a disabled dapp's not-yet-committed mount
+      // is abandoned too (D-03 scenario 1).
+      lifecycle.invalidatePendingMount(id);
+      // Mirrors the null-branch fix so enableDapp + re-navigate to a mid-mount-disabled dapp
+      // mounts fresh instead of being dropped by the stale dedupe slot (D-01, CR-01).
+      if (pendingMountId === id) releasePendingMount();
+      rebuildRouter();
+    }
     events.emit('dx:dapp:disabled', { id });
   }
 
@@ -172,7 +184,16 @@ export function createShell(config: ShellConfig = {}): Shell {
   async function loadDappManifest(entry: DappEntry): Promise<DappManifest | null> {
     try {
       const res = await fetch(entry.manifest);
-      if (!res.ok) return null;
+      if (!res.ok) {
+        // WR-01: non-2xx was previously a silent `return null` — surface it like every other
+        // manifest-load failure below so a misconfigured/unreachable manifest host isn't invisible.
+        const statusInfo = typeof res.status === 'number' ? ` (status ${res.status})` : '';
+        events.emit('dx:error', {
+          source: 'shell:manifest',
+          error: new Error(`Failed to fetch manifest from ${entry.manifest}${statusInfo} — non-OK response`),
+        });
+        return null;
+      }
       const base = await res.json();
       if (!isValidManifest(base)) {
         events.emit('dx:error', {
@@ -187,7 +208,17 @@ export function createShell(config: ShellConfig = {}): Shell {
         return deepMerge(base, entry.overrides);
       }
       return base;
-    } catch {
+    } catch (err) {
+      // WR-01: this catch covers both a network-level fetch throw and a res.json() parse
+      // failure indiscriminately — the message says so rather than pretending to distinguish
+      // them, and `cause` preserves the original error for anyone inspecting dx:error detail.
+      events.emit('dx:error', {
+        source: 'shell:manifest',
+        error: new Error(
+          `Failed to load manifest from ${entry.manifest} — request failed or response was not valid JSON: ${err instanceof Error ? err.message : String(err)}`,
+          { cause: err },
+        ),
+      });
       return null;
     }
   }
@@ -215,6 +246,71 @@ export function createShell(config: ShellConfig = {}): Shell {
     return [];
   }
 
+  /** Leading-slash/trailing-slash subset of router.ts's normalizePath (no basePath stripping —
+   * manifest routes are declared without a basePath prefix). Trims surrounding whitespace before
+   * normalizing (D-06) — otherwise ' /a' would become '/ /a' via the leading-slash prepend, and
+   * '/a ' would keep an unreachable trailing space. Returns null for the unfixable case
+   * (empty/whitespace-only route). */
+  function normalizeRoute(route: string): string | null {
+    const trimmed = route.trim();
+    if (trimmed === '') return null;
+    let normalized = trimmed;
+    if (!normalized.startsWith('/')) normalized = `/${normalized}`;
+    if (normalized.length > 1 && normalized.endsWith('/')) {
+      normalized = normalized.slice(0, -1);
+    }
+    return normalized;
+  }
+
+  /** Single choke point run once per shell lifetime (not per rebuildRouter — enable/disable
+   * doesn't change the manifest list): tier-uniform validation (D-07), route normalization +
+   * reject-unfixable (D-06), and duplicate-route visibility (D-08). */
+  function normalizeAndValidateManifests(list: DappManifest[]): DappManifest[] {
+    const validated: DappManifest[] = [];
+
+    for (const m of list) {
+      if (!isValidManifest(m)) {
+        events.emit('dx:error', {
+          source: 'shell:manifest',
+          error: new Error(
+            `Invalid manifest "${(m as any)?.id ?? 'unknown'}" — missing required fields (id, route, entry, nav.label)`,
+          ),
+        });
+        continue;
+      }
+
+      const normalizedRoute = normalizeRoute(m.route);
+      if (normalizedRoute === null) {
+        events.emit('dx:error', {
+          source: 'shell:route',
+          error: new Error(`Manifest "${m.id}" has an empty or whitespace-only route — discarded`),
+        });
+        continue;
+      }
+
+      validated.push(normalizedRoute === m.route ? m : { ...m, route: normalizedRoute });
+    }
+
+    // D-08: first-registered-wins resolution is already guaranteed by router.ts's stable
+    // construction-time sort — the duplicate manifest is kept, only the collision is surfaced.
+    const seenRoutes = new Map<string, string>();
+    for (const m of validated) {
+      const firstId = seenRoutes.get(m.route);
+      if (firstId) {
+        events.emit('dx:error', {
+          source: 'shell:manifest',
+          error: new Error(
+            `Duplicate route "${m.route}" declared by manifests "${firstId}" and "${m.id}" — "${firstId}" wins (first registered)`,
+          ),
+        });
+      } else {
+        seenRoutes.set(m.route, m.id);
+      }
+    }
+
+    return validated;
+  }
+
   async function init(): Promise<void> {
     if (initialized) return;
 
@@ -225,7 +321,7 @@ export function createShell(config: ShellConfig = {}): Shell {
     }
 
     // Manifests load before plugin init so plugins can read them during init()
-    manifests = await loadManifests();
+    manifests = normalizeAndValidateManifests(await loadManifests());
 
     // Initialize plugins (after manifests are loaded)
     // Failures are contained — a bad plugin emits dx:error but doesn't crash the shell
@@ -272,12 +368,29 @@ export function createShell(config: ShellConfig = {}): Shell {
     if (manifest) {
       await mountDapp(manifest);
     } else {
+      // An unmatched route must supersede an in-flight mount too, not just a dapp->dapp
+      // transition — otherwise a stale dapp can still commit its DOM under the new URL (D-01).
+      // Reads lifecycle's own in-flight mount (inFlightMountId), not the corruptible shell-level
+      // pendingMountId — an overlapping A->B race that has already cleared/rewritten
+      // pendingMountId (via mountDapp's guarded finally) cannot defeat this invalidation.
+      lifecycle.invalidateAnyPendingMount();
+      // Frees the shell dedupe slot too, so a re-navigation to the just-invalidated dapp is
+      // not dropped by the same-id dedupe (D-01, CR-01).
+      releasePendingMount();
       lifecycle.unmount();
     }
     events.emit('dx:route:changed', {
       path: router.getCurrentPath(),
       manifest: manifest ?? undefined,
     });
+  }
+
+  // Frees the dedupe slot after an in-flight mount is invalidated so a re-navigation to the
+  // same dapp starts fresh, and the token bump stops the invalidated call's finally from later
+  // clearing a newer attempt's slot (D-01, CR-01).
+  function releasePendingMount(): void {
+    pendingMountToken++;
+    pendingMountId = null;
   }
 
   async function mountDapp(manifest: DappManifest): Promise<void> {
@@ -308,11 +421,32 @@ export function createShell(config: ShellConfig = {}): Shell {
     }
 
     pendingMountId = manifest.id;
+    const myToken = ++pendingMountToken;
     try {
-      await lifecycle.mount(manifest, container, path);
-      currentPath = path;
+      const committed = await lifecycle.mount(manifest, container, path);
+      // Epilogue only runs when THIS call committed (lifecycle.mount's own isStale() gate is
+      // the sole source of truth) — a stale/superseded call's continuation must never pre-write
+      // currentPath (which would swallow a later same-dapp sub-path nav) or emit a spurious
+      // dx:route:subpath. getCurrentDapp() === manifest.id can't distinguish two same-id calls,
+      // so it's dropped from this condition entirely.
+      if (committed) {
+        // Fresh-path commit (D-03 scenario 3): a sub-path navigation that arrived while this
+        // mount was still in flight was silently dropped by the pendingMountId dedupe above —
+        // re-read the browser's actual current path now instead of trusting the value captured
+        // when this call started, and catch up with a dx:route:subpath event if it moved.
+        const freshPath = router.getCurrentPath();
+        if (freshPath !== path) {
+          events.emit('dx:route:subpath', { id: manifest.id, path: freshPath, previousPath: path });
+        }
+        currentPath = freshPath;
+      }
     } finally {
-      pendingMountId = null;
+      // Call-scoped: only the call that currently owns the token may clear the slot — a stale
+      // or invalidated call (whose token was superseded by a newer mount or by
+      // releasePendingMount) must never clear a newer attempt's slot (D-01, CR-01).
+      if (pendingMountToken === myToken) {
+        pendingMountId = null;
+      }
     }
   }
 

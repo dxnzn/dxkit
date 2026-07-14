@@ -55,6 +55,11 @@ confidence.
 - ✓ Wallet connect throws on empty accounts (no `undefined` address) and auto-reconnect failures surface via `dx:error` — validated Phase 3
 - ✓ `ShellConfig.lifecycle` nested options group replaces flat loader passthrough (breaking, D-04/D-05); sanitizer/timeout/cacheTemplates now reachable from `createShell()` — validated Phase 3
 
+<!-- Validated in Phase 4: Testing — Stress, Edge-Case & Regression Coverage (0.2.0) -->
+- ✓ Stress suite (`tests/stress.test.ts`, 9 scenarios) drives rapid A→B→A navigation with slow loaders; shell honors last-navigation-wins (no double-mount, no lost-unmount, no stale-mount commit) via mount-generation guard + call-scoped pending-mount dedupe token — validated Phase 4
+- ✓ Manifest/route validation edge-case tests: invalid route formats rejected with `dx:error`, multi-match/duplicate routes resolved deterministically, deep-merge override semantics locked — validated Phase 4
+- ✓ Full-shell regression proves settings handlers registered by a dapp stop firing after `disableDapp()` — validated Phase 4
+
 ### Active
 
 <!-- The 0.2.0 hardening + docs-truth milestone. Hypotheses until shipped and validated. -->
@@ -64,10 +69,10 @@ confidence.
 - [x] Cache sorted manifests in the router (avoid re-sort on every resolve)
 - [x] Template caching by URL with explicit invalidation
 
-**Hardening — test coverage**
-- [ ] Stress tests for concurrent navigation and mount races (fast A→B→A with slow loaders)
-- [ ] Manifest-validation edge-case tests (bad route formats, merge behavior)
-- [x] Settings handler cleanup + tests for `disableDapp()` (no handler leaks / firing on disabled dapps) — validated Phase 2
+**Hardening — test coverage** — ✓ validated Phase 4
+- [x] Stress tests for concurrent navigation and mount races (fast A→B→A with slow loaders) — validated Phase 4
+- [x] Manifest-validation edge-case tests (bad route formats, merge behavior) — validated Phase 4
+- [x] Settings handler cleanup + tests for `disableDapp()` (no handler leaks / firing on disabled dapps) — validated Phase 2; end-to-end shell regression added Phase 4
 
 **Hardening — security posture** — ✓ validated Phase 3 (CSP guidance deferred to Phase 5 docs pass)
 - [x] Optional template sanitizer hook on the lifecycle manager
@@ -139,4 +144,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-12 — Phase 3 complete (security: fail-closed template sanitizer hook, wallet storage key isolation + connect/reconnect fixes, nested `ShellConfig.lifecycle` options group)*
+*Last updated: 2026-07-14 — Phase 4 complete (testing: stress suite proving last-navigation-wins across three fixed mount-race interleavings, manifest/route validation edge cases, full-shell settings-cleanup regression; 312 tests green)*

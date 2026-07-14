@@ -945,4 +945,78 @@ describe('LifecycleManager', () => {
       lm.destroy();
     });
   });
+
+  describe('mount generation guard (D-01/D-03 last-navigation-wins)', () => {
+    /** Deferred entry-script loader keyed by src — releases each dapp's entry independently. */
+    function keyedScriptLoader(): { loader: (src: string) => Promise<void>; release: (src: string) => void } {
+      const pending = new Map<string, () => void>();
+      const loader = (src: string) =>
+        new Promise<void>((resolve) => {
+          pending.set(src, resolve);
+        });
+      return { loader, release: (src: string) => pending.get(src)?.() };
+    }
+
+    it('a second mount() supersedes the first — releasing the first after the second commits does not re-set currentDappId or re-emit dx:mount', async () => {
+      const { loader, release } = keyedScriptLoader();
+      const lm = createLifecycleManager(events, { scriptLoader: loader });
+
+      const mountEvents: string[] = [];
+      events.on('dx:mount', ({ id }) => mountEvents.push(id));
+
+      const firstPromise = lm.mount(manifest('first'), container);
+      const secondPromise = lm.mount(manifest('second'), container);
+
+      release('/dapps/second/app.js');
+      await secondPromise;
+
+      expect(lm.getCurrentDapp()).toBe('second');
+      expect(mountEvents).toEqual(['second']);
+
+      // Release the stale first mount's loader late — it must not re-commit.
+      release('/dapps/first/app.js');
+      await firstPromise;
+
+      expect(lm.getCurrentDapp()).toBe('second');
+      expect(mountEvents).toEqual(['second']);
+
+      lm.destroy();
+    });
+
+    it('invalidatePendingMount(id) abandons an in-flight mount for that id — no commit, no dx:mount', async () => {
+      const { loader, release } = keyedScriptLoader();
+      const lm = createLifecycleManager(events, { scriptLoader: loader });
+
+      const mountedHandler = vi.fn();
+      events.on('dx:dapp:mounted', mountedHandler);
+
+      const mountPromise = lm.mount(manifest('pending'), container);
+      lm.invalidatePendingMount('pending');
+      release('/dapps/pending/app.js');
+      await mountPromise;
+
+      expect(mountedHandler).not.toHaveBeenCalled();
+      expect(lm.getCurrentDapp()).toBeNull();
+
+      lm.destroy();
+    });
+
+    it('invalidatePendingMount(otherId) is a no-op for an unrelated in-flight mount', async () => {
+      const { loader, release } = keyedScriptLoader();
+      const lm = createLifecycleManager(events, { scriptLoader: loader });
+
+      const mountedHandler = vi.fn();
+      events.on('dx:dapp:mounted', mountedHandler);
+
+      const mountPromise = lm.mount(manifest('unrelated'), container);
+      lm.invalidatePendingMount('some-other-id');
+      release('/dapps/unrelated/app.js');
+      await mountPromise;
+
+      expect(mountedHandler).toHaveBeenCalledWith({ id: 'unrelated' });
+      expect(lm.getCurrentDapp()).toBe('unrelated');
+
+      lm.destroy();
+    });
+  });
 });

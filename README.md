@@ -10,7 +10,7 @@ by **Denizen.** // dnzn.wei
 
 | STATUS | VERSION | AUDIT |
 |:---|:---|:---|
-| `vibe/alpha` | 0.1.0 | [Self Review](audit/self/dxkit-0.1.0.md) |
+| `vibe/alpha` | 0.1.5 | [Self Review](audit/self/dxkit-0.1.0.md) |
 
 This is alpha software. Let it bake. Do not trust in production without thorough testing and review. 
 
@@ -88,7 +88,7 @@ Each package (core + plugins) uses `tsup` to produce three output formats from a
 
 The `exports` field in each `package.json` maps consumers to the right format automatically. IIFE builds attach to a global (`DxKit`, `DxWallet`, `DxAuth`, `DxTheme`, `DxSettings`) for use in static HTML without a build step — the primary deployment target for dapps served from IPFS or `file:///`.
 
-Plugin IIFE builds bundle dxkit core inline (`noExternal: ['dxkit']`). ESM/CJS builds declare it as `external` to avoid duplication when used with a bundler.
+Plugin IIFE builds bundle dxkit core inline (`noExternal: ['@dnzn/dxkit']`). ESM/CJS builds declare it as `external` to avoid duplication when used with a bundler.
 
 ## Development Team
 

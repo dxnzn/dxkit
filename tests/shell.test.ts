@@ -307,8 +307,15 @@ describe('createShell', () => {
     window.fetch = originalFetch;
   });
 
-  it('skips dapps with failed manifest fetch', async () => {
+  it('skips dapps with failed manifest fetch and emits a dx:error (WR-01)', async () => {
+    const errors: { source: string; error: Error }[] = [];
+    window.addEventListener('dx:error', ((e: CustomEvent) => {
+      errors.push(e.detail);
+    }) as EventListener);
+
     const originalFetch = window.fetch;
+    // Non-OK response is no longer a silent skip — it now surfaces the same way a validation
+    // failure or a thrown fetch would (WR-01).
     window.fetch = vi.fn(async () => ({ ok: false }) as Response) as any;
 
     shell = createShell({ ...testLoaders, dapps: [{ manifest: 'missing/manifest.json' }] });
@@ -316,6 +323,50 @@ describe('createShell', () => {
     await shell.init();
 
     expect(shell.getManifests()).toHaveLength(0);
+    expect(errors.some((e) => e.source === 'shell:manifest')).toBe(true);
+
+    window.fetch = originalFetch;
+  });
+
+  it('emits a dx:error when the manifest fetch itself rejects (WR-01 network-throw mode)', async () => {
+    const errors: { source: string; error: Error }[] = [];
+    window.addEventListener('dx:error', ((e: CustomEvent) => {
+      errors.push(e.detail);
+    }) as EventListener);
+
+    const originalFetch = window.fetch;
+    window.fetch = vi.fn(async () => {
+      throw new Error('network down');
+    }) as any;
+
+    shell = createShell({ ...testLoaders, dapps: [{ manifest: 'unreachable/manifest.json' }] });
+    await shell.init();
+
+    expect(shell.getManifests()).toHaveLength(0);
+    expect(errors.some((e) => e.source === 'shell:manifest' && e.error.message.includes('network down'))).toBe(true);
+
+    window.fetch = originalFetch;
+  });
+
+  it('emits a dx:error when manifest fetch resolves but JSON parsing throws (WR-01 parse-failure mode)', async () => {
+    const errors: { source: string; error: Error }[] = [];
+    window.addEventListener('dx:error', ((e: CustomEvent) => {
+      errors.push(e.detail);
+    }) as EventListener);
+
+    const originalFetch = window.fetch;
+    window.fetch = vi.fn(async () => ({
+      ok: true,
+      json: async () => {
+        throw new Error('Unexpected token in JSON');
+      },
+    })) as any;
+
+    shell = createShell({ ...testLoaders, dapps: [{ manifest: 'bad-json/manifest.json' }] });
+    await shell.init();
+
+    expect(shell.getManifests()).toHaveLength(0);
+    expect(errors.some((e) => e.source === 'shell:manifest')).toBe(true);
 
     window.fetch = originalFetch;
   });
@@ -370,6 +421,198 @@ describe('createShell', () => {
     expect(errors[0].error.message).toContain('missing required fields');
 
     window.fetch = originalFetch;
+  });
+
+  describe('manifest & route validation (D-06/D-07/D-08)', () => {
+    it('normalizes a route missing a leading slash so it becomes reachable', async () => {
+      shell = createShell({
+        ...testLoaders,
+        manifests: [
+          {
+            id: 'blog',
+            name: 'Blog',
+            version: '0.0.1',
+            route: 'blog',
+            entry: 'data:text/javascript,',
+            nav: { label: 'Blog' },
+          },
+        ],
+      });
+
+      await shell.init();
+
+      const mounted = vi.fn();
+      window.addEventListener('dx:dapp:mounted', mounted);
+      shell.navigate('/blog');
+      await new Promise((r) => setTimeout(r, 0));
+
+      expect(mounted).toHaveBeenCalledOnce();
+      window.removeEventListener('dx:dapp:mounted', mounted);
+    });
+
+    it('normalizes a route with leading whitespace so it becomes reachable', async () => {
+      shell = createShell({
+        ...testLoaders,
+        manifests: [
+          {
+            id: 'blog',
+            name: 'Blog',
+            version: '0.0.1',
+            route: ' /a',
+            entry: 'data:text/javascript,',
+            nav: { label: 'Blog' },
+          },
+        ],
+      });
+
+      await shell.init();
+
+      const mounted = vi.fn();
+      window.addEventListener('dx:dapp:mounted', mounted);
+      shell.navigate('/a');
+      await new Promise((r) => setTimeout(r, 0));
+
+      expect(mounted).toHaveBeenCalledOnce();
+      window.removeEventListener('dx:dapp:mounted', mounted);
+    });
+
+    it('normalizes a route with trailing whitespace so it becomes reachable', async () => {
+      shell = createShell({
+        ...testLoaders,
+        manifests: [
+          {
+            id: 'blog',
+            name: 'Blog',
+            version: '0.0.1',
+            route: '/a ',
+            entry: 'data:text/javascript,',
+            nav: { label: 'Blog' },
+          },
+        ],
+      });
+
+      await shell.init();
+
+      const mounted = vi.fn();
+      window.addEventListener('dx:dapp:mounted', mounted);
+      shell.navigate('/a');
+      await new Promise((r) => setTimeout(r, 0));
+
+      expect(mounted).toHaveBeenCalledOnce();
+      window.removeEventListener('dx:dapp:mounted', mounted);
+    });
+
+    it('discards a manifest with an empty/whitespace-only route and emits a shell:route dx:error', async () => {
+      const errors: { source: string; error: Error }[] = [];
+      window.addEventListener('dx:error', ((e: CustomEvent) => {
+        errors.push(e.detail);
+      }) as EventListener);
+
+      shell = createShell({
+        ...testLoaders,
+        manifests: [
+          {
+            id: 'ghost',
+            name: 'Ghost',
+            version: '0.0.1',
+            route: '   ',
+            entry: 'data:text/javascript,',
+            nav: { label: 'Ghost' },
+          },
+        ],
+      });
+
+      await shell.init();
+
+      expect(shell.getManifests()).toHaveLength(0);
+      expect(errors.some((e) => e.source === 'shell:route' && e.error.message.includes('ghost'))).toBe(true);
+    });
+
+    it('discards an invalid inline manifest and emits a shell:manifest dx:error (tier parity)', async () => {
+      const errors: { source: string; error: Error }[] = [];
+      window.addEventListener('dx:error', ((e: CustomEvent) => {
+        errors.push(e.detail);
+      }) as EventListener);
+
+      shell = createShell({
+        ...testLoaders,
+        manifests: [{ id: 'broken-inline', name: 'Broken' } as unknown as DappManifest],
+      });
+
+      await shell.init();
+
+      expect(shell.getManifests()).toHaveLength(0);
+      expect(errors.some((e) => e.source === 'shell:manifest' && e.error.message.includes('broken-inline'))).toBe(true);
+    });
+
+    it('discards an invalid registry.json manifest and emits a shell:manifest dx:error (tier parity)', async () => {
+      const errors: { source: string; error: Error }[] = [];
+      window.addEventListener('dx:error', ((e: CustomEvent) => {
+        errors.push(e.detail);
+      }) as EventListener);
+
+      const originalFetch = window.fetch;
+      window.fetch = vi.fn(async () => ({
+        ok: true,
+        json: async () => [{ id: 'broken-registry', name: 'Broken' }],
+      })) as any;
+
+      shell = createShell({ ...testLoaders });
+      await shell.init();
+
+      expect(shell.getManifests()).toHaveLength(0);
+      expect(errors.some((e) => e.source === 'shell:manifest' && e.error.message.includes('broken-registry'))).toBe(
+        true,
+      );
+
+      window.fetch = originalFetch;
+    });
+
+    it('emits a shell:manifest dx:error naming both ids on duplicate exact routes; first-registered wins at mount', async () => {
+      const errors: { source: string; error: Error }[] = [];
+      window.addEventListener('dx:error', ((e: CustomEvent) => {
+        errors.push(e.detail);
+      }) as EventListener);
+
+      const mountedIds: string[] = [];
+      window.addEventListener('dx:dapp:mounted', ((e: CustomEvent) => {
+        mountedIds.push(e.detail.id);
+      }) as EventListener);
+
+      shell = createShell({
+        ...testLoaders,
+        manifests: [
+          {
+            id: 'first',
+            name: 'First',
+            version: '0.0.1',
+            route: '/dup',
+            entry: 'data:text/javascript,',
+            nav: { label: 'First' },
+          },
+          {
+            id: 'second',
+            name: 'Second',
+            version: '0.0.1',
+            route: '/dup',
+            entry: 'data:text/javascript,',
+            nav: { label: 'Second' },
+          },
+        ],
+      });
+
+      await shell.init();
+      shell.navigate('/dup');
+      await new Promise((r) => setTimeout(r, 0));
+
+      expect(mountedIds).toEqual(['first']);
+      expect(
+        errors.some(
+          (e) =>
+            e.source === 'shell:manifest' && e.error.message.includes('first') && e.error.message.includes('second'),
+        ),
+      ).toBe(true);
+    });
   });
 
   it('exposes getManifests() on context for plugins', async () => {

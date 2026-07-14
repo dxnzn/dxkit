@@ -1,4 +1,4 @@
-/** Deep-merge b into a. Arrays in b replace a (no concatenation). Null/undefined values are skipped. */
+/** Deep-merge b into a. Arrays in b replace a (no concatenation). Undefined values in b are skipped; null replaces a's value. */
 export function deepMerge<T extends Record<string, any>>(a: T, b: Partial<T>): T {
   const result = { ...a };
   for (const key of Object.keys(b) as (keyof T)[]) {

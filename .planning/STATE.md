@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 4
-current_phase_name: Testing — Stress, Edge-Case & Regression Coverage
-status: "Phase 03 shipped — PR #3"
-stopped_at: Completed 03-03-PLAN.md
-last_updated: "2026-07-13T00:06:30.074Z"
-last_activity: 2026-07-12
+current_phase: 5
+current_phase_name: Documentation — Truth Pass
+status: "Phase 04 shipped — PR #4"
+stopped_at: Completed 04-06-PLAN.md
+last_updated: "2026-07-14T05:49:30.819Z"
+last_activity: 2026-07-14
 progress:
   total_phases: 5
-  completed_phases: 3
-  total_plans: 9
-  completed_plans: 9
-  percent: 60
+  completed_phases: 4
+  total_plans: 15
+  completed_plans: 15
+  percent: 80
 ---
 
 # Project State
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-11)
 
 **Core value:** DxKit stays trustworthy for real use — failures are visible (never silent), documented behavior matches actual behavior, and the alpha is stable enough to build on with confidence.
-**Current focus:** Phase 03 — security-sanitization-storage-isolation
+**Current focus:** Phase 04 — testing-stress-edge-case-regression-coverage
 
 ## Current Position
 
-Phase: 4 — Testing — Stress, Edge-Case & Regression Coverage
+Phase: 5 — Documentation — Truth Pass
 Plan: Not started
-Status: Phase 03 complete — PR #3 merged to main
-Last activity: 2026-07-13 - Merged PR #3 (phase 03 + docs + review fixes); phase closed
+Status: Phase 04 shipped — PR #4
+Last activity: 2026-07-14
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -38,7 +38,7 @@ Progress: [░░░░░░░░░░] 0%
 
 **Velocity:**
 
-- Total plans completed: 9
+- Total plans completed: 15
 - Average duration: - min
 - Total execution time: 0 hours
 
@@ -49,6 +49,7 @@ Progress: [░░░░░░░░░░] 0%
 | 01 | 2 | - | - |
 | 02 | 4 | - | - |
 | 03 | 3 | - | - |
+| 04 | 6 | - | - |
 
 **Recent Trend:**
 
@@ -65,6 +66,12 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03 P01 | 8min | 2 tasks | 3 files |
 | Phase 03 P02 | 10 min | 3 tasks | 2 files |
 | Phase 03 P03 | 10min | 2 tasks | 3 files |
+| Phase 04 P01 | 27min | 2 tasks | 4 files |
+| Phase 04 P03 | 12min | 2 tasks | 3 files |
+| Phase 04 P02 | 15min | 3 tasks | 3 files |
+| Phase 04 P04 | 10min | 2 tasks | 2 files |
+| Phase 04 P05 | 12min | 2 tasks | 3 files |
+| Phase 04 P06 | 8min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -96,6 +103,18 @@ Recent decisions affecting current work:
 - [Phase 03-02]: address! assertions replaced with truthy guards, not just removed (D-11) — connect() now guarantees non-empty address before updateState is called with connected:true; guard encodes that invariant in the type system
 - [Phase 03-03]: Fixed the plan's stated LifecycleManagerOptions import path (./lifecycle.js -> ../lifecycle.js) — src/lifecycle.ts lives one directory above src/types/; the literal path in the plan would not have resolved
 - [Phase 03-03]: BREAKING CHANGE footer placed on the Task 1 commit, not Task 2 — Task 1 lands the actual type removal + runtime throw; Task 2 is pure test migration onto the already-breaking shape
+- [Phase 04-01]: Mount-generation guard (mountGeneration counter + isStale() gating) fixes last-navigation-wins; closure-scoped, never module-level — Multiple shells in one process must not share a counter; generalizes the existing pendingMountId same-dapp dedupe idiom to cross-dapp supersession
+- [Phase 04-01]: invalidatePendingMount(id) added to LifecycleManager, wired from shell.disableDapp(), to close the disable-mid-flight race gap — rebuildRouter() only acts on lifecycle.getCurrentDapp(), which is null for a not-yet-committed mount
+- [Phase 04-01]: Sub-path stale-path bug fixed by re-reading router.getCurrentPath() after lifecycle.mount() resolves, emitting a dx:route:subpath catch-up if it moved — pendingMountId dedupe silently dropped sub-path navigations during a pending mount with no side effect, leaving the committed path stale
+- [Phase 04-03]: TEST-03 regression lives in new plugins/settings/tests/integration.test.ts, not appended to shell.test.ts — Keeps the real-wiring vs mocked-context contrast explicit and co-located with the plugin it drives
+- [Phase 04-03]: deepMerge JSDoc reconciled to code truth (null replaces, undefined skips) rather than changing runtime null-handling — Manifest overrides in src/shell.ts depend on null-replaces; an existing test already pins that behavior
+- [Phase 04-02]: normalizeAndValidateManifests() runs once in init() after loadManifests(), before initEnabledState()/createRouter() — Single choke point for route normalization (D-06), tier-uniform validation (D-07), and duplicate-route detection (D-08); enable/disable never changes the manifest list so re-running per rebuildRouter() would be wasted work
+- [Phase 04-02]: shell:route is a new dx:error source for reject-unfixable routes; WR-01 and duplicate-route emits reuse shell:manifest — Follows the colon-hierarchical taxonomy per RESEARCH.md Open Question 1 — route-reject is a distinct routing-table construction problem, while WR-01/duplicate-route are manifest-content conflicts
+- [Phase 04-02]: Duplicate-route manifests are kept in the list, not discarded — First-registered-wins resolution is already guaranteed by router.ts's stable construction-time sort (ES2019+ Array.prototype.sort stability) — the fix only needed to surface the collision via dx:error naming both ids
+- [Phase 04]: [Phase 04-04]: Reused lifecycle.invalidatePendingMount(id) guarded on truthy pendingMountId at handleRouteChange's null-manifest branch, matching disableDapp's existing wiring, to close CR-01 (D-01 dapp->unmatched-route hole)
+- [Phase 04-05]: invalidateAnyPendingMount() bumps mountGeneration only when inFlightMountId !== null, decoupling unmatched-route invalidation from the corruptible shell-level pendingMountId slot
+- [Phase 04-05]: mountDapp finally guarded (pendingMountId === manifest.id) so a stale settling call cannot clobber a newer mount's in-flight marker
+- [Phase 04-06]: pendingMountToken makes the shell mount dedupe slot call-scoped; releasePendingMount() frees it at both invalidation sites (handleRouteChange null branch, disableDapp) so re-navigation to an invalidated dapp mounts fresh instead of being dropped (CR-01, third D-01 instance)
 
 ### Pending Todos
 
@@ -114,6 +133,7 @@ Recent decisions affecting current work:
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260712-wcu | Implement PR #3 self-review findings: hasPlugin guard, sanitizer timeout, wallet contract-violation error, cause preservation, hasOwn guard | 2026-07-13 | d349ca9 | [260712-wcu-implement-pr3-self-review-findings-haspl](./quick/260712-wcu-implement-pr3-self-review-findings-haspl/) |
+| 260714-1lz | Fix stale mountDapp epilogue (subpath swallow/duplicate) and normalizeRoute trim from PR #4 review | 2026-07-14 | 17e863d | [260714-1lz-fix-stale-mountdapp-epilogue-subpath-swa](./quick/260714-1lz-fix-stale-mountdapp-epilogue-subpath-swa/) |
 
 ## Deferred Items
 
@@ -125,7 +145,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-12T23:13:39.246Z
-Stopped at: Completed 03-03-PLAN.md
+Last session: 2026-07-14T02:57:55.148Z
+Stopped at: Completed 04-06-PLAN.md
 Resume file: 
 None
