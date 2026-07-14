@@ -14,6 +14,12 @@ export interface LifecycleManager {
    * gap where the shell revokes access to a dapp whose mount hasn't reached currentDappId yet.
    */
   invalidatePendingMount(id: string): void;
+  /**
+   * Abandon whatever mount is currently in flight, keyed on the lifecycle's own
+   * inFlightMountId rather than any caller-supplied id — for callers (like an unmatched-route
+   * navigation) that must supersede any pending mount regardless of shell-level bookkeeping.
+   */
+  invalidateAnyPendingMount(): void;
 }
 
 export type ScriptLoader = (src: string) => Promise<void>;
@@ -446,6 +452,15 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
     }
   }
 
+  function invalidateAnyPendingMount(): void {
+    // Unlike invalidatePendingMount(id), this doesn't trust any caller-supplied id — it reads
+    // inFlightMountId directly, so a stale mount's finally clobbering the shell's own
+    // pendingMountId slot can't defeat it (D-01). No-op when nothing is in flight.
+    if (inFlightMountId !== null) {
+      mountGeneration++;
+    }
+  }
+
   return {
     mount,
     unmount,
@@ -454,5 +469,6 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
     clearTemplateCache,
     invalidateTemplate,
     invalidatePendingMount,
+    invalidateAnyPendingMount,
   };
 }

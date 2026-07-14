@@ -361,7 +361,10 @@ export function createShell(config: ShellConfig = {}): Shell {
     } else {
       // An unmatched route must supersede an in-flight mount too, not just a dapp->dapp
       // transition — otherwise a stale dapp can still commit its DOM under the new URL (D-01).
-      if (pendingMountId) lifecycle.invalidatePendingMount(pendingMountId);
+      // Reads lifecycle's own in-flight mount (inFlightMountId), not the corruptible shell-level
+      // pendingMountId — an overlapping A->B race that has already cleared/rewritten
+      // pendingMountId (via mountDapp's guarded finally) cannot defeat this invalidation.
+      lifecycle.invalidateAnyPendingMount();
       lifecycle.unmount();
     }
     events.emit('dx:route:changed', {
@@ -410,7 +413,12 @@ export function createShell(config: ShellConfig = {}): Shell {
       }
       currentPath = freshPath;
     } finally {
-      pendingMountId = null;
+      // Guarded: a stale call settling after being superseded must not clobber a newer
+      // mount's slot — when pendingMountId !== manifest.id, a newer mount now owns it (safe
+      // because the same-id early return above already excludes concurrent same-id calls).
+      if (pendingMountId === manifest.id) {
+        pendingMountId = null;
+      }
     }
   }
 
