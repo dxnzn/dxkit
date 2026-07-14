@@ -81,7 +81,7 @@ const theme = createCSSTheme({
 
 ```ts
 getMode(): ThemeMode                    // current mode setting ('light', 'dark', or 'system')
-setMode(mode: ThemeMode): void          // set mode
+setMode(mode: ThemeMode): void          // set mode (no-op if already the current mode)
 toggleMode(): void                      // cycle: system → light → dark → system
 getResolvedMode(): 'light' | 'dark'     // actual applied mode
 onModeChange(handler: (mode: ThemeMode, resolved: 'light' | 'dark') => void): () => void
@@ -93,7 +93,7 @@ onModeChange(handler: (mode: ThemeMode, resolved: 'light' | 'dark') => void): ()
 
 ```ts
 getTheme(): string                      // current theme name
-setTheme(theme: string): void           // set theme (no-op if not in themes list)
+setTheme(theme: string): void           // set theme (no-op if already current, or not in themes list)
 getAvailableThemes(): string[]          // all theme names
 onThemeChange(handler: (theme: string) => void): () => void
 ```
@@ -112,6 +112,15 @@ dx.events.on('dx:plugin:theme:changed', ({ resolved }) => {
 });
 ```
 
+### Error Handling
+
+Theme also emits `dx:error` if a localStorage read or write throws — see [Events Reference](../events-reference.md) for the full catalog.
+
+| `source` | Trigger |
+|----------|---------|
+| `plugin:theme:storage:write` | `localStorage.setItem` threw while persisting theme/mode |
+| `plugin:theme:storage:read` | `localStorage.getItem`/`JSON.parse` threw while restoring theme/mode — falls back to `defaultMode`/`themes[0]` |
+
 ## Settings
 
 When the settings plugin is registered, theme declares these settings:
@@ -121,7 +130,7 @@ When the settings plugin is registered, theme declares these settings:
 | `mode` | `select` | `'system'` | Light / Dark / System |
 | `theme` | `select` | First theme | Color palette (only shown if multiple themes configured) |
 
-The theme plugin syncs bidirectionally with the settings plugin — changes from either side stay in sync.
+The theme plugin syncs bidirectionally with the settings plugin — changes from either side stay in sync. On init, it also pushes its current theme/mode into the settings store, provided `settings` is already registered by that point (register `settings` before `theme` — see [Plugin Development](../plugin-development.md#registering-a-plugin)).
 
 ## Persistence
 
@@ -132,6 +141,8 @@ Theme and mode are saved to localStorage under the configured `storageKey` (defa
 ```
 
 Restored on init, before the first DOM update.
+
+Unlike the wallet plugin, `storageKey` here has no per-app isolation guidance behind it — two DxKit apps on the same origin using the default key share theme/mode state. See `docs/security.md` for the full inventory.
 
 ## CSS Authoring
 
