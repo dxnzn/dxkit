@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 05
 current_phase_name: documentation-truth-pass
 status: executing
-stopped_at: Completed 05-05-PLAN.md
-last_updated: "2026-07-14T16:15:09.711Z"
+stopped_at: Completed 05-07-PLAN.md
+last_updated: "2026-07-14T16:24:08.289Z"
 last_activity: 2026-07-14
 last_activity_desc: Phase 05 execution started
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 23
-  completed_plans: 21
+  completed_plans: 22
   percent: 80
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 ## Current Position
 
 Phase: 05 (documentation-truth-pass) — EXECUTING
-Plan: 7 of 8
+Plan: 8 of 8
 Status: Ready to execute
 Last activity: 2026-07-14 — Phase 05 execution started
 
@@ -79,6 +79,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05 P04 | 25min | 2 tasks | 3 files |
 | Phase 05 P05 | 30min | 2 tasks | 6 files |
 | Phase 05 P06 | 35min | 2 tasks | 4 files |
+| Phase 05 P07 | 20min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -134,6 +135,8 @@ Recent decisions affecting current work:
 - [Phase 05-05]: Added storageKey to wallet.md's WalletOptions table — it was entirely absent despite being the Phase 3 SEC-02 hardening; also added Error Handling subsections (dx:error catalogs) to wallet/theme/settings docs and settings.md's previously-undocumented ROB-04 handler-cleanup-on-disable behavior
 - [Phase 05]: Cookbook Custom Events recipe had the same 'declare module dxkit' bug already fixed elsewhere in Plan 05-02 — fixed to '@dnzn/dxkit'
 - [Phase 05]: Verified development.md's plugin-bundling claim against compiled dist/index.global.js rather than tsup.config.ts intent alone — no plugin config bundles a sibling plugin package, and the noExternal @dnzn/dxkit entry bundles nothing since plugins only type-import from core; rewrote to state the real reason standalone script tags work
+- [Phase 05-07]: Documented that <script> tags parsed via innerHTML never execute, then reasoned why CSP script-src still matters against unsanitized template HTML (inline event-handler attributes / javascript: URLs are blocked without unsafe-inline) — ties CSP guidance directly to src/lifecycle.ts's innerHTML injection point, framing CSP and the sanitizer as complementary layers, not redundant ones
+- [Phase 05-07]: IPFS gateway CSP guidance distinguishes path-style gateways (shared origin, weak self isolation) from subdomain-style gateways (per-CID origin) rather than one blanket caveat — directional per RESEARCH Assumption A2, not a normative claim
 
 ### Pending Todos
 
@@ -164,7 +167,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-14T16:14:24.309Z
-Stopped at: Completed 05-05-PLAN.md
+Last session: 2026-07-14T16:24:08.277Z
+Stopped at: Completed 05-07-PLAN.md
 Resume file: 
 None
