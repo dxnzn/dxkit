@@ -37,7 +37,7 @@ export default defineConfig({
 
 | Setting | Value | Why it matters |
 |---|---|---|
-| `test.environment` | `'happy-dom'` | Applies to the whole suite — every test file gets a DOM, not just ones that explicitly need one. |
+| `test.environment` | `'happy-dom'` | Applies to the whole suite — every test file gets a DOM, not only ones that explicitly need one. |
 | `test.include` | `tests/**/*.test.ts`, `plugins/*/tests/**/*.test.ts` | The only two locations Vitest scans. A test file placed anywhere else is silently excluded from the suite. |
 | `resolve.alias` | Maps `@dnzn/dxkit`, `@dnzn/dxkit-wallet`, `@dnzn/dxkit-auth`, `@dnzn/dxkit-theme`, `@dnzn/dxkit-settings` to each package's `src/index.ts` | Tests run against **source**, not built `dist/` output — no build step is required before running tests, and test runs reflect uncommitted source changes immediately. |
 
