@@ -39,7 +39,7 @@ interface ShellConfig {
 
 See [Getting Started > Configuration](getting-started.md#configuration) for the manifest-loading fallback order and a full `DappManifest` example, and [API Reference > ShellConfig](api-reference.md#shellconfig) for the type signature.
 
-> **Breaking change note:** `scriptLoader`, `styleLoader`, and `templateLoader` used to be top-level `ShellConfig` fields. They now live under `config.lifecycle`. Passing them at the top level throws at `createShell()` time with a message pointing at the new location (`src/shell.ts`) — this guard exists because untyped IIFE/JS consumers don't get a compile-time error for the moved fields.
+> **Note:** Passing `scriptLoader`, `styleLoader`, or `templateLoader` directly on `ShellConfig` — instead of nested under `lifecycle` — throws an `Error` at `createShell()` time, naming the offending key(s) (`src/shell.ts`). This guard exists because untyped IIFE/JS consumers get no compile-time error for the wrong shape. Upgrading from 0.1.5? See [Migrating to 0.2.0](getting-started.md#migrating-to-020).
 
 ## Lifecycle Manager Options
 
@@ -64,6 +64,8 @@ interface LifecycleManagerOptions {
 | `timeout` | `30000` (30s) | Per-fetch timeout in milliseconds applied to script, style, and template loads. Pass `0` or `Infinity` to disable and restore hang-forever behavior — the documented escape hatch for slow IPFS gateways. |
 | `cacheTemplates` | `true` | Cache fetched templates by URL so repeated mounts of the same dapp skip the fetch. Safe default for the content-addressed/immutable IPFS/static deployment target; set `false` for live-editing during development. Use `lifecycleManager.clearTemplateCache()` or `.invalidateTemplate(url)` to bust the cache manually. |
 | `sanitizeTemplate` | none | Bring-your-own sanitizer (e.g. DOMPurify) run on fetched template HTML immediately before it's written into the mount container, on every mount including cache hits. Applies to template HTML only — dapp entry scripts are trusted code outside its reach. A throw or rejection aborts the mount. With no sanitizer configured, template injection is unchanged from pre-hardening behavior. |
+
+Custom `scriptLoader`/`styleLoader`/`templateLoader` overrides are still subject to `timeout`, but via a `Promise.race` guard rather than a true abort — the overridden promise keeps running in the background after the guard rejects. Only the built-in loaders (left unset) get a true abort (`AbortController` / node removal).
 
 ```js
 DxKit.createShell({
