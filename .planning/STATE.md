@@ -6,15 +6,15 @@ current_phase: 05
 current_phase_name: documentation-truth-pass
 status: executing
 stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-07-14T15:32:54.906Z"
+last_updated: "2026-07-14T15:40:18.078Z"
 last_activity: 2026-07-14
 last_activity_desc: Phase 05 execution started
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 23
-  completed_plans: 17
-  percent: 74
+  completed_plans: 18
+  percent: 78
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 ## Current Position
 
 Phase: 05 (documentation-truth-pass) — EXECUTING
-Plan: 3 of 8
+Plan: 4 of 8
 Status: Ready to execute
 Last activity: 2026-07-14 — Phase 05 execution started
 
@@ -75,6 +75,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04 P06 | 8min | 2 tasks | 2 files |
 | Phase 05 P01 | 25min | 3 tasks | 5 files |
 | Phase 05 P02 | 35min | 2 tasks | 3 files |
+| Phase 05 P03 | 15min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -123,6 +124,8 @@ Recent decisions affecting current work:
 - [Phase 05-01]: D-17's ownership-guarded clear applied at every mount() exit path with the leak shape (missing-plugin return, all 4 catch blocks, all 4 bare isStale gates, final commit), not just the 4 literally-named bare gates — The catch blocks' own stale branches had the identical unaddressed leak gap
 - [Phase 05-02]: dx:error catalog presented as 23 distinct source+trigger rows (not collapsed by literal source string) — every distinct trigger is independently actionable for a dx:error handler, and DOC-01 required every source string including D-15's registry emit
 - [Phase 05-02]: createEthereumWallet()'s deprecated status was checked but produced no api-reference.md edit — that doc's Factory Functions section only covers core factories, plugin factories belong to docs/plugins/wallet.md (a later sweep plan's scope)
+- [Phase 05-03]: Config defaults and nested lifecycle shape in configuration.md/getting-started.md were already accurate against source; drift was narrower than expected (D-07 timeless-present violations + missing custom-loader timeout caveat), not wholesale default corrections
+- [Phase 05-03]: Migration section titled 'Migrating to 0.2.0' placed as its own section in getting-started.md per D-05 Claude's-discretion placement; configuration.md's breaking-change note links out to it instead of duplicating history
 
 ### Pending Todos
 
@@ -153,7 +156,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-14T15:32:54.897Z
+Last session: 2026-07-14T15:40:01.693Z
 Stopped at: Completed 05-01-PLAN.md
 Resume file: 
 None
