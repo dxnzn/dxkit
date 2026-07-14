@@ -60,6 +60,8 @@ plugins: {
 }
 ```
 
+If `walletPlugin` doesn't resolve to a registered plugin, auth degrades gracefully rather than failing shell init: `getState()`/`isAuthenticated()`/`onStateChange()`/`deauthenticate()` still work (auth stays permanently unauthenticated), only `authenticate()` throws.
+
 ## API
 
 ### `authenticate()`
