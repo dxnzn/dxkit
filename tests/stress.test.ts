@@ -359,6 +359,87 @@ describe('stress: concurrency & mount races (TEST-01, D-01/D-02/D-03)', () => {
     window.removeEventListener('dx:route:subpath', onSubpath);
   });
 
+  it('A -> unmatched -> A: re-navigation to an invalidated dapp mounts fresh, not dropped by the dedupe (CR-01/WR-11/D-01)', async () => {
+    const dappATpl: DappManifest = { ...dappA, template: '/dapps/a/tpl.html' };
+    const templateGate = keyedGate<string>();
+    const templateLoader: TemplateLoader = (src) => templateGate.loader(src);
+
+    shell = createShell({
+      lifecycle: { scriptLoader: async () => {}, styleLoader: async () => {}, templateLoader },
+      mode: 'history',
+      manifests: [dappATpl],
+    });
+    await shell.init();
+
+    const mountsA = countMounts('a');
+    const mountedDapp = vi.fn();
+    window.addEventListener('dx:dapp:mounted', mountedDapp);
+    const alternation = recordAlternation();
+
+    shell.navigate('/a');
+    await tick(); // A's first mount suspends at the held template gate (pendingMountId='a')
+
+    shell.navigate('/nowhere'); // drives handleRouteChange(null): invalidateAnyPendingMount()
+    await tick(); // bumps the generation AND releasePendingMount() frees the shell dedupe slot
+
+    shell.navigate('/a'); // must NOT be dropped by the stale dedupe slot
+    await tick(); // fresh mount starts, registers its own waiter for the same template key
+
+    // Resolves BOTH waiters — the stale first mount hits isStale() and returns before
+    // injecting, the fresh mount injects and commits.
+    templateGate.release('/dapps/a/tpl.html', '<div data-dapp="a">A content</div>');
+    await tick();
+
+    expect(mountsA.count()).toBe(1);
+    expect(mountedDapp).toHaveBeenCalledTimes(1);
+    expect(container.innerHTML).toContain('data-dapp="a"');
+    expect(shell.getCurrentRoute()).toBe('/a');
+    alternation.assertStrict();
+
+    mountsA.cleanup();
+    window.removeEventListener('dx:dapp:mounted', mountedDapp);
+    alternation.cleanup();
+  });
+
+  it('disableDapp -> enableDapp -> re-navigate: re-navigation to a mid-mount-disabled dapp mounts fresh (dedupe-liveness twin)', async () => {
+    const dappOptTpl: DappManifest = { ...dappOptional, template: '/dapps/opt/tpl.html' };
+    const templateGate = keyedGate<string>();
+    const templateLoader: TemplateLoader = (src) => templateGate.loader(src);
+
+    shell = createShell({
+      lifecycle: { scriptLoader: async () => {}, styleLoader: async () => {}, templateLoader },
+      mode: 'history',
+      manifests: [dappOptTpl],
+    });
+    await shell.init();
+
+    const mountsOpt = countMounts('opt');
+    const mountedDapp = vi.fn();
+    window.addEventListener('dx:dapp:mounted', mountedDapp);
+
+    shell.navigate('/opt');
+    await tick(); // suspends at the held template gate (pendingMountId='opt')
+
+    shell.disableDapp('opt'); // invalidatePendingMount('opt') bumps the generation AND
+    await tick(); // releasePendingMount() frees the slot because pendingMountId === 'opt'
+
+    shell.enableDapp('opt'); // rebuilds the router with '/opt' matched again
+
+    shell.navigate('/opt'); // same-path navigate still fires handleRouteChange (history mode
+    await tick(); // notifies unconditionally) — fresh mount starts, not dropped by a stale slot
+
+    templateGate.release('/dapps/opt/tpl.html', '<div data-dapp="opt">Opt content</div>');
+    await tick();
+
+    expect(mountsOpt.count()).toBe(1);
+    expect(mountedDapp).toHaveBeenCalledTimes(1);
+    expect(container.innerHTML).toContain('data-dapp="opt"');
+    expect(shell.isDappEnabled('opt')).toBe(true);
+
+    mountsOpt.cleanup();
+    window.removeEventListener('dx:dapp:mounted', mountedDapp);
+  });
+
   it("shell.init()'s initial-route mount races an immediate first navigation — last-navigation-wins (D-03 scenario 4)", async () => {
     window.history.replaceState(null, '', '/a'); // initial URL resolves to dapp A on init()
     const scriptGate = keyedGate<void>();
