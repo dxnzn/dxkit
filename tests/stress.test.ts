@@ -41,6 +41,28 @@ function keyedGate<T>(): { loader: (key: string) => Promise<T>; release: (key: s
   };
 }
 
+/**
+ * A per-call queue gate: every loader() call registers its own resolver in call-order, and
+ * releaseAt(index, value) resolves exactly that one — unlike keyedGate, which resolves every
+ * waiter sharing a key at once. Needed to model a stale and a fresh mount of the SAME manifest
+ * (sharing an entry-script key) settling at INDEPENDENT times.
+ */
+function handleGate<T>(): { loader: () => Promise<T>; releaseAt: (index: number, value: T) => void } {
+  const resolvers: Array<(value: T) => void> = [];
+  const loader = () =>
+    new Promise<T>((resolve) => {
+      resolvers.push(resolve);
+    });
+  return {
+    loader,
+    releaseAt: (index: number, value: T) => {
+      const resolve = resolvers[index];
+      if (!resolve) return;
+      resolve(value);
+    },
+  };
+}
+
 function countMounts(id: string): { count: () => number; cleanup: () => void } {
   let n = 0;
   const handler = (e: Event) => {
@@ -470,5 +492,47 @@ describe('stress: concurrency & mount races (TEST-01, D-01/D-02/D-03)', () => {
 
     mountsA.cleanup();
     mountsB.cleanup();
+  });
+
+  it('a stale same-id mount epilogue is inert — no swallowed/duplicate dx:route:subpath after invalidate-then-renavigate (CR-01 gap closure)', async () => {
+    const handleGateInstance = handleGate<void>();
+    shell = createShell({
+      lifecycle: { scriptLoader: () => handleGateInstance.loader(), styleLoader: async () => {} },
+      mode: 'history',
+      manifests: [dappA],
+    });
+    await shell.init();
+
+    const subpathEvents: { id: string; path: string; previousPath: string }[] = [];
+    const onSubpath = ((e: CustomEvent) => subpathEvents.push(e.detail)) as EventListener;
+    window.addEventListener('dx:route:subpath', onSubpath);
+    const alternation = recordAlternation();
+
+    shell.navigate('/a');
+    await tick(); // mount call index 0 (stale-to-be) suspends at the entry-script gate, pendingMountId='a'
+
+    shell.navigate('/nowhere'); // handleRouteChange(null): invalidateAnyPendingMount() marks the
+    await tick(); // in-flight call stale, releasePendingMount() frees the slot, unmount() no-ops (nothing committed)
+
+    shell.navigate('/a');
+    await tick(); // fresh mount call index 1 suspends at the entry-script gate, pendingMountId='a'
+
+    handleGateInstance.releaseAt(1, undefined);
+    await tick(); // fresh call commits A at '/a' — currentDappId='a', currentPath='/a', no subpath yet
+
+    shell.navigate('/a/sub');
+    await tick(); // fast-path same-dapp sub-path: the ONE real dx:route:subpath fires here
+
+    handleGateInstance.releaseAt(0, undefined);
+    await tick(); // stale call resumes: its own isStale() gate returns false -> mount() resolves
+    // false -> mountDapp's epilogue is skipped entirely (no re-emit, no currentPath overwrite)
+
+    expect(subpathEvents).toHaveLength(1);
+    expect(subpathEvents[0]).toEqual({ id: 'a', path: '/a/sub', previousPath: '/a' });
+    expect(shell.getCurrentRoute()).toBe('/a/sub');
+    alternation.assertStrict();
+
+    window.removeEventListener('dx:route:subpath', onSubpath);
+    alternation.cleanup();
   });
 });

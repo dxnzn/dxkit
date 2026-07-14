@@ -450,6 +450,58 @@ describe('createShell', () => {
       window.removeEventListener('dx:dapp:mounted', mounted);
     });
 
+    it('normalizes a route with leading whitespace so it becomes reachable', async () => {
+      shell = createShell({
+        ...testLoaders,
+        manifests: [
+          {
+            id: 'blog',
+            name: 'Blog',
+            version: '0.0.1',
+            route: ' /a',
+            entry: 'data:text/javascript,',
+            nav: { label: 'Blog' },
+          },
+        ],
+      });
+
+      await shell.init();
+
+      const mounted = vi.fn();
+      window.addEventListener('dx:dapp:mounted', mounted);
+      shell.navigate('/a');
+      await new Promise((r) => setTimeout(r, 0));
+
+      expect(mounted).toHaveBeenCalledOnce();
+      window.removeEventListener('dx:dapp:mounted', mounted);
+    });
+
+    it('normalizes a route with trailing whitespace so it becomes reachable', async () => {
+      shell = createShell({
+        ...testLoaders,
+        manifests: [
+          {
+            id: 'blog',
+            name: 'Blog',
+            version: '0.0.1',
+            route: '/a ',
+            entry: 'data:text/javascript,',
+            nav: { label: 'Blog' },
+          },
+        ],
+      });
+
+      await shell.init();
+
+      const mounted = vi.fn();
+      window.addEventListener('dx:dapp:mounted', mounted);
+      shell.navigate('/a');
+      await new Promise((r) => setTimeout(r, 0));
+
+      expect(mounted).toHaveBeenCalledOnce();
+      window.removeEventListener('dx:dapp:mounted', mounted);
+    });
+
     it('discards a manifest with an empty/whitespace-only route and emits a shell:route dx:error', async () => {
       const errors: { source: string; error: Error }[] = [];
       window.addEventListener('dx:error', ((e: CustomEvent) => {
