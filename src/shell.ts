@@ -138,6 +138,14 @@ export function createShell(config: ShellConfig = {}): Shell {
 
     enabledState.set(id, false);
     if (initialized) {
+      // D-16: captured against the OLD router, before rebuildRouter() below swaps in one that
+      // excludes the disabled dapp — resolve() against the current router still reflects
+      // whether the active browser path belonged to the dapp being disabled.
+      const routeOwnedByDisabledDapp = router.resolve(router.getCurrentPath())?.id === id;
+      // Captured before rebuildRouter() (which may call lifecycle.unmount()) so it still
+      // reflects whether `id`'s mount was committed at the moment disableDapp() was called.
+      const wasUncommittedMount = lifecycle.getCurrentDapp() !== id;
+
       // rebuildRouter() only acts on lifecycle.getCurrentDapp(), which is null for a mount
       // still in flight — this closes that gap so a disabled dapp's not-yet-committed mount
       // is abandoned too (D-03 scenario 1).
@@ -146,6 +154,15 @@ export function createShell(config: ShellConfig = {}): Shell {
       // mounts fresh instead of being dropped by the stale dedupe slot (D-01, CR-01).
       if (pendingMountId === id) releasePendingMount();
       rebuildRouter();
+
+      // D-16: rebuildRouter()'s own navigate-to-/ branch only fires for a COMMITTED mount
+      // (lifecycle.getCurrentDapp() non-null) — an in-flight (uncommitted) mount for the
+      // disabled dapp's active route falls through that gate. Converge the OUTCOME here
+      // (both disable paths end at /) without collapsing the two branches — they stay
+      // distinct so a committed disable's unmount() call isn't duplicated.
+      if (routeOwnedByDisabledDapp && wasUncommittedMount) {
+        router.navigate('/');
+      }
     }
     events.emit('dx:dapp:disabled', { id });
   }

@@ -1084,6 +1084,57 @@ describe('createShell', () => {
       expect(shell.getEnabledManifests()).toHaveLength(1);
     });
 
+    it('disableDapp() mid-flight (uncommitted mount) for the currently-routed dapp navigates to / (D-16)', async () => {
+      const home: DappManifest = {
+        id: 'home',
+        name: 'Home',
+        version: '0.0.1',
+        route: '/',
+        entry: '/dapps/home/app.js',
+        nav: { label: 'Home' },
+      };
+      const helloOptional: DappManifest = {
+        id: 'hello',
+        name: 'Hello',
+        version: '0.0.1',
+        route: '/hello',
+        entry: '/dapps/hello/app.js',
+        nav: { label: 'Hello' },
+        optional: true,
+      };
+
+      // Gated only on hello's entry — home's initial-route mount during init() resolves
+      // immediately so it doesn't hang the test.
+      let releaseHelloEntry: (() => void) | undefined;
+      const scriptLoader: ScriptLoader = (src: string) => {
+        if (src === helloOptional.entry) {
+          return new Promise<void>((resolve) => {
+            releaseHelloEntry = resolve;
+          });
+        }
+        return Promise.resolve();
+      };
+
+      shell = createShell({
+        lifecycle: { scriptLoader, styleLoader: async () => {} },
+        manifests: [home, helloOptional],
+      });
+      await shell.init();
+
+      shell.navigate('/hello');
+      await new Promise((r) => setTimeout(r, 0)); // mountDapp('hello') suspends at the entry-script gate
+
+      shell.disableDapp('hello'); // uncommitted mount whose route is active — must navigate to /
+
+      expect(shell.getCurrentRoute()).toBe('/');
+
+      releaseHelloEntry?.();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Releasing the abandoned mount's held loader must not re-navigate away from /.
+      expect(shell.getCurrentRoute()).toBe('/');
+    });
+
     it('enableDapp() is no-op for non-optional dapps', async () => {
       shell = createShell({ ...testLoaders, manifests: [required] });
       await shell.init();
