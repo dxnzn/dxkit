@@ -1,7 +1,11 @@
 import type { DappManifest, EventBus } from './types/index.js';
 
 export interface LifecycleManager {
-  mount(manifest: DappManifest, container: HTMLElement, path?: string): Promise<void>;
+  /** Resolves true only if THIS call reached the commit point (currentDappId/dx:mount) — false on
+   * every early return (missing plugin, load failure, or superseded by a newer mount). Lets a
+   * caller distinguish "my mount landed" from "some mount for this id landed" when two calls for
+   * the same manifest id race, which getCurrentDapp() === id alone cannot do. */
+  mount(manifest: DappManifest, container: HTMLElement, path?: string): Promise<boolean>;
   unmount(): void;
   getCurrentDapp(): string | null;
   destroy(): void;
@@ -286,7 +290,7 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
     return html;
   }
 
-  async function mount(manifest: DappManifest, container: HTMLElement, path?: string): Promise<void> {
+  async function mount(manifest: DappManifest, container: HTMLElement, path?: string): Promise<boolean> {
     // Captured once per call; every gate below re-checks isStale() against the live counter so
     // only the single most-recently-started mount can ever reach a commit point (D-01).
     const generation = ++mountGeneration;
@@ -308,7 +312,7 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
           error: new Error(`Missing required plugin(s): ${missing.join(', ')}`),
         });
         inFlightMountId = null;
-        return;
+        return false;
       }
     }
 
@@ -341,11 +345,11 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
           });
           inFlightMountId = null;
         }
-        return;
+        return false;
       }
       // Re-check immediately before the DOM write (Pitfall 1) — a stale mount must never
       // inject its template into a container the newer mount now owns.
-      if (isStale()) return;
+      if (isStale()) return false;
 
       // Sanitize step gets its own try/catch (D-08) so its failure source is distinguishable
       // from a fetch failure. No sanitizer configured → html passes through unchanged (0.1.5
@@ -363,9 +367,9 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
             });
             inFlightMountId = null;
           }
-          return;
+          return false;
         }
-        if (isStale()) return; // re-check again — the sanitize await is another commit gate
+        if (isStale()) return false; // re-check again — the sanitize await is another commit gate
         container.innerHTML = sanitized;
       } else {
         container.innerHTML = html;
@@ -387,9 +391,9 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
             container.innerHTML = '';
             inFlightMountId = null;
           }
-          return;
+          return false;
         }
-        if (isStale()) return; // superseded mid-loop — don't load further deps for a dead mount
+        if (isStale()) return false; // superseded mid-loop — don't load further deps for a dead mount
       }
     }
 
@@ -406,9 +410,9 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
         container.innerHTML = '';
         inFlightMountId = null;
       }
-      return;
+      return false;
     }
-    if (isStale()) return; // final gate before commit
+    if (isStale()) return false; // final gate before commit
 
     currentDappId = manifest.id;
     inFlightMountId = null;
@@ -416,6 +420,9 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
     // Dapp contract: listen for dx:mount on container, render into it, listen for dx:unmount to teardown
     events.emit('dx:mount', { id: manifest.id, container, path: path ?? manifest.route });
     events.emit('dx:dapp:mounted', { id: manifest.id });
+    // true reports that THIS call committed, so the shell can gate its epilogue without the
+    // getCurrentDapp()===id ambiguity between two same-id calls.
+    return true;
   }
 
   function unmount(): void {

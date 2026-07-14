@@ -247,11 +247,14 @@ export function createShell(config: ShellConfig = {}): Shell {
   }
 
   /** Leading-slash/trailing-slash subset of router.ts's normalizePath (no basePath stripping —
-   * manifest routes are declared without a basePath prefix). Returns null for the unfixable case
+   * manifest routes are declared without a basePath prefix). Trims surrounding whitespace before
+   * normalizing (D-06) — otherwise ' /a' would become '/ /a' via the leading-slash prepend, and
+   * '/a ' would keep an unreachable trailing space. Returns null for the unfixable case
    * (empty/whitespace-only route). */
   function normalizeRoute(route: string): string | null {
-    if (route.trim() === '') return null;
-    let normalized = route;
+    const trimmed = route.trim();
+    if (trimmed === '') return null;
+    let normalized = trimmed;
     if (!normalized.startsWith('/')) normalized = `/${normalized}`;
     if (normalized.length > 1 && normalized.endsWith('/')) {
       normalized = normalized.slice(0, -1);
@@ -420,16 +423,23 @@ export function createShell(config: ShellConfig = {}): Shell {
     pendingMountId = manifest.id;
     const myToken = ++pendingMountToken;
     try {
-      await lifecycle.mount(manifest, container, path);
-      // Fresh-path commit (D-03 scenario 3): a sub-path navigation that arrived while this
-      // mount was still in flight was silently dropped by the pendingMountId dedupe above —
-      // re-read the browser's actual current path now instead of trusting the value captured
-      // when this call started, and catch up with a dx:route:subpath event if it moved.
-      const freshPath = router.getCurrentPath();
-      if (freshPath !== path && lifecycle.getCurrentDapp() === manifest.id) {
-        events.emit('dx:route:subpath', { id: manifest.id, path: freshPath, previousPath: path });
+      const committed = await lifecycle.mount(manifest, container, path);
+      // Epilogue only runs when THIS call committed (lifecycle.mount's own isStale() gate is
+      // the sole source of truth) — a stale/superseded call's continuation must never pre-write
+      // currentPath (which would swallow a later same-dapp sub-path nav) or emit a spurious
+      // dx:route:subpath. getCurrentDapp() === manifest.id can't distinguish two same-id calls,
+      // so it's dropped from this condition entirely.
+      if (committed) {
+        // Fresh-path commit (D-03 scenario 3): a sub-path navigation that arrived while this
+        // mount was still in flight was silently dropped by the pendingMountId dedupe above —
+        // re-read the browser's actual current path now instead of trusting the value captured
+        // when this call started, and catch up with a dx:route:subpath event if it moved.
+        const freshPath = router.getCurrentPath();
+        if (freshPath !== path) {
+          events.emit('dx:route:subpath', { id: manifest.id, path: freshPath, previousPath: path });
+        }
+        currentPath = freshPath;
       }
-      currentPath = freshPath;
     } finally {
       // Call-scoped: only the call that currently owns the token may clear the slot — a stale
       // or invalidated call (whose token was superseded by a newer mount or by
