@@ -1,4 +1,4 @@
-[Getting Started](getting-started.md) | **Dapp Development** | [Plugin Development](plugin-development.md) | [System Internals](system-internals.md) | [Events Reference](events-reference.md) | [API Reference](api-reference.md) | [Cookbook](cookbook.md)
+[Getting Started](getting-started.md) | **Dapp Development** | [Plugin Development](plugin-development.md) | [System Internals](system-internals.md) | [Events Reference](events-reference.md) | [API Reference](api-reference.md) | [Cookbook](cookbook.md) | [Configuration](configuration.md) | [Development](development.md) | [Testing](testing.md) | [Security](security.md)
 
 ---
 

@@ -58,4 +58,40 @@ or flat-loader snippet presented as current (non-migration) API anywhere in the 
 Scratch harness (`tsconfig.scratch.json`, `tmp/doc-compile-check/`) is not committed — removed
 after the pass; `tmp/` is gitignored.
 
-<!-- gsd:write-continue -->
+---
+
+## Task 2 — README index reconciliation + example spot-check + cross-doc consistency sweep
+
+### README.md
+
+| # | Was | Now | Source |
+|---|-----|-----|--------|
+| 1 | Framework doc table indexed 7 of 11 framework docs — `configuration.md`, `development.md`, `testing.md`, `security.md` (D-08) were unindexed | Added 4 rows in the same terse register as existing rows | D-12, D-08 |
+| 2 | Audit link (`audit/self/dxkit-0.1.0.md`) | Verified — file exists, unchanged | `audit/self/dxkit-0.1.0.md` |
+| 3 | Install commands (`npm install @dnzn/dxkit`, `@dnzn/dxkit-auth/-wallet/-settings/-theme`) | Verified against each `package.json`'s `"name"` field — all match | `package.json`, `plugins/*/package.json` |
+| 4 | `make` helper table (setup/build/test/test-watch/lint/lint-fix/lint-format/clean/superclean/audit) | Verified against `Makefile` target names — all match, none missing | `Makefile` |
+| 5 | Build System section (ESM/CJS/IIFE, `exports` field, IIFE globals, `noExternal: ['@dnzn/dxkit']`) | Verified against `package.json` `exports`, `tsup.config.ts` — accurate | `package.json`, `tsup.config.ts` |
+| 6 | Version cell (`0.1.5`) / status (`vibe/alpha`) | Left unchanged per D-06 — release tooling (`commit-and-tag-version`) owns the bump | D-06 |
+
+`@dxkit/wallet`-style shorthand names in the README's plugin table (distinct from the real
+`@dnzn/dxkit-wallet` npm package name) are an existing, consistent convention used identically in
+every doc's prose/headings (`docs/plugins/wallet.md` titles itself `# @dxkit/wallet`,
+`getting-started.md`'s architecture diagram and plugin list use the same shorthand) — not drift,
+left as-is.
+
+### examples/getting-started
+
+Spot-checked `main.js` + `index.html` against the final `ShellConfig` shape: `createShell({
+plugins, dapps, mode })` — no `lifecycle`/loader config at all, so there's no flat-vs-nested
+question to get wrong. No drift found; matches 0.2.0 as-is.
+
+### Cross-doc consistency sweep
+
+| # | Finding | Fix | Scope |
+|---|---|---|---|
+| 1 | All 11 docs' internal top-of-file nav bars (`[Getting Started] \| [Dapp Development] \| ...`) listed only the original 7 framework docs — `Configuration`, `Development`, `Testing`, `Security` were unreachable from every doc's own nav, including from each other and from themselves (none of the 4 newer docs bolded their own name or linked back to the other 3) | Rewrote all 11 nav bars to a consistent 11-doc list, each doc bolding itself | `docs/*.md` (all 11) |
+| 2 | 4 docs (`configuration.md`, `development.md`, `testing.md`, `security.md`) carried a leading `<!-- generated-by: gsd-doc-writer -->` HTML comment not present in any of the other 7 docs — inconsistent, informs nobody (D-13) | Removed | `docs/configuration.md`, `docs/development.md`, `docs/testing.md`, `docs/security.md` |
+| 3 | Disable-mid-flight-navigates-to-`/` rule (D-16) | Confirmed identical single-outcome statement across `api-reference.md:131`, `dapp-development.md:114-119`, `system-internals.md:346-349` — no divergence | verified only, no edit |
+| 4 | Package-name shorthand (`@dxkit/<plugin>` display name vs. `@dnzn/dxkit-<plugin>` real package) | Confirmed consistent across README and all docs (prose/headings only, never in an actual import/install snippet) | verified only, no edit |
+
+No D-13 booster/hedge words introduced by any edit in this plan.

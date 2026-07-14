@@ -46,6 +46,10 @@ npm install @dnzn/dxkit-theme
 | [Events Reference](docs/events-reference.md) | Complete event catalog with payloads, organized by source |
 | [API Reference](docs/api-reference.md) | All factory functions, interfaces, and type definitions |
 | [Cookbook](docs/cookbook.md) | Patterns & recipes — DxKit by example |
+| [Configuration](docs/configuration.md) | Full config reference — ShellConfig, lifecycle options, plugin options, localStorage keys, build-time config |
+| [Development](docs/development.md) | Contributor guide — monorepo layout, build system, lint/test tooling, commit/release conventions |
+| [Testing](docs/testing.md) | Test framework setup, running tests, test locations, conventions, CI |
+| [Security](docs/security.md) | CSP guidance, template sanitizer recipes, known limitations |
 
 ### Plugins
 
