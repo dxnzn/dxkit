@@ -371,6 +371,100 @@ describe('createShell', () => {
     window.fetch = originalFetch;
   });
 
+  it('emits a dx:error when an explicit registryUrl returns a non-OK response (D-15)', async () => {
+    const errors: { source: string; error: Error }[] = [];
+    const handler = ((e: CustomEvent) => {
+      errors.push(e.detail);
+    }) as EventListener;
+    window.addEventListener('dx:error', handler);
+
+    const originalFetch = window.fetch;
+    window.fetch = vi.fn(async () => ({ ok: false, status: 404 }) as Response) as any;
+
+    shell = createShell({ ...testLoaders, registryUrl: '/custom-registry.json' });
+    await shell.init();
+
+    expect(shell.getManifests()).toHaveLength(0);
+    expect(errors.some((e) => e.source === 'shell:manifest' && e.error.message.includes('/custom-registry.json'))).toBe(
+      true,
+    );
+
+    window.fetch = originalFetch;
+    window.removeEventListener('dx:error', handler);
+  });
+
+  it('emits a dx:error when an explicit registryUrl fetch rejects (D-15)', async () => {
+    const errors: { source: string; error: Error }[] = [];
+    const handler = ((e: CustomEvent) => {
+      errors.push(e.detail);
+    }) as EventListener;
+    window.addEventListener('dx:error', handler);
+
+    const originalFetch = window.fetch;
+    window.fetch = vi.fn(async () => {
+      throw new Error('registry host unreachable');
+    }) as any;
+
+    shell = createShell({ ...testLoaders, registryUrl: '/custom-registry.json' });
+    await shell.init();
+
+    expect(shell.getManifests()).toHaveLength(0);
+    expect(
+      errors.some(
+        (e) => e.source === 'shell:manifest' && e.error.message.includes('registry host unreachable') && e.error.cause,
+      ),
+    ).toBe(true);
+
+    window.fetch = originalFetch;
+    window.removeEventListener('dx:error', handler);
+  });
+
+  it('emits a dx:error when an explicit registryUrl resolves but JSON parsing throws (D-15)', async () => {
+    const errors: { source: string; error: Error }[] = [];
+    const handler = ((e: CustomEvent) => {
+      errors.push(e.detail);
+    }) as EventListener;
+    window.addEventListener('dx:error', handler);
+
+    const originalFetch = window.fetch;
+    window.fetch = vi.fn(async () => ({
+      ok: true,
+      json: async () => {
+        throw new Error('Unexpected token in JSON');
+      },
+    })) as any;
+
+    shell = createShell({ ...testLoaders, registryUrl: '/custom-registry.json' });
+    await shell.init();
+
+    expect(shell.getManifests()).toHaveLength(0);
+    expect(errors.some((e) => e.source === 'shell:manifest')).toBe(true);
+
+    window.fetch = originalFetch;
+    window.removeEventListener('dx:error', handler);
+  });
+
+  it('stays silent on the default registryUrl probe failure — no dx:error, empty manifests (D-15)', async () => {
+    const errors: { source: string; error: Error }[] = [];
+    const handler = ((e: CustomEvent) => {
+      errors.push(e.detail);
+    }) as EventListener;
+    window.addEventListener('dx:error', handler);
+
+    const originalFetch = window.fetch;
+    window.fetch = vi.fn(async () => ({ ok: false, status: 404 }) as Response) as any;
+
+    // registryUrl omitted entirely — this is the default /registry.json probe.
+    shell = createShell({ ...testLoaders });
+    await shell.init();
+
+    expect(shell.getManifests()).toEqual([]);
+    expect(errors.some((e) => e.source === 'shell:manifest')).toBe(false);
+
+    window.fetch = originalFetch;
+    window.removeEventListener('dx:error', handler);
+  });
+
   it('emits dx:error (source shell:mount) when #dx-mount is absent, without throwing', async () => {
     // No <div id="dx-mount"> in the DOM at all — exercises lazy getMountContainer() returning null.
     container.remove();
