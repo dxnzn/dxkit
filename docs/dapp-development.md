@@ -6,7 +6,7 @@
 
 Building self-contained applications that mount and unmount inside the shell.
 
-[Dapp Anatomy](#dapp-anatomy) | [The Manifest](#the-manifest) | [Lifecycle Events](#lifecycle-events) | [Accessing the Context](#accessing-the-context) | [Using Plugins from a Dapp](#using-plugins-from-a-dapp) | [Dapp Settings](#dapp-settings) | [Sub-path Routing](#sub-path-routing) | [Standalone Mode](#standalone-mode) | [Permission Gating](#permission-gating) | [Per-Dapp Styles](#per-dapp-styles)
+[Dapp Anatomy](#dapp-anatomy) | [The Manifest](#the-manifest) | [Lifecycle Events](#lifecycle-events) | [Accessing the Context](#accessing-the-context) | [Disabling the Active Dapp](#disabling-the-active-dapp) | [Using Plugins from a Dapp](#using-plugins-from-a-dapp) | [Dapp Settings](#dapp-settings) | [Sub-path Routing](#sub-path-routing) | [Standalone Mode](#standalone-mode) | [Requirement Gating](#requirement-gating) | [Per-Dapp Styles](#per-dapp-styles)
 
 ---
 
@@ -110,6 +110,13 @@ dx.enableDapp('optional-dapp');
 dx.disableDapp('optional-dapp');
 dx.isDappEnabled('optional-dapp');
 ```
+
+## Disabling the Active Dapp
+
+Disabling an optional dapp whose route is currently active — mounted or still loading — returns
+the browser to `/`. This holds whether the mount had already committed or was still fetching its
+assets when `disableDapp()` was called: either way the shell abandons it rather than leaving the
+browser parked on a route that no longer resolves.
 
 ## Using Plugins from a Dapp
 
