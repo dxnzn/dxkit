@@ -1,7 +1,7 @@
 ---
 phase: 04
 status: current
-verified_against: 511b417a18a831b492146400bfc5d4c97cc94560
+verified_against: 9c51464c08e5af41808f0bb1b99a181bf109cdef
 updated: 2026-07-14
 ---
 
@@ -22,6 +22,14 @@ Scoped pre-ship docs pass for Phase 4 (testing — stress, edge-case & regressio
 | README.md | 35/35 | ✓ fixed — version cell 0.1.0→0.1.5, `noExternal: ['@dnzn/dxkit']` (commit 511b417) |
 | docs/testing.md | 16/16 | ✓ fixed — Test Locations table now includes stress.test.ts + settings integration.test.ts (commit 511b417) |
 | docs/plugins/auth.md | 15/15 | ✓ fixed — H1 package name @dxkit/auth → @dnzn/dxkit-auth (commit 511b417) |
+
+## Refresh after quick task 260714-1lz (2026-07-14)
+
+The post-review fix (`17e863d`, `c3cf2ed` — mountDapp epilogue gating + normalizeRoute trim) changed one documented
+claim: `LifecycleManager.mount()` now returns `Promise<boolean>`. `docs/api-reference.md` updated accordingly
+(`9c51464`). Re-checked the other verified docs' affected claims: system-internals mount-dedupe prose, getting-started
+event sequences, and dapp-development route rules all remain accurate (the fix tightens behavior toward what they
+already describe). `verified_against` bumped to `9c51464`.
 
 ## Deferred to Phase 5 (docs truth pass)
 
