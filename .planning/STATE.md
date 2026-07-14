@@ -4,17 +4,17 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 05
 current_phase_name: documentation-truth-pass
-status: executing
+status: verifying
 stopped_at: Completed 05-07-PLAN.md
-last_updated: "2026-07-14T16:24:08.289Z"
+last_updated: "2026-07-14T16:44:28.409Z"
 last_activity: 2026-07-14
 last_activity_desc: Phase 05 execution started
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 23
-  completed_plans: 22
-  percent: 80
+  completed_plans: 23
+  percent: 100
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 
 Phase: 05 (documentation-truth-pass) — EXECUTING
 Plan: 8 of 8
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-14 — Phase 05 execution started
 
 Progress: [░░░░░░░░░░] 0%
@@ -80,6 +80,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05 P05 | 30min | 2 tasks | 6 files |
 | Phase 05 P06 | 35min | 2 tasks | 4 files |
 | Phase 05 P07 | 20min | 2 tasks | 2 files |
+| Phase 05 P08 | 19min | 3 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -137,6 +138,8 @@ Recent decisions affecting current work:
 - [Phase 05]: Verified development.md's plugin-bundling claim against compiled dist/index.global.js rather than tsup.config.ts intent alone — no plugin config bundles a sibling plugin package, and the noExternal @dnzn/dxkit entry bundles nothing since plugins only type-import from core; rewrote to state the real reason standalone script tags work
 - [Phase 05-07]: Documented that <script> tags parsed via innerHTML never execute, then reasoned why CSP script-src still matters against unsanitized template HTML (inline event-handler attributes / javascript: URLs are blocked without unsafe-inline) — ties CSP guidance directly to src/lifecycle.ts's innerHTML injection point, framing CSP and the sanitizer as complementary layers, not redundant ones
 - [Phase 05-07]: IPFS gateway CSP guidance distinguishes path-style gateways (shared origin, weak self isolation) from subdomain-style gateways (per-CID origin) rather than one blanket caveat — directional per RESEARCH Assumption A2, not a normative claim
+- [Phase 05-08]: Compile-check harness caught 2 real doc bugs (plugin-development.md wrong package specifiers, system-internals.md flat ShellConfig.scriptLoader) that eyeball review in prior plans missed — Mechanical tsc verification against real 0.2.0 types (D-04) is strictly more reliable than manual reading for catching stale API shapes
+- [Phase 05-08]: Cross-doc consistency sweep expanded to fix a nav-bar gap across all 11 docs/*.md files (Configuration/Development/Testing/Security were unreachable from any doc's internal nav) — Same class of independently-edited-docs drift the sweep is meant to catch; directly serves discoverability of the README rows just added
 
 ### Pending Todos
 
@@ -167,7 +170,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-14T16:24:08.277Z
+Last session: 2026-07-14T16:44:10.530Z
 Stopped at: Completed 05-07-PLAN.md
 Resume file: 
 None

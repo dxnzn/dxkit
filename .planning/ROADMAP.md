@@ -27,7 +27,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Robustness — Load Guards, Caching & Handler Cleanup** - Mounts can't hang, router/template work isn't repeated, and disabled dapps stop leaking settings handlers (completed 2026-07-12)
 - [x] **Phase 3: Security — Sanitization & Storage Isolation** - Templates can be sanitized before injection and wallet storage keys no longer collide across apps (completed 2026-07-12)
 - [x] **Phase 4: Testing — Stress, Edge-Case & Regression Coverage** - Concurrent-navigation, manifest-validation, and settings-cleanup behavior gets dedicated test coverage (completed 2026-07-14)
-- [ ] **Phase 5: Documentation — Truth Pass** - Every doc and the README are verified against 0.2.0 code, slop is removed, and CSP/security gaps are filled
+- [x] **Phase 5: Documentation — Truth Pass** - Every doc and the README are verified against 0.2.0 code, slop is removed, and CSP/security gaps are filled (completed 2026-07-14)
 
 ## Phase Details
 
@@ -130,7 +130,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. No filler, hedging, restated-obviousness, or invented/unverifiable detail remains in the docs — every technical claim traces to source.
   3. A CSP guidance section (covering `innerHTML` template injection and external script loading) and a security/limitations note exist in the docs.
 
-**Plans**: 7/8 plans executed
+**Plans**: 8/8 plans complete
 
 **Wave 1** *(folded code fixes land first — docs then describe post-fix behavior)*
 
@@ -147,7 +147,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 3** *(close-out; depends on all wave-2)*
 
-- [ ] 05-08-PLAN.md — D-04 compile-check harness + README index reconciliation (D-12) + example spot-check + cross-doc consistency + drift-log assembly (D-01) [wave 3]
+- [x] 05-08-PLAN.md — D-04 compile-check harness + README index reconciliation (D-12) + example spot-check + cross-doc consistency + drift-log assembly (D-01) [wave 3]
 
 ## Progress
 
@@ -160,4 +160,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Robustness — Load Guards, Caching & Handler Cleanup | 4/4 | Complete    | 2026-07-12 |
 | 3. Security — Sanitization & Storage Isolation | 3/3 | Complete    | 2026-07-12 |
 | 4. Testing — Stress, Edge-Case & Regression Coverage | 6/6 | Complete    | 2026-07-14 |
-| 5. Documentation — Truth Pass | 7/8 | In Progress|  |
+| 5. Documentation — Truth Pass | 8/8 | Complete   | 2026-07-14 |
