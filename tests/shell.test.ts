@@ -13,6 +13,15 @@ const testLoaders: Pick<ShellConfig, 'lifecycle'> = {
 describe('createShell', () => {
   let shell: Shell;
   let container: HTMLElement;
+  // D-17 test nit: several tests below register a dx:error listener to capture emitted errors
+  // and previously never removed it. Registering through this helper guarantees removal in
+  // afterEach without repeating the add/remove pairing at every call site.
+  const dxErrorListeners: EventListener[] = [];
+
+  function onDxError(handler: EventListener): void {
+    window.addEventListener('dx:error', handler);
+    dxErrorListeners.push(handler);
+  }
 
   beforeEach(() => {
     container = document.createElement('div');
@@ -25,6 +34,10 @@ describe('createShell', () => {
     if (shell) shell.destroy();
     container.remove();
     delete window.__DXKIT__;
+    for (const handler of dxErrorListeners) {
+      window.removeEventListener('dx:error', handler);
+    }
+    dxErrorListeners.length = 0;
   });
 
   it('init() exposes context on window.__DXKIT__', async () => {
@@ -116,7 +129,7 @@ describe('createShell', () => {
     });
 
     // Listen for dx:error before init
-    window.addEventListener('dx:error', ((e: CustomEvent) => {
+    onDxError(((e: CustomEvent) => {
       errors.push(e.detail);
     }) as EventListener);
 
@@ -309,7 +322,7 @@ describe('createShell', () => {
 
   it('skips dapps with failed manifest fetch and emits a dx:error (WR-01)', async () => {
     const errors: { source: string; error: Error }[] = [];
-    window.addEventListener('dx:error', ((e: CustomEvent) => {
+    onDxError(((e: CustomEvent) => {
       errors.push(e.detail);
     }) as EventListener);
 
@@ -330,7 +343,7 @@ describe('createShell', () => {
 
   it('emits a dx:error when the manifest fetch itself rejects (WR-01 network-throw mode)', async () => {
     const errors: { source: string; error: Error }[] = [];
-    window.addEventListener('dx:error', ((e: CustomEvent) => {
+    onDxError(((e: CustomEvent) => {
       errors.push(e.detail);
     }) as EventListener);
 
@@ -350,7 +363,7 @@ describe('createShell', () => {
 
   it('emits a dx:error when manifest fetch resolves but JSON parsing throws (WR-01 parse-failure mode)', async () => {
     const errors: { source: string; error: Error }[] = [];
-    window.addEventListener('dx:error', ((e: CustomEvent) => {
+    onDxError(((e: CustomEvent) => {
       errors.push(e.detail);
     }) as EventListener);
 
@@ -481,7 +494,7 @@ describe('createShell', () => {
     shell = createShell({ ...testLoaders, manifests: [dapp] });
 
     const errors: { source: string; error: Error }[] = [];
-    window.addEventListener('dx:error', ((e: CustomEvent) => {
+    onDxError(((e: CustomEvent) => {
       errors.push(e.detail);
     }) as EventListener);
 
@@ -496,7 +509,7 @@ describe('createShell', () => {
 
   it('rejects manifests missing required fields and emits dx:error', async () => {
     const errors: { source: string; error: Error }[] = [];
-    window.addEventListener('dx:error', ((e: CustomEvent) => {
+    onDxError(((e: CustomEvent) => {
       errors.push(e.detail);
     }) as EventListener);
 
@@ -598,7 +611,7 @@ describe('createShell', () => {
 
     it('discards a manifest with an empty/whitespace-only route and emits a shell:route dx:error', async () => {
       const errors: { source: string; error: Error }[] = [];
-      window.addEventListener('dx:error', ((e: CustomEvent) => {
+      onDxError(((e: CustomEvent) => {
         errors.push(e.detail);
       }) as EventListener);
 
@@ -624,7 +637,7 @@ describe('createShell', () => {
 
     it('discards an invalid inline manifest and emits a shell:manifest dx:error (tier parity)', async () => {
       const errors: { source: string; error: Error }[] = [];
-      window.addEventListener('dx:error', ((e: CustomEvent) => {
+      onDxError(((e: CustomEvent) => {
         errors.push(e.detail);
       }) as EventListener);
 
@@ -641,7 +654,7 @@ describe('createShell', () => {
 
     it('discards an invalid registry.json manifest and emits a shell:manifest dx:error (tier parity)', async () => {
       const errors: { source: string; error: Error }[] = [];
-      window.addEventListener('dx:error', ((e: CustomEvent) => {
+      onDxError(((e: CustomEvent) => {
         errors.push(e.detail);
       }) as EventListener);
 
@@ -664,7 +677,7 @@ describe('createShell', () => {
 
     it('emits a shell:manifest dx:error naming both ids on duplicate exact routes; first-registered wins at mount', async () => {
       const errors: { source: string; error: Error }[] = [];
-      window.addEventListener('dx:error', ((e: CustomEvent) => {
+      onDxError(((e: CustomEvent) => {
         errors.push(e.detail);
       }) as EventListener);
 
@@ -760,7 +773,7 @@ describe('createShell', () => {
     };
 
     const errors: { source: string; error: Error }[] = [];
-    window.addEventListener('dx:error', ((e: CustomEvent) => {
+    onDxError(((e: CustomEvent) => {
       errors.push(e.detail);
     }) as EventListener);
     const mounted = vi.fn();

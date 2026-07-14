@@ -164,10 +164,11 @@ describe('Router', () => {
       const router = createRouter({
         mode: 'history',
         basePath: '/',
-        manifests: [manifest({ id: 'second', route: '/dup' }), manifest({ id: 'first', route: '/dup' })],
+        manifests: [manifest({ id: 'beta', route: '/dup' }), manifest({ id: 'alpha', route: '/dup' })],
       });
 
-      expect(router.resolve('/dup')?.id).toBe('second');
+      // Reversed input order (beta before alpha) — first-array-position still wins, so 'beta' resolves.
+      expect(router.resolve('/dup')?.id).toBe('beta');
       router.destroy();
     });
   });
