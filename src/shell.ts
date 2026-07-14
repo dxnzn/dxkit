@@ -56,6 +56,9 @@ export function createShell(config: ShellConfig = {}): Shell {
   // Set synchronously before mountDapp's first await so concurrent calls for the
   // same dapp (e.g. a duplicate route notification) can't both pass the mount guard.
   let pendingMountId: string | null = null;
+  // Makes slot ownership call-scoped so a stale/invalidated call can't clear a newer
+  // attempt's slot and a re-navigation isn't dropped after invalidation (D-01, CR-01).
+  let pendingMountToken = 0;
   const enabledState = new Map<string, boolean>();
 
   function getEnabledManifests(): DappManifest[] {
@@ -134,6 +137,9 @@ export function createShell(config: ShellConfig = {}): Shell {
       // still in flight — this closes that gap so a disabled dapp's not-yet-committed mount
       // is abandoned too (D-03 scenario 1).
       lifecycle.invalidatePendingMount(id);
+      // Mirrors the null-branch fix so enableDapp + re-navigate to a mid-mount-disabled dapp
+      // mounts fresh instead of being dropped by the stale dedupe slot (D-01, CR-01).
+      if (pendingMountId === id) releasePendingMount();
       rebuildRouter();
     }
     events.emit('dx:dapp:disabled', { id });
@@ -365,12 +371,23 @@ export function createShell(config: ShellConfig = {}): Shell {
       // pendingMountId — an overlapping A->B race that has already cleared/rewritten
       // pendingMountId (via mountDapp's guarded finally) cannot defeat this invalidation.
       lifecycle.invalidateAnyPendingMount();
+      // Frees the shell dedupe slot too, so a re-navigation to the just-invalidated dapp is
+      // not dropped by the same-id dedupe (D-01, CR-01).
+      releasePendingMount();
       lifecycle.unmount();
     }
     events.emit('dx:route:changed', {
       path: router.getCurrentPath(),
       manifest: manifest ?? undefined,
     });
+  }
+
+  // Frees the dedupe slot after an in-flight mount is invalidated so a re-navigation to the
+  // same dapp starts fresh, and the token bump stops the invalidated call's finally from later
+  // clearing a newer attempt's slot (D-01, CR-01).
+  function releasePendingMount(): void {
+    pendingMountToken++;
+    pendingMountId = null;
   }
 
   async function mountDapp(manifest: DappManifest): Promise<void> {
@@ -401,6 +418,7 @@ export function createShell(config: ShellConfig = {}): Shell {
     }
 
     pendingMountId = manifest.id;
+    const myToken = ++pendingMountToken;
     try {
       await lifecycle.mount(manifest, container, path);
       // Fresh-path commit (D-03 scenario 3): a sub-path navigation that arrived while this
@@ -413,10 +431,10 @@ export function createShell(config: ShellConfig = {}): Shell {
       }
       currentPath = freshPath;
     } finally {
-      // Guarded: a stale call settling after being superseded must not clobber a newer
-      // mount's slot — when pendingMountId !== manifest.id, a newer mount now owns it (safe
-      // because the same-id early return above already excludes concurrent same-id calls).
-      if (pendingMountId === manifest.id) {
+      // Call-scoped: only the call that currently owns the token may clear the slot — a stale
+      // or invalidated call (whose token was superseded by a newer mount or by
+      // releasePendingMount) must never clear a newer attempt's slot (D-01, CR-01).
+      if (pendingMountToken === myToken) {
         pendingMountId = null;
       }
     }
