@@ -2,7 +2,7 @@
 
 ---
 
-# @dxkit/auth
+# @dnzn/dxkit-auth
 
 Passthrough authentication — wallet connected equals authenticated. No tokens, no sessions, no server round-trips.
 

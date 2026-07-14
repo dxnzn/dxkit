@@ -65,13 +65,13 @@ Because there's one root config and no per-package `test` script, `pnpm --filter
 
 | Path | Covers |
 |---|---|
-| `tests/*.test.ts` | Core package (`src/`) — `events.test.ts`, `lifecycle.test.ts`, `registry.test.ts`, `router.test.ts`, `shell.test.ts`, `utils.test.ts` |
+| `tests/*.test.ts` | Core package (`src/`) — `events.test.ts`, `lifecycle.test.ts`, `registry.test.ts`, `router.test.ts`, `shell.test.ts`, `stress.test.ts`, `utils.test.ts` |
 | `plugins/auth/tests/auth.test.ts` | `@dnzn/dxkit-auth` |
-| `plugins/settings/tests/settings.test.ts` | `@dnzn/dxkit-settings` |
+| `plugins/settings/tests/settings.test.ts`, `plugins/settings/tests/integration.test.ts` | `@dnzn/dxkit-settings` |
 | `plugins/theme/tests/theme.test.ts` | `@dnzn/dxkit-theme` |
 | `plugins/wallet/tests/wallet.test.ts` | `@dnzn/dxkit-wallet` |
 
-Each plugin currently has exactly one test file mirroring its single `src/index.ts` entry point; core has one test file per module (`src/events.ts` → `tests/events.test.ts`, `src/router.ts` → `tests/router.test.ts`, etc.), with `utils.test.ts` covering `src/utils.ts`.
+`tests/stress.test.ts` covers concurrency and mount-race scenarios (rapid navigation, overlapping mounts, load-timeout races) rather than a single `src/` module. Most plugins have one test file mirroring their single `src/index.ts` entry point; `@dnzn/dxkit-settings` is the exception, with `settings.test.ts` covering the plugin in isolation and `integration.test.ts` covering full-shell disable-cleanup behavior. Core otherwise has one test file per module (`src/events.ts` → `tests/events.test.ts`, `src/router.ts` → `tests/router.test.ts`, etc.), with `utils.test.ts` covering `src/utils.ts`.
 
 ## Writing New Tests
 
