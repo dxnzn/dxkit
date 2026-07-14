@@ -161,7 +161,7 @@ Restored on init, before definitions are loaded.
 
 **Security note**: Settings are stored as plaintext JSON in localStorage. Do not store secrets, API keys, tokens, or any sensitive data via the settings API. localStorage is readable by any script running on the same origin.
 
-The localStorage implementation is intended for local development, or where the application use case does not require portable settings or application state persistence (e.g., light/dark theme preference). Future versions will implement backend storage features (TBD).
+The localStorage implementation is intended for local development, or where the application use case does not require portable settings or application state persistence (e.g., light/dark theme preference).
 
 Like theme, settings has not been given the wallet plugin's SEC-02 per-app-isolation treatment — `storageKey` is a full literal key with no default prefixing, so two DxKit apps on the same origin using the default key share settings state. See `docs/security.md` for the full inventory.
 

@@ -149,10 +149,12 @@ Everything worth knowing before trusting DxKit with real data:
 - **Sanitizer scope.** `sanitizeTemplate` covers template HTML only — see above.
 - **`localStorage` is plaintext.** The wallet, theme, and settings plugins persist to `localStorage`
   unencrypted. Do not persist secrets through any of them.
-- **`storageKey` collision.** Wallet's `storageKey` is configurable (default `'dxkit:wallet'`).
-  Theme's (`'dxkit:theme'`) and settings' (`'dxkit:settings'`) are not — two DxKit apps sharing an
-  origin at their default keys collide on theme and settings persistence, though not on wallet
-  selection.
+- **`storageKey` collision.** Wallet, theme, and settings all expose a configurable `storageKey`
+  option (defaults `'dxkit:wallet'`, `'dxkit:theme'`, `'dxkit:settings'`). Only wallet was given
+  the SEC-02 isolation-guidance treatment, though — theme and settings use their `storageKey` as a
+  full literal with no default prefixing. The risk is the *unchanged default*, not a missing knob:
+  two DxKit apps sharing an origin that both leave the defaults in place collide on theme and
+  settings persistence. Set distinct `storageKey` values per app to isolate them.
 - **IIFE globals can collide.** IIFE builds attach to `window.DxKit`/`DxWallet`/`DxAuth`/`DxTheme`/`DxSettings`.
   Any other script on the page assigning to the same name overwrites it silently.
 - **`shell.destroy()` is required before creating another shell.** The router binds `popstate`/`hashchange`

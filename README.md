@@ -92,7 +92,7 @@ Each package (core + plugins) uses `tsup` to produce three output formats from a
 
 The `exports` field in each `package.json` maps consumers to the right format automatically. IIFE builds attach to a global (`DxKit`, `DxWallet`, `DxAuth`, `DxTheme`, `DxSettings`) for use in static HTML without a build step — the primary deployment target for dapps served from IPFS or `file:///`.
 
-Plugin IIFE builds bundle dxkit core inline (`noExternal: ['@dnzn/dxkit']`). ESM/CJS builds declare it as `external` to avoid duplication when used with a bundler.
+Each plugin's IIFE build sets `noExternal: ['@dnzn/dxkit']` (ESM/CJS builds mark it `external` to avoid duplication under a bundler). In practice every plugin imports only *types* from `@dnzn/dxkit`, so nothing from core ends up in any output — the `<script>` tag works standalone because the plugin doesn't need the core runtime, not because it's bundled in.
 
 ## Development Team
 
