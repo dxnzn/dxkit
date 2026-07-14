@@ -4,16 +4,16 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 04
 current_phase_name: testing-stress-edge-case-regression-coverage
-status: verifying
-stopped_at: Completed 04-04-PLAN.md
-last_updated: "2026-07-13T21:35:02.346Z"
-last_activity: 2026-07-13
+status: executing
+stopped_at: Completed 04-05-PLAN.md
+last_updated: "2026-07-14T01:51:16.823Z"
+last_activity: 2026-07-14
 last_activity_desc: Phase 04 execution started
 progress:
   total_phases: 5
-  completed_phases: 3
-  total_plans: 13
-  completed_plans: 13
+  completed_phases: 4
+  total_plans: 14
+  completed_plans: 14
   percent: 80
 ---
 
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 
 ## Current Position
 
-Phase: 04 (testing-stress-edge-case-regression-coverage) — VERIFIED WITH GAPS
-Plan: 4 of 4
-Status: Gaps found — D-01 invariant still violated via pendingMountId clobber (see 04-VERIFICATION.md); plan gap closure before shipping
-Last activity: 2026-07-13 — Phase 04 execution started
+Phase: 04 (testing-stress-edge-case-regression-coverage) — ALL PLANS COMPLETE
+Plan: 5 of 5
+Status: 04-05 (CR-01 gap closure) complete — phase ready for re-verification
+Last activity: 2026-07-14 — Completed 04-05-PLAN.md
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -70,6 +70,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04 P03 | 12min | 2 tasks | 3 files |
 | Phase 04 P02 | 15min | 3 tasks | 3 files |
 | Phase 04 P04 | 10min | 2 tasks | 2 files |
+| Phase 04 P05 | 12min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -110,6 +111,8 @@ Recent decisions affecting current work:
 - [Phase 04-02]: shell:route is a new dx:error source for reject-unfixable routes; WR-01 and duplicate-route emits reuse shell:manifest — Follows the colon-hierarchical taxonomy per RESEARCH.md Open Question 1 — route-reject is a distinct routing-table construction problem, while WR-01/duplicate-route are manifest-content conflicts
 - [Phase 04-02]: Duplicate-route manifests are kept in the list, not discarded — First-registered-wins resolution is already guaranteed by router.ts's stable construction-time sort (ES2019+ Array.prototype.sort stability) — the fix only needed to surface the collision via dx:error naming both ids
 - [Phase 04]: [Phase 04-04]: Reused lifecycle.invalidatePendingMount(id) guarded on truthy pendingMountId at handleRouteChange's null-manifest branch, matching disableDapp's existing wiring, to close CR-01 (D-01 dapp->unmatched-route hole)
+- [Phase 04-05]: invalidateAnyPendingMount() bumps mountGeneration only when inFlightMountId !== null, decoupling unmatched-route invalidation from the corruptible shell-level pendingMountId slot
+- [Phase 04-05]: mountDapp finally guarded (pendingMountId === manifest.id) so a stale settling call cannot clobber a newer mount's in-flight marker
 
 ### Pending Todos
 
@@ -139,7 +142,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-13T21:34:31.754Z
-Stopped at: Completed 04-04-PLAN.md
+Last session: 2026-07-14T01:51:16.809Z
+Stopped at: Completed 04-05-PLAN.md
 Resume file: 
 None
