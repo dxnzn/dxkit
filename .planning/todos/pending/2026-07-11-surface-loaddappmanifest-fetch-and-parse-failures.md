@@ -1,30 +1,31 @@
 ---
 created: 2026-07-11T22:31:56.740Z
-title: Surface loadDappManifest fetch and parse failures
+updated: 2026-07-14
+title: Surface registry.json fetch/parse failures (remaining WR-01 tier)
 area: general
-source: 01-REVIEW.md (WR-01)
+source: 01-REVIEW.md (WR-01); narrowed by PR #4 external review
 files:
-  - src/shell.ts:159-180
+  - src/shell.ts:237-244
 ---
 
 ## Problem
 
-`loadDappManifest` silently swallows manifest fetch/HTTP/JSON failures while its sibling
-validation path emits `dx:error`. A dapp with a missing manifest field is loudly reported,
-but one whose manifest 404s or contains corrupt JSON vanishes silently with no event.
+The original WR-01 (loadDappManifest silently swallowing fetch/HTTP/JSON failures) was fixed
+in phase 4 (plan 04-02): the dapp-entry tier now emits `dx:error` on fetch throw, non-2xx,
+and JSON-parse failure, with regression tests.
 
-This is the same class of silent-failure the Phase 1 diagnostics milestone set out to
-eliminate — it was simply outside the declared scope of DIAG-01/02/03 (which targeted the
-mount container, plugin storage, and post-injection load paths), so it did not gate Phase 1.
-Left as-is, it's a documented gap in the "no silent failures" charter.
+One tier remains: the registry.json fallback in `loadManifests` (src/shell.ts:237-244) still
+swallows fetch throws, non-OK responses, AND `res.json()` parse failures via the
+`// No registry.json — that's fine` catch. That silence is defensible for the default
+`/registry.json` probe (absence is expected), but when a developer explicitly configures
+`registryUrl`, a 404 or corrupt JSON is exactly the invisible misconfiguration WR-01 targets.
 
-Surfaced by the Phase 1 code review — see
-`.planning/phases/01-diagnostics-surface-silent-failures/01-REVIEW.md` (WR-01).
+Re-surfaced by the PR #4 external code review.
 
 ## Solution
 
-Emit `dx:error` on manifest fetch/HTTP/parse failure in `loadDappManifest`, mirroring the
-existing validation-failure emit. Pick a source string consistent with the D-02
-colon-hierarchical taxonomy (e.g. `shell:manifest`). Add a regression test asserting the
-event fires on a 404 / malformed-JSON manifest. TBD whether this folds into a later
-diagnostics gap-closure pass or a standalone fix.
+Emit `dx:error` (source `shell:manifest`, consistent with the D-02 taxonomy) on registry
+fetch/HTTP/parse failure **at least when `registryUrl` was explicitly passed in ShellConfig**;
+keep the default-probe silence. Distinguish "explicitly configured" from the default at
+config-capture time. Add regression tests for 404 and malformed-JSON registry responses in
+both the explicit and default cases (explicit → emits; default → stays silent).

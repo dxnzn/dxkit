@@ -264,7 +264,7 @@ interface Router {
 
 ```ts
 interface LifecycleManager {
-  mount(manifest: DappManifest, container: HTMLElement, path?: string): Promise<void>;
+  mount(manifest: DappManifest, container: HTMLElement, path?: string): Promise<boolean>;
   unmount(): void;
   getCurrentDapp(): string | null;
   destroy(): void;
@@ -273,7 +273,7 @@ interface LifecycleManager {
 
 | Method | Description |
 |--------|-------------|
-| `mount(manifest, container, path?)` | Load script/styles, emit `dx:mount`, track as current dapp. |
+| `mount(manifest, container, path?)` | Load script/styles, emit `dx:mount`, track as current dapp. Resolves `true` if this call committed, `false` if superseded by a newer navigation. |
 | `unmount()` | Emit `dx:unmount` for the current dapp. No-op if nothing mounted. |
 | `getCurrentDapp()` | ID of the currently mounted dapp, or `null`. |
 | `destroy()` | Unmount current dapp if any. |
