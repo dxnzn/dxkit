@@ -133,6 +133,7 @@ Recent decisions affecting current work:
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260712-wcu | Implement PR #3 self-review findings: hasPlugin guard, sanitizer timeout, wallet contract-violation error, cause preservation, hasOwn guard | 2026-07-13 | d349ca9 | [260712-wcu-implement-pr3-self-review-findings-haspl](./quick/260712-wcu-implement-pr3-self-review-findings-haspl/) |
+| 260714-1lz | Fix stale mountDapp epilogue (subpath swallow/duplicate) and normalizeRoute trim from PR #4 review | 2026-07-14 | 17e863d | [260714-1lz-fix-stale-mountdapp-epilogue-subpath-swa](./quick/260714-1lz-fix-stale-mountdapp-epilogue-subpath-swa/) |
 
 ## Deferred Items
 
