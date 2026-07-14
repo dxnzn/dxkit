@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 5
-current_phase_name: Documentation — Truth Pass
-status: "Phase 04 shipped — PR #4"
-stopped_at: Phase 5 context gathered
-last_updated: "2026-07-14T08:24:34.401Z"
+current_phase: 05
+current_phase_name: documentation-truth-pass
+status: executing
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-07-14T15:19:41.084Z"
 last_activity: 2026-07-14
-last_activity_desc: Phase 05 planning complete
+last_activity_desc: Phase 05 execution started
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 15
-  completed_plans: 15
-  percent: 80
+  total_plans: 23
+  completed_plans: 16
+  percent: 70
 ---
 
 # Project State
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-11)
 
 **Core value:** DxKit stays trustworthy for real use — failures are visible (never silent), documented behavior matches actual behavior, and the alpha is stable enough to build on with confidence.
-**Current focus:** Phase 04 — testing-stress-edge-case-regression-coverage
+**Current focus:** Phase 05 — documentation-truth-pass
 
 ## Current Position
 
-Phase: 5 — Documentation — Truth Pass
-Plan: Not started
-Status: Phase 04 shipped — PR #4
-Last activity: 2026-07-14 — Phase 05 planning complete
+Phase: 05 (documentation-truth-pass) — EXECUTING
+Plan: 2 of 8
+Status: Ready to execute
+Last activity: 2026-07-14 — Phase 05 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -73,6 +73,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04 P04 | 10min | 2 tasks | 2 files |
 | Phase 04 P05 | 12min | 2 tasks | 3 files |
 | Phase 04 P06 | 8min | 2 tasks | 2 files |
+| Phase 05 P01 | 25min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -116,6 +117,9 @@ Recent decisions affecting current work:
 - [Phase 04-05]: invalidateAnyPendingMount() bumps mountGeneration only when inFlightMountId !== null, decoupling unmatched-route invalidation from the corruptible shell-level pendingMountId slot
 - [Phase 04-05]: mountDapp finally guarded (pendingMountId === manifest.id) so a stale settling call cannot clobber a newer mount's in-flight marker
 - [Phase 04-06]: pendingMountToken makes the shell mount dedupe slot call-scoped; releasePendingMount() frees it at both invalidation sites (handleRouteChange null branch, disableDapp) so re-navigation to an invalidated dapp mounts fresh instead of being dropped (CR-01, third D-01 instance)
+- [Phase 05-01]: D-15 message shape mirrors loadDappManifest()'s two-message split (status-info for non-OK, unified network/parse message with cause for the throw/parse catch) — Claude's Discretion per RESEARCH Open Question 1
+- [Phase 05-01]: D-16 keeps committed-mount and in-flight-mount disable paths as two distinct branches, only the navigate-to-/ outcome converges — Per Pitfall 3 in RESEARCH/PATTERNS — collapsing the branches risked duplicating unmount() calls
+- [Phase 05-01]: D-17's ownership-guarded clear applied at every mount() exit path with the leak shape (missing-plugin return, all 4 catch blocks, all 4 bare isStale gates, final commit), not just the 4 literally-named bare gates — The catch blocks' own stale branches had the identical unaddressed leak gap
 
 ### Pending Todos
 
@@ -146,7 +150,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-14T07:51:37.424Z
-Stopped at: Phase 5 context gathered
+Last session: 2026-07-14T15:19:41.077Z
+Stopped at: Completed 05-01-PLAN.md
 Resume file: 
-.planning/phases/05-documentation-truth-pass/05-CONTEXT.md

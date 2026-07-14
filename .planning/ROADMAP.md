@@ -130,11 +130,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. No filler, hedging, restated-obviousness, or invented/unverifiable detail remains in the docs — every technical claim traces to source.
   3. A CSP guidance section (covering `innerHTML` template injection and external script loading) and a security/limitations note exist in the docs.
 
-**Plans**: 8 plans
+**Plans**: 1/8 plans executed
 
 **Wave 1** *(folded code fixes land first — docs then describe post-fix behavior)*
 
-- [ ] 05-01-PLAN.md — Folded fixes: D-15 registry.json failure `dx:error` (explicit `registryUrl`), D-16 disable-mid-flight navigates to `/`, D-17 `inFlightMountId` ownership guard + test nits [wave 1]
+- [x] 05-01-PLAN.md — Folded fixes: D-15 registry.json failure `dx:error` (explicit `registryUrl`), D-16 disable-mid-flight navigates to `/`, D-17 `inFlightMountId` ownership guard + test nits [wave 1]
 
 **Wave 2** *(doc-by-doc sweep + new security.md; all depend on 05-01)*
 
@@ -160,4 +160,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Robustness — Load Guards, Caching & Handler Cleanup | 4/4 | Complete    | 2026-07-12 |
 | 3. Security — Sanitization & Storage Isolation | 3/3 | Complete    | 2026-07-12 |
 | 4. Testing — Stress, Edge-Case & Regression Coverage | 6/6 | Complete    | 2026-07-14 |
-| 5. Documentation — Truth Pass | 0/8 | Not started | - |
+| 5. Documentation — Truth Pass | 1/8 | In Progress|  |
