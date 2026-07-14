@@ -130,7 +130,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. No filler, hedging, restated-obviousness, or invented/unverifiable detail remains in the docs — every technical claim traces to source.
   3. A CSP guidance section (covering `innerHTML` template injection and external script loading) and a security/limitations note exist in the docs.
 
-**Plans**: 3/8 plans executed
+**Plans**: 4/8 plans executed
 
 **Wave 1** *(folded code fixes land first — docs then describe post-fix behavior)*
 
@@ -140,7 +140,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] 05-02-PLAN.md — Reference docs: events-reference.md (`dx:error` catalog rewrite) + api-reference.md [wave 2]
 - [x] 05-03-PLAN.md — configuration.md + getting-started.md (+ 0.1.5→0.2.0 migration section, D-05) [wave 2]
-- [ ] 05-04-PLAN.md — Behavior docs: dapp-development.md + system-internals.md (single disable rule, D-16) [wave 2]
+- [x] 05-04-PLAN.md — Behavior docs: dapp-development.md + system-internals.md (single disable rule, D-16) [wave 2]
 - [ ] 05-05-PLAN.md — Plugin docs: plugin-development.md + wallet/auth/theme/settings [wave 2]
 - [ ] 05-06-PLAN.md — cookbook.md + development.md + testing.md [wave 2]
 - [ ] 05-07-PLAN.md — New docs/security.md: CSP guidance + DOMPurify recipes + limitations inventory (DOC-03) [wave 2]
@@ -160,4 +160,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Robustness — Load Guards, Caching & Handler Cleanup | 4/4 | Complete    | 2026-07-12 |
 | 3. Security — Sanitization & Storage Isolation | 3/3 | Complete    | 2026-07-12 |
 | 4. Testing — Stress, Edge-Case & Regression Coverage | 6/6 | Complete    | 2026-07-14 |
-| 5. Documentation — Truth Pass | 3/8 | In Progress|  |
+| 5. Documentation — Truth Pass | 4/8 | In Progress|  |

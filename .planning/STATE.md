@@ -6,15 +6,15 @@ current_phase: 05
 current_phase_name: documentation-truth-pass
 status: executing
 stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-07-14T15:40:18.078Z"
+last_updated: "2026-07-14T15:48:31.938Z"
 last_activity: 2026-07-14
 last_activity_desc: Phase 05 execution started
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 23
-  completed_plans: 18
-  percent: 78
+  completed_plans: 19
+  percent: 80
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 ## Current Position
 
 Phase: 05 (documentation-truth-pass) — EXECUTING
-Plan: 4 of 8
+Plan: 5 of 8
 Status: Ready to execute
 Last activity: 2026-07-14 — Phase 05 execution started
 
@@ -76,6 +76,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05 P01 | 25min | 3 tasks | 5 files |
 | Phase 05 P02 | 35min | 2 tasks | 3 files |
 | Phase 05 P03 | 15min | 2 tasks | 3 files |
+| Phase 05 P04 | 25min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -126,6 +127,7 @@ Recent decisions affecting current work:
 - [Phase 05-02]: createEthereumWallet()'s deprecated status was checked but produced no api-reference.md edit — that doc's Factory Functions section only covers core factories, plugin factories belong to docs/plugins/wallet.md (a later sweep plan's scope)
 - [Phase 05-03]: Config defaults and nested lifecycle shape in configuration.md/getting-started.md were already accurate against source; drift was narrower than expected (D-07 timeless-present violations + missing custom-loader timeout caveat), not wholesale default corrections
 - [Phase 05-03]: Migration section titled 'Migrating to 0.2.0' placed as its own section in getting-started.md per D-05 Claude's-discretion placement; configuration.md's breaking-change note links out to it instead of duplicating history
+- [Phase 05-04]: dapp-development.md and system-internals.md now state the single post-D-16 disable-while-active outcome rule (return to /) per Pitfall 3, without naming a single implementation function
 
 ### Pending Todos
 
@@ -156,7 +158,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-14T15:40:01.693Z
+Last session: 2026-07-14T15:48:27.251Z
 Stopped at: Completed 05-01-PLAN.md
 Resume file: 
 None
