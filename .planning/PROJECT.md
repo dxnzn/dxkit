@@ -144,4 +144,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-14 — Phase 4 complete (testing: stress suite proving last-navigation-wins across three fixed mount-race interleavings, manifest/route validation edge cases, full-shell settings-cleanup regression; 312 tests green)*
+*Last updated: 2026-07-14 — Phase 5 complete (documentation truth pass: all framework + plugin docs and README verified against 0.2.0 code, folded fixes D-15/D-16/D-17 landed, AI-generated filler removed, every doc TS snippet compile-checked against real types, new docs/security.md published with CSP guidance + DOMPurify recipes + limitations inventory; 321 tests green). Milestone v1.0 hardening complete — all 5 phases done.)*
