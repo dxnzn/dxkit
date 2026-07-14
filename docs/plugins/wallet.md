@@ -59,10 +59,6 @@ interface WalletOptions {
 
 **`createEIP1193Provider()`** — Browser injected wallets (MetaMask, Brave, Coinbase). Uses `window.ethereum` directly — no ethers.js or viem dependency. Listens to `accountsChanged` and `chainChanged` events. Throws if `eth_requestAccounts` resolves with zero accounts, rather than connecting with a null/undefined address.
 
-### `createEthereumWallet()` (deprecated)
-
-Backward-compat shim: `createEthereumWallet()` returns `createWallet({ providers: [createEIP1193Provider()] })`. Use `createWallet()` directly — it is not first-class API surface.
-
 **`createLocalWalletProvider(options?)`** — Instant-connect dev wallet. Deterministic address, no external dependencies.
 
 ```ts
@@ -70,6 +66,10 @@ interface LocalWalletProviderOptions {
   address?: string;  // default: '0x0000000000000000000000000000000001'
 }
 ```
+
+### `createEthereumWallet()` (deprecated)
+
+Backward-compat shim: `createEthereumWallet()` returns `createWallet({ providers: [createEIP1193Provider()] })`. Use `createWallet()` directly — it is not first-class API surface.
 
 ### Registration
 
