@@ -147,7 +147,7 @@ context.events.emit('dx:plugin:my-plugin:started', { timestamp: Date.now() });
 Use module augmentation to add your event payloads to `EventMap`. This gives consumers full type safety and autocomplete when listening to your events:
 
 ```ts
-declare module 'dxkit' {
+declare module '@dnzn/dxkit' {
   interface EventMap {
     'dx:plugin:my-plugin:started': { timestamp: number };
     'dx:plugin:my-plugin:stopped': Record<string, never>;
@@ -160,7 +160,7 @@ Place this at the top level of your plugin source (after imports). When a consum
 Dapp developers get typed events automatically — installing a plugin package brings its type augmentations into scope. This import is only needed for **plugin-to-plugin** dependencies where one plugin listens to another's events without importing any of its runtime code:
 
 ```ts
-import '@dxkit/settings'; // brings settings event types into scope
+import '@dnzn/dxkit-settings'; // brings settings event types into scope
 ```
 
 ## Duck-typing Patterns

@@ -205,7 +205,7 @@ Second mount of dapp 'blog':
   2. dx:mount fires immediately
 ```
 
-Custom loaders can be passed via `ShellConfig.scriptLoader` for testing or custom bundler integration.
+Custom loaders can be passed via `ShellConfig.lifecycle.scriptLoader` for testing or custom bundler integration.
 
 ### Style Loading
 
