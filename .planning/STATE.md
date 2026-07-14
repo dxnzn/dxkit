@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 
 Phase: 04 (testing-stress-edge-case-regression-coverage) — ALL PLANS COMPLETE
 Plan: 5 of 5
-Status: 04-05 (CR-01 gap closure) complete — phase ready for re-verification
+Status: Re-verification found a third D-01 interleaving gap (stale same-id dedupe) — phase open pending gap closure or accepted-risk override
 Last activity: 2026-07-14 — Completed 04-05-PLAN.md
 
 Progress: [░░░░░░░░░░] 0%

@@ -1,6 +1,6 @@
 ---
 phase: 04-testing-stress-edge-case-regression-coverage
-verified: 2026-07-13T22:05:00Z
+verified: 2026-07-13T21:15:00Z
 status: gaps_found
 score: 3/4 must-haves verified
 behavior_unverified: 0
@@ -9,48 +9,56 @@ re_verification:
   previous_status: gaps_found
   previous_score: 3/4
   gaps_closed:
-    - "CR-01 (original instance): navigating to an unmatched route while a SINGLE dapp's mount is in flight now correctly abandons that mount — handleRouteChange's null-manifest branch calls lifecycle.invalidatePendingMount(pendingMountId) before lifecycle.unmount() (src/shell.ts:364, commit 70ebee4), locked by a passing regression test in tests/stress.test.ts (commit a04ec1f, independently re-run and confirmed load-bearing by reverting the fix and observing the new test fail)."
+    - "The A->B-overlap-then-unmatched-route interleaving (second CR-01 instance): mountDapp's finally now only clears the shared pendingMountId when it still belongs to the settling call (pendingMountId === manifest.id), and handleRouteChange's null branch now invalidates via lifecycle.invalidateAnyPendingMount() — reading the lifecycle's own inFlightMountId instead of the corruptible shell-level pendingMountId. Landed in gap-closure plan 04-05 (commits fd587db, 87448f5), locked by tests/stress.test.ts:244-286, independently confirmed unchanged and passing."
   gaps_remaining:
-    - "The general D-01 last-navigation-wins invariant is still violated by a distinct, realistic interleaving the phase's stress suite does not cover: an A->B overlapping-mount sequence where the stale A call settles first, clobbers the shell-level pendingMountId (mountDapp's finally at src/shell.ts:412-414 sets pendingMountId = null unconditionally, even for a stale/superseded call), and a subsequent navigation to an unmatched route then finds pendingMountId already null and skips invalidatePendingMount entirely — so dapp B's mount (still generation-current) commits dx:mount/dx:dapp:mounted while the browser's route is the unmatched one. Independently reproduced against the current codebase (see Anti-Patterns / Gaps Summary) — not narrative-only."
+    - "A THIRD, distinct instance of the D-01 last-navigation-wins invariant violation, surfaced by the fresh 04-REVIEW.md (reviewed after 04-05 landed) and independently reproduced during this verification pass: A -> unmatched-route -> A silently drops the re-navigation to A. See gaps below."
   regressions: []
 gaps:
-  - truth: "The D-01 last-navigation-wins invariant (CONTEXT.md line 25 — 'Under concurrent mounts, the final DOM and lifecycle.getCurrentDapp() MUST match the most recent navigation') holds for ALL navigation transitions and ALL concurrency interleavings this phase's mount-generation guard was built to fix, not only the single-mount dapp->unmatched-route case closed by gap-closure plan 04-04"
+  - truth: "The D-01 last-navigation-wins invariant (CONTEXT.md D-01 — 'Under concurrent mounts, the final DOM and lifecycle.getCurrentDapp() MUST match the most recent navigation') holds for ALL navigation transitions and ALL concurrency interleavings this phase's mount-generation guard was built to fix, not only the two interleavings closed by gap-closure plans 04-04 and 04-05"
     status: failed
     reason: >-
-      Independently reproduced (throwaway test added to tests/stress.test.ts, run, then reverted —
-      not committed) against the current codebase, matching code-review finding CR-01 in the fresh
-      04-REVIEW.md (reviewed 2026-07-13T21:44:12Z, after gap-closure plan 04-04): mountDapp's
-      `finally { pendingMountId = null; }` (src/shell.ts:412-414) runs unconditionally, including
-      for a call whose pendingMountId slot has already been overwritten by a newer, still-in-flight
-      mount for a DIFFERENT dapp. Sequence verified live: navigate('/a') suspends at the entry-script
-      gate (pendingMountId='a') -> navigate('/b') supersedes A and sets pendingMountId='b' -> A's
-      held loader releases; A's own mount() call is stale internally (isStale() aborts it before any
-      commit) but mountDapp's surrounding try/finally still runs to completion and unconditionally
-      sets pendingMountId=null, clobbering B's in-flight marker -> navigate('/nowhere') drives
-      handleRouteChange(null), whose `if (pendingMountId) lifecycle.invalidatePendingMount(...)` guard
-      (src/shell.ts:364, the exact fix landed by gap-closure plan 04-04) now finds pendingMountId
-      already null and skips invalidation entirely -> B's held loader releases; B's mount generation
-      was never bumped, so every isStale() gate in lifecycle.mount passes and B commits fully.
-      Reproduction result: dx:mount fired for 'b' (mounts.count()===1) while shell.getCurrentRoute()
-      reported '/nowhere' — the exact D-01 violation the phase's Plan 01 and gap-closure Plan 04 were
-      built to eliminate, just via a different interleaving than either fix's test covers. The current
-      6-scenario tests/stress.test.ts matrix has no case combining an A->B overlap with a subsequent
-      unmatched-route navigation, so nothing catches this.
+      Independently reproduced with a throwaway test file (tests/tmp-cr01-repro.test.ts — created,
+      run, then deleted; not committed), matching code-review finding CR-01 in the fresh
+      04-REVIEW.md (reviewed 2026-07-14T01:59:26Z, after gap-closure plan 04-05 landed at fd587db/87448f5).
+      Sequence: navigate('/a') suspends at the held entry-script gate (pendingMountId='a',
+      lifecycle in-flight for 'a') -> navigate('/nowhere') drives handleRouteChange(null), which
+      calls lifecycle.invalidateAnyPendingMount() (bumps mountGeneration so A's suspended mount()
+      call will fail its next isStale() gate) but does NOT touch the shell-level pendingMountId,
+      which is still 'a' -> navigate('/a') again -> mountDapp('a') hits the same-id dedupe at
+      src/shell.ts:392 (`if (pendingMountId === manifest.id) return;`) because pendingMountId is
+      still 'a' from the FIRST (now-invalidated) call -> the second navigation to A is silently
+      dropped, no new mount() call is even started -> the original A entry-script gate is released
+      -> the first mount() call resumes, hits isStale(), returns without committing -> its finally
+      (guarded by pendingMountId === manifest.id, both 'a') clears pendingMountId to null.
+      Final state observed in the reproduction: shell.getCurrentRoute() === '/a' (correct) but
+      countMounts('a') === 0 — dx:mount never fired, nothing is in the container, and
+      lifecycle.getCurrentDapp() is null. The user's most recent, unambiguous navigation (back to
+      A) is completely lost with no error emitted. The window during which any re-navigation to A
+      is dropped lasts as long as the invalidated mount's slowest loader takes to settle (up to the
+      default 30s timeout).
+      This is the third distinct instance of the same D-01 invariant this phase's standing policy
+      commits to enforcing (CONTEXT.md: "correctness bugs surfaced by the new tests are fixed
+      in-phase with their tests — the suite lands green") and lives in the exact function
+      (mountDapp/handleRouteChange, src/shell.ts) both prior gap-closure plans (04-04, 04-05)
+      modified. Unlike the two previously-closed instances (where the WRONG dapp won), this
+      instance means NO dapp mounts at all despite an explicit, later user navigation — arguably a
+      more severe last-navigation-wins violation. The 7-scenario tests/stress.test.ts matrix has no
+      case that re-navigates to an invalidated dapp (04-REVIEW.md's WR-11 finding — the exact
+      regression test that would have caught this is the one missing from the suite).
     artifacts:
       - path: "src/shell.ts"
-        issue: "mountDapp's finally block (lines 412-414) unconditionally clears the shared pendingMountId even when the settling call is stale/superseded, corrupting the guard handleRouteChange's null branch relies on"
+        issue: "mountDapp's same-dapp dedupe (line 392, `if (pendingMountId === manifest.id) return;`) is unaware that the in-flight mount it is deduping against was already invalidated by lifecycle.invalidateAnyPendingMount()/invalidatePendingMount() — it only checks id equality, not liveness, so it silently drops a legitimate re-navigation to the same dapp while the invalidated call's finally has not yet run. The comment above it ('the in-flight call sets currentDappId/currentPath when it finishes') is false for an invalidated call, matching 04-REVIEW.md's WR-01 finding."
     missing:
-      - "In mountDapp's finally block, only clear pendingMountId when it still refers to this call: `if (pendingMountId === manifest.id) pendingMountId = null;` (safe — the same-id early-return at line 389 already excludes concurrent same-id calls, so pendingMountId !== manifest.id in finally can only mean a newer mount now owns the slot)"
-      - "Alternatively/additionally, stop keying handleRouteChange's null-branch invalidation off the corruptible shell-level pendingMountId at all — add a lifecycle-level unconditional invalidation entry point (e.g. invalidateAnyPendingMount()) that bumps mountGeneration whenever inFlightMountId is non-null, independent of the shell's own bookkeeping"
-      - "A regression test in tests/stress.test.ts covering the A->B overlap -> stale-A-settles-first -> unmatched-route navigation -> B-settles interleaving, asserting zero dx:mount for 'b' and shell.getCurrentRoute() === the unmatched path"
+      - "Make the dedupe slot call-scoped (a monotonic token, not a reusable id string) so a re-navigation to the same dapp id can start a fresh mount attempt even while a stale/invalidated call for that same id is still unwinding. 04-REVIEW.md's CR-01 fix sketch: `let pendingMountToken = 0`, capture `const myToken = ++pendingMountToken` at mount start, guard the finally's clear on `pendingMountToken === myToken` (not `pendingMountId === manifest.id`), and bump `pendingMountToken` in both invalidation call sites (handleRouteChange's null branch, disableDapp) so the invalidated call's eventual finally can never suppress a new attempt."
+      - "A regression test in tests/stress.test.ts driving: navigate('/a') (held loader) -> navigate('/nowhere') -> navigate('/a') again -> release the original loader -> assert dx:mount fires exactly once for 'a', the container holds A's content, and getCurrentRoute() === '/a' (04-REVIEW.md WR-11). Add the disableDapp()->enableDapp()->re-navigate twin for the same root cause (04-REVIEW.md's folded WR-07)."
 ---
 
 # Phase 4: Testing — Stress, Edge-Case & Regression Coverage Verification Report
 
 **Phase Goal:** The test suite covers the concurrency, validation-edge-case, and cleanup scenarios the concerns audit called out as missing.
-**Verified:** 2026-07-13T22:05:00Z
+**Verified:** 2026-07-13T21:15:00Z
 **Status:** gaps_found
-**Re-verification:** Yes — after gap closure (plan 04-04 closed the original CR-01 instance; this pass independently reproduces a new instance of the same invariant violation, surfaced by the fresh code review)
+**Re-verification:** Yes — after gap-closure plan 04-05 (which closed the second CR-01 instance); this pass independently reproduces a third, distinct instance of the same D-01 invariant, surfaced by the fresh 04-REVIEW.md
 
 ## Goal Achievement
 
@@ -58,10 +66,10 @@ gaps:
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | A stress-test suite drives rapid A→B→A navigation with slow loaders and asserts no double-mount and no lost-unmount occurs (ROADMAP SC1 / TEST-01) | ✓ VERIFIED | `tests/stress.test.ts` scenario "rapid A -> B -> A" drives the exact interleaving through `createShell()` + `shell.navigate()`, asserts `getCurrentRoute()==='/a'`, exactly one `dx:mount` for `a`, zero for `b`, strict mount/unmount alternation, and container DOM content. Independently re-ran: `pnpm vitest run tests/stress.test.ts` — 6/6 pass (5 original + the CR-01-closure scenario). |
-| 2 | Manifest-validation tests cover invalid route formats, deep-merge override behavior, and multi-match routes, each asserting the correct accept/reject/merge outcome (ROADMAP SC2 / TEST-02) | ✓ VERIFIED | `src/shell.ts` `normalizeAndValidateManifests()`/`normalizeRoute()` implement normalize/reject/tier-validate/dedupe (grep-confirmed, unchanged since prior verification); `tests/shell.test.ts`, `tests/router.test.ts`, `tests/utils.test.ts` cases all present. Independently re-ran: `pnpm vitest run tests/shell.test.ts tests/router.test.ts tests/utils.test.ts` — all pass, no regression from the 04-04 gap-closure change (which touched only `handleRouteChange`'s null branch, an unrelated code path). |
-| 3 | A regression test verifies settings handlers registered by a dapp do not fire after that dapp is disabled via `disableDapp()` (ROADMAP SC3 / TEST-03) | ✓ VERIFIED | `plugins/settings/tests/integration.test.ts` drives the real `createShell` → `createSettings` → `shell.disableDapp('hello')` and asserts `helloHandler` is not called after disable while `worldHandler` still fires. Independently re-ran: 1/1 pass, unaffected by the 04-04 change. |
-| 4 | The D-01 last-navigation-wins invariant (the general property Plan 01's mount-generation guard, and gap-closure Plan 04, were built to enforce, per CONTEXT.md D-01) holds for ALL navigation transitions and concurrency interleavings, not only the single-mount dapp->unmatched-route case the last verification pass closed | ✗ FAILED | Independently reproduced with a throwaway test (added, run, reverted — not committed): navigate `/a` (entry held) → navigate `/b` (supersedes A, entry held) → release A's entry (stale, but its `finally` unconditionally clears the shared `pendingMountId`, clobbering B's marker) → navigate `/nowhere` (unmatched — `if (pendingMountId)` guard now finds `null` and skips `invalidatePendingMount`) → release B's entry ⇒ `dx:mount` fires for `b` (`mounts.count()===1`) while `shell.getCurrentRoute()==='/nowhere'`. This is the same D-01 violation the phase's Plan 01 and gap-closure Plan 04 were built to eliminate, reached via an interleaving neither fix's test covers. |
+| 1 | A stress-test suite drives rapid A→B→A navigation with slow loaders and asserts no double-mount and no lost-unmount occurs (ROADMAP SC1 / TEST-01) | ✓ VERIFIED | `tests/stress.test.ts` scenario "rapid A -> B -> A" (line 132) drives the exact interleaving through `createShell()` + `shell.navigate()`, asserts `getCurrentRoute()==='/a'`, exactly one `dx:mount` for `a`, zero for `b`, strict mount/unmount alternation, and container DOM content. Independently re-ran: `pnpm vitest run tests/stress.test.ts` — 7/7 pass. |
+| 2 | Manifest-validation tests cover invalid route formats, deep-merge override behavior, and multi-match routes, each asserting the correct accept/reject/merge outcome (ROADMAP SC2 / TEST-02) | ✓ VERIFIED | `src/shell.ts` `normalizeAndValidateManifests()`/`normalizeRoute()` implement normalize/reject/tier-validate/dedupe (grep-confirmed, unchanged since 04-05); `tests/shell.test.ts`, `tests/router.test.ts`, `tests/utils.test.ts` cases all present. Independently re-ran: `pnpm vitest run tests/shell.test.ts tests/router.test.ts tests/utils.test.ts` — all pass; 04-05 touched only `mountDapp`/`handleRouteChange`/`invalidateAnyPendingMount`, an unrelated code path. |
+| 3 | A regression test verifies settings handlers registered by a dapp do not fire after that dapp is disabled via `disableDapp()` (ROADMAP SC3 / TEST-03) | ✓ VERIFIED | `plugins/settings/tests/integration.test.ts` drives the real `createShell` → `createSettings` → `shell.disableDapp('hello')` and asserts `helloHandler` is not called after disable while `worldHandler` still fires. Independently re-ran: 1/1 pass, unaffected by 04-05. |
+| 4 | The D-01 last-navigation-wins invariant (the general property Plan 01's mount-generation guard, and gap-closure plans 04-04/04-05, were built to enforce, per CONTEXT.md D-01) holds for ALL navigation transitions and concurrency interleavings, not only the two interleavings closed so far | ✗ FAILED | Independently reproduced with a throwaway test file (created, run, deleted — not committed): navigate `/a` (entry held, pendingMountId='a') → navigate `/nowhere` (invalidates the lifecycle-level in-flight mount via `invalidateAnyPendingMount()`, but leaves shell-level `pendingMountId` at `'a'`) → navigate `/a` again (dropped silently by the same-id dedupe at `src/shell.ts:392`, since `pendingMountId` still reads `'a'`) → release A's entry gate ⇒ `dx:mount` never fires for `a` (`mounts.count()===0`), nothing is in the container, `shell.getCurrentRoute()==='/a'` but nothing is actually mounted. Matches 04-REVIEW.md's fresh CR-01 finding exactly (line-level trace at `src/shell.ts:392`). |
 
 **Score:** 3/4 truths verified (0 present, behavior-unverified)
 
@@ -69,9 +77,9 @@ gaps:
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `src/lifecycle.ts` | mountGeneration counter + isStale() gating + invalidatePendingMount() | ✓ VERIFIED | Confirmed via grep: `mountGeneration`, `inFlightMountId`, `isStale` gates at every documented anchor, `invalidatePendingMount` exported — unchanged since prior pass |
-| `src/shell.ts` | disableDapp wiring to invalidatePendingMount + fresh-path commit + (new) null-branch invalidation | ✓ VERIFIED | `lifecycle.invalidatePendingMount(id)` in `disableDapp()` (line 136); `lifecycle.invalidatePendingMount(pendingMountId)` in `handleRouteChange`'s null branch (line 364, gap-closure plan 04-04); fresh-path re-read in `mountDapp()` (lines 407-411) |
-| `tests/stress.test.ts` | dedicated concurrency/race stress suite (D-11), now including the CR-01-closure scenario | ✓ VERIFIED | 6 scenarios present, substantive, all pass; but see Truth #4 — the matrix still omits the A->B-overlap-then-unmatched-route interleaving that defeats the same invariant via `pendingMountId` corruption |
+| `src/lifecycle.ts` | mountGeneration counter + isStale() gating + invalidatePendingMount() + invalidateAnyPendingMount() (new, 04-05) | ✓ VERIFIED | Confirmed via grep: `mountGeneration`, `inFlightMountId`, `isStale` gates at every documented anchor, both `invalidatePendingMount` and `invalidateAnyPendingMount` exported (lines 16, 22, 446, 455, 471-472) |
+| `src/shell.ts` | disableDapp wiring + null-branch invalidation via `invalidateAnyPendingMount()` + guarded `mountDapp` finally (04-05) | ✓ VERIFIED | `lifecycle.invalidatePendingMount(id)` in `disableDapp()` (line 136); `lifecycle.invalidateAnyPendingMount()` in `handleRouteChange`'s null branch (line 367); `mountDapp`'s finally now guards `pendingMountId = null` behind `pendingMountId === manifest.id` (line 419) — closes the cross-dapp clobber, but see Truth #4: the same-id dedupe at line 392 has no liveness check against invalidation, which is the new gap |
+| `tests/stress.test.ts` | dedicated concurrency/race stress suite (D-11), now 7 scenarios | ✓ VERIFIED (with a coverage hole) | 7 scenarios present, substantive, all pass; but see Truth #4 — the matrix still has no scenario that re-navigates to an invalidated dapp (the exact case that fails) |
 | `tests/lifecycle.test.ts` | generation-guard unit tests | ✓ VERIFIED | Unchanged since prior pass, still passing |
 | `src/shell.ts` (Plan 02) | normalizeAndValidateManifests choke point + WR-01 emits | ✓ VERIFIED | Unchanged since prior pass |
 | `tests/shell.test.ts`, `tests/router.test.ts` (Plan 02) | normalization/reject/tier-parity/duplicate/WR-01 + multi-match/duplicate resolution tests | ✓ VERIFIED | Unchanged since prior pass |
@@ -84,8 +92,9 @@ gaps:
 |------|-----|-----|--------|---------|
 | `shell.disableDapp()` | `lifecycle.invalidatePendingMount(id)` | direct call, line 136 | ✓ WIRED | Confirmed; exercised by `tests/stress.test.ts` scenario 2 and `tests/lifecycle.test.ts` |
 | `lifecycle.mount()` | `isStale()` re-check | before every container mutation/state commit | ✓ WIRED | Confirmed at all documented gate points |
-| `handleRouteChange(null)` | `lifecycle.invalidatePendingMount(pendingMountId)` | line 364 | ⚠️ PARTIALLY WIRED | The link exists and closes the original single-mount CR-01 case, but its guard condition (`if (pendingMountId)`) reads a shell-level variable that a DIFFERENT dapp's stale `mountDapp` call can clobber to `null` before this branch runs (see `mountDapp`'s `finally`, lines 412-414) — so the link is a no-op exactly when it is most needed (an overlapping A->B race followed by an unmatched-route nav). This is the mechanism behind Truth #4's failure. |
-| `mountDapp()`'s `finally` | `pendingMountId = null` | line 413 | ✗ NOT GUARDED | Clears the shared slot unconditionally, including when the settling call is stale and a newer mount for a different dapp now owns the slot — the root cause of the Truth #4 gap |
+| `handleRouteChange(null)` | `lifecycle.invalidateAnyPendingMount()` | line 367 | ✓ WIRED | Confirmed; reads the lifecycle's own `inFlightMountId`, immune to shell-level `pendingMountId` corruption — closes both prior CR-01 instances |
+| `mountDapp()`'s `finally` | `pendingMountId = null` (guarded) | line 419 | ✓ WIRED | Only clears when `pendingMountId === manifest.id` — prevents a stale call from clobbering a newer, DIFFERENT dapp's slot (closes the second CR-01 instance) |
+| `mountDapp()`'s same-id dedupe | liveness of the in-flight call it is deduping against | line 392, `if (pendingMountId === manifest.id) return;` | ✗ NOT GUARDED | Checks only id equality, never whether the in-flight call it refers to was already invalidated — so a re-navigation to the SAME dapp id after an invalidation is dropped even though nothing is actually still trying to mount it. This is the root cause of Truth #4's failure. |
 | `init()` | `normalizeAndValidateManifests(loadManifests())` | line ~315 | ✓ WIRED | Confirmed via grep; exercised across all three manifest tiers |
 | `createShell(...).disableDapp(id)` | `dx:dapp:disabled` → settings `cleanup(dappId)` | real event bus, not mocked | ✓ WIRED | Confirmed in `plugins/settings/tests/integration.test.ts`, passing |
 
@@ -93,48 +102,55 @@ gaps:
 
 | Behavior | Command | Result | Status |
 |----------|---------|--------|--------|
-| Full suite green (single run, not per-truth) | `make test` | 309/309 tests pass, 12 files, lint clean | ✓ PASS |
-| CR-01 (original instance) fix is load-bearing | Temporarily reverted `src/shell.ts:364`, re-ran `pnpm vitest run tests/stress.test.ts`, restored | New CR-01/D-01 regression scenario fails without the fix (`mounts.count()` was `1`, not `0`); passes with the fix restored | ✓ PASS |
-| CR-01 reopened (new instance) reproduction | Throwaway scenario added to `tests/stress.test.ts` (A->B overlap, stale-A-settles-first clobbers `pendingMountId`, unmatched nav, B settles), run, then reverted (not committed) | `dx:mount` fired for the superseded-route dapp `b` (`mounts.count()===1`) while `shell.getCurrentRoute()==='/nowhere'` | ✗ FAIL (confirms the new-instance gap is real, not narrative-only) |
+| Full suite green (single run, not per-truth) | `make test` | 310/310 tests pass, 12 files, lint clean | ✓ PASS |
+| Second CR-01 instance (04-05's fix) remains load-bearing | Re-ran `pnpm vitest run tests/stress.test.ts` unmodified — scenario at line 244 (A->B overlap -> stale-A-settles -> unmatched -> B settles) still asserts zero mounts for both dapps | 7/7 scenarios pass | ✓ PASS |
+| Third CR-01 instance (new) reproduction | Throwaway test file `tests/tmp-cr01-repro.test.ts` (navigate /a held -> navigate /nowhere -> navigate /a again -> release) — created, run, deleted (not committed) | `mountsA.count()===0` after re-navigating to A; `dx:mount` never fires | ✗ FAIL (confirms the gap is real, not narrative-only) |
 | No debt markers (TBD/FIXME/XXX/TODO/HACK/PLACEHOLDER) in phase-touched files | grep across `src/shell.ts`, `src/lifecycle.ts`, `src/utils.ts`, all stress/lifecycle/shell/router/utils/settings-integration test files | 0 hits | ✓ PASS |
-| Targeted regression re-run of unaffected areas (TEST-02/TEST-03) | `pnpm vitest run tests/shell.test.ts tests/router.test.ts tests/utils.test.ts plugins/settings/tests/integration.test.ts tests/lifecycle.test.ts` | 140/140 pass | ✓ PASS |
+| Targeted regression re-run of unaffected areas (TEST-02/TEST-03) | `pnpm vitest run tests/shell.test.ts tests/router.test.ts tests/utils.test.ts plugins/settings/tests/integration.test.ts tests/lifecycle.test.ts` | all pass | ✓ PASS |
 
 ### Requirements Coverage
 
 | Requirement | Source Plan | Description | Status | Evidence |
 |-------------|-------------|-------------|--------|----------|
-| TEST-01 | 04-01, 04-04 | Stress tests cover concurrent navigation and mount races (rapid A→B→A with slow loaders) without double-mount or lost-unmount | ⚠ SATISFIED FOR STATED SCOPE, BUT UNDERLYING FIX STILL INCOMPLETE | The literal A→B→A stress requirement and the single-mount unmatched-route case are both met and passing. However, the general mount-race fix this requirement is built on has a second, independently-reproduced hole (see Truth #4) outside the tested matrix. Flagged as a gap, not a full pass. |
+| TEST-01 | 04-01, 04-04, 04-05 | Stress tests cover concurrent navigation and mount races (rapid A→B→A with slow loaders) without double-mount or lost-unmount | ⚠ SATISFIED FOR STATED SCOPE, BUT UNDERLYING FIX STILL INCOMPLETE | The literal A→B→A stress requirement, the single-mount unmatched-route case, and the A→B-overlap-then-unmatched-route case are all met and passing. However, the general mount-race fix this requirement is built on has a THIRD, independently-reproduced hole (see Truth #4) outside the tested matrix. Flagged as a gap, not a full pass, for the third consecutive verification cycle. |
 | TEST-02 | 04-02, 04-03 | Manifest-validation edge cases are tested (invalid route formats, deep-merge overrides, multi-match routes) | ✓ SATISFIED | Unchanged since prior pass — all cases implemented and locked by tests |
 | TEST-03 | 04-03 | Tests verify settings-handler cleanup on `disableDapp()` (handlers do not fire after disable) | ✓ SATISFIED | Unchanged since prior pass — full-shell integration regression proves real wiring |
 
-No orphaned requirements — REQUIREMENTS.md maps TEST-01/02/03 to Phase 4, and all three are claimed and covered across the three original plans plus the gap-closure plan.
+No orphaned requirements — REQUIREMENTS.md maps TEST-01/02/03 to Phase 4, and all three are claimed and covered across the three original plans plus the two gap-closure plans (04-04, 04-05).
 
 ### Anti-Patterns Found
 
 | File | Line | Pattern | Severity | Impact |
 |------|------|---------|----------|--------|
-| `src/shell.ts` | 412-414 | `mountDapp`'s `finally` unconditionally clears the shared `pendingMountId`, corrupting the guard `handleRouteChange`'s null branch depends on | 🛑 Blocker (fresh 04-REVIEW.md CR-01 "reopened", independently reproduced during this verification) | A stale call's cleanup silently erases a newer, unrelated mount's in-flight marker; the very fix landed for the original CR-01 (line 364's `if (pendingMountId)` guard) is defeated because the variable it reads is corruptible by exactly the kind of overlapping-mount interleaving this phase's own stress suite creates |
-| `src/shell.ts` | 362-365 | Unmatched-route abandonment does not clear the container even when a stale mount already injected its template before being superseded | ⚠️ Warning (fresh review WR-01) | Not independently reproduced during this verification pass (narrative from 04-REVIEW.md only); would leave stale dapp HTML visible under an unmatched route if abandonment happens post-injection; distinct gate from Truth #4's failure |
-| `src/shell.ts` | 440-462, `src/lifecycle.ts` 428-430 | `shell.destroy()` does not bump `mountGeneration`, so an in-flight mount can still commit `dx:mount` after the shell (and its plugins) are torn down | ⚠️ Warning (fresh review WR-08, new finding) | Not independently reproduced here; noted for awareness — does not map to a stated phase must-have |
-| `src/shell.ts` | 358-371 | Overlapping navigations can emit `dx:route:changed` pairing a stale manifest with the newer path | ⚠️ Warning (fresh review WR-09, new finding) | Not independently reproduced here; does not map to a stated phase must-have |
-| `src/shell.ts` | 418-422 | `getMountContainer()` caches the DOM node forever; a host re-render leaves mounts writing into a detached element silently | ⚠️ Warning (fresh review WR-10, new finding) | Not independently reproduced here; contradicts the milestone's no-silent-failures charter but is outside this phase's stated must-haves |
-| `src/shell.ts` | 246-254, 231-241/315, 407-410, 126-140, 389/400-414 | WR-02 through WR-07 (route-whitespace, registry.json non-array crash, hash-mode misattribution, disable-mid-flight URL-parking, disable→enable drop) | ⚠️ Warning (carried forward, unaddressed by design — scoped out of gap-closure plan 04-04) | Real but explicitly out-of-scope per 04-04's stated scope discipline and the prior verification's judgment; not re-litigated here |
-| `src/lifecycle.ts` | 310-323 | Missing staleness gate after the styles-load success path — a superseded mount can still initiate (and for template-less manifests, execute) the next load stage | ⚠️ Warning (carried forward, refined in fresh review) | Not scored as a gap — no stated must-have covers resource-waste-only behavior with no DOM/event leak |
-| `src/lifecycle.ts`, `src/shell.ts` | various | IN-01 through IN-06 (cause-wrapping inconsistency, dangling `inFlightMountId`, empty-string id/entry acceptance, test-hygiene listener leaks, unverified "nothing mounts" assertion, `init()` re-entrancy) | ℹ️ Info (carried forward + 2 new) | Style/hygiene only; no stated must-have affected |
+| `src/shell.ts` | 392 | `mountDapp`'s same-id dedupe checks only id equality, never whether the in-flight call it refers to was already invalidated | 🛑 Blocker (fresh 04-REVIEW.md CR-01, independently reproduced during this verification) | A legitimate re-navigation to a dapp whose prior mount attempt was just invalidated is silently dropped — no error, no mount, nothing in the container — for as long as the invalidated call's slowest loader takes to settle |
+| `src/shell.ts` | 389-391 | Comment above the same-id dedupe ("the in-flight call sets currentDappId/currentPath when it finishes") is false for an invalidated call | ⚠️ Warning (04-REVIEW.md WR-01, tied to the CR-01 root cause) | Documentation-correctness issue riding on the same code; will be naturally resolved alongside the CR-01 fix |
+| `src/shell.ts` | 358-369 | Unmatched-route abandonment does not clear the container if a stale mount already injected its template before being superseded | ⚠️ Warning (04-REVIEW.md WR-02, carried forward, unaddressed by design) | Not independently reproduced this pass (narrative from 04-REVIEW.md only); explicitly scoped out by both gap-closure plans; distinct from Truth #4's failure |
+| `src/shell.ts` | 246-254 | `normalizeRoute` never trims whitespace — routes with stray spaces become silently unreachable | ⚠️ Warning (04-REVIEW.md WR-03, carried forward, unaddressed) | Real but explicitly out-of-scope per both gap-closure plans' stated scope discipline and prior verification judgment; not re-litigated here |
+| `src/lifecycle.ts` | 316-332 | Missing staleness gate after the styles-load success path — a superseded mount can still initiate (and for template-less manifests, execute) the next load stage | ⚠️ Warning (04-REVIEW.md WR-04, carried forward, unaddressed) | Not scored as a gap — no stated must-have covers resource-waste-only behavior with no DOM/event leak |
+| `src/shell.ts` | 231-240, 262, 315 | registry.json tier: non-array JSON crashes `init()`; fetch/parse failures silently swallowed | ⚠️ Warning (04-REVIEW.md WR-05, carried forward, unaddressed) | Real but out-of-scope per prior verification judgment |
+| `src/shell.ts` | 410-413 | Hash mode can emit a misattributed `dx:route:subpath` naming another dapp's route | ⚠️ Warning (04-REVIEW.md WR-06, carried forward, unaddressed) | Out-of-scope per prior verification judgment; history-mode-only stress suite cannot catch this by design |
+| `src/shell.ts` | 107-140 | Disabling a dapp mid-mount strands the URL on the disabled dapp's dead route | ⚠️ Warning (04-REVIEW.md WR-07, carried forward — same root cause as Truth #4's dedupe-liveness gap) | Out-of-scope per prior verification judgment; will likely be closed alongside the CR-01 fix given the shared root cause |
+| `src/shell.ts` | 448-470, `src/lifecycle.ts` 434-436 | `shell.destroy()` does not bump `mountGeneration`, so an in-flight mount can still commit after the shell is destroyed | ⚠️ Warning (04-REVIEW.md WR-08, carried forward, unaddressed) | Not independently reproduced here; noted for awareness — does not map to a stated phase must-have |
+| `src/shell.ts` | 358-374 | Overlapping navigations can emit `dx:route:changed` pairing a stale manifest with the newer path | ⚠️ Warning (04-REVIEW.md WR-09, carried forward, unaddressed) | Not independently reproduced here; does not map to a stated phase must-have |
+| `src/shell.ts` | 426-430 | `getMountContainer()` caches the DOM node forever; a host re-render leaves mounts writing into a detached element silently | ⚠️ Warning (04-REVIEW.md WR-10, carried forward, unaddressed) | Not independently reproduced here; contradicts the milestone's no-silent-failures charter but is outside this phase's stated must-haves |
+| `tests/stress.test.ts` | whole file | Stress suite never re-navigates to an invalidated dapp — the regression test that would catch the new CR-01 is missing | ⚠️ Warning (04-REVIEW.md WR-11) | Directly actionable — this is the missing artifact listed under this verification's `gaps` |
+| `src/lifecycle.ts`, `src/shell.ts` | various | IN-01 through IN-06 (cause-wrapping inconsistency, dangling `inFlightMountId`, empty-string id/entry acceptance, test-hygiene listener leaks, unverified "nothing mounts" assertion, `init()` re-entrancy) | ℹ️ Info (carried forward) | Style/hygiene only; no stated must-have affected |
 
 ### Gaps Summary
 
-Three of the four established must-have truths remain fully verified with passing, substantive, independently-re-run tests: the A→B→A stress suite (TEST-01's literal stated scope, now 6 scenarios including the closed original CR-01 case), the full manifest/route validation matrix (TEST-02), and the settings-cleanup integration regression (TEST-03). The gap-closure plan (04-04) did exactly what it set out to do: `handleRouteChange`'s null-manifest branch now calls `lifecycle.invalidatePendingMount(pendingMountId)` before `lifecycle.unmount()`, and reverting that one line makes the new regression test fail — confirmed by direct experiment during this verification pass.
+Three of the four established must-have truths remain fully verified with passing, substantive, independently-re-run tests: the A→B→A stress suite (TEST-01's literal stated scope, now 7 scenarios), the full manifest/route validation matrix (TEST-02), and the settings-cleanup integration regression (TEST-03). Gap-closure plan 04-05 did exactly what it set out to do: `mountDapp`'s `finally` no longer clobbers a newer mount's `pendingMountId` slot, and `handleRouteChange`'s null branch now reads the lifecycle's own `inFlightMountId` via `invalidateAnyPendingMount()` instead of the corruptible shell-level variable. Reverting either edit makes the 04-05 regression scenario fail — this remains true and was re-confirmed passing this pass.
 
-However, the fresh code review (04-REVIEW.md, reviewed after the gap-closure commit) found — and this verification independently reproduced against the live codebase — a second, distinct hole in the exact same D-01 invariant. `mountDapp`'s `finally` block (`src/shell.ts:412-414`) unconditionally clears the shared `pendingMountId` closure variable, even when the settling call is stale (superseded by a newer mount for a *different* dapp). This means the very guard that closes the original CR-01 (`handleRouteChange`'s `if (pendingMountId) lifecycle.invalidatePendingMount(...)`) can find `pendingMountId` already `null` — not because nothing is in flight, but because a stale call's cleanup already stomped on a still-active mount's marker. In that state, navigating to an unmatched route skips invalidation entirely, and the still-in-flight (and still generation-current) mount for the other dapp commits fully: `dx:mount`/`dx:dapp:mounted` fire and the container is written while the browser's route is the unmatched one.
+However, the fresh code review (04-REVIEW.md, reviewed after 04-05 landed) found — and this verification independently reproduced against the live codebase — a THIRD, distinct hole in the same D-01 invariant. The root cause this time is different from the first two: `mountDapp`'s same-dapp dedupe (`src/shell.ts:392`) checks only `pendingMountId === manifest.id`, with no way to tell whether the in-flight call that id refers to was already invalidated by `invalidateAnyPendingMount()`/`invalidatePendingMount()`. Both prior fixes correctly stop an invalidated mount from *committing*, but neither one clears (or otherwise invalidates) the dedupe slot itself — so a user who navigates away and then immediately back to the same dapp finds their second, unambiguous navigation silently swallowed by the guard that exists specifically to prevent duplicate mounts. Nothing ever mounts; no error fires; `getCurrentRoute()` correctly reports `/a` while the DOM and `lifecycle.getCurrentDapp()` disagree.
 
-I independently reproduced this: a throwaway test driving `navigate('/a')` → `navigate('/b')` (overlapping, both held at the entry-script gate) → release A's entry (stale A settles, clobbers `pendingMountId`) → `navigate('/nowhere')` → release B's entry, resulted in `dx:mount` firing for `b` with `shell.getCurrentRoute()==='/nowhere'`. The test was added, run, observed to fail the expected invariant, then reverted (not committed) — matching the same evidentiary standard the prior verification pass applied to the original CR-01.
+I independently reproduced this with a throwaway, uncommitted test file (`tests/tmp-cr01-repro.test.ts` — created, run to a failing assertion, then deleted): navigate `/a` (held) → navigate `/nowhere` → navigate `/a` again → release the original loader. Result: `dx:mount` never fires for `a` (count 0), matching the review's trace exactly.
 
-This is judged in-scope for the phase (not deferred) using the same reasoning the prior verification pass applied to the original CR-01: (1) it directly concerns the D-01 invariant Plan 01 and gap-closure Plan 04 were both built to enforce; (2) the defect lives in the exact function (`mountDapp`) and file (`src/shell.ts`) both plans modified; (3) it was proven with an executed, reproducible test, not a hypothetical; (4) the stress suite's matrix (now 6 scenarios) still has no case combining an A→B overlap with a subsequent unmatched-route navigation, so nothing catches this in CI today.
+This is judged in-scope for the phase (not deferred), for the same reasons the prior two rounds applied: (1) it directly concerns the D-01 invariant this phase's Plan 01, and gap-closure plans 04-04/04-05, were built to enforce, per CONTEXT.md's explicit standing policy that correctness bugs surfaced by the new tests are fixed in-phase; (2) it lives in the exact function (`mountDapp`) and file (`src/shell.ts`) all three prior fix rounds modified; (3) it was proven with an executed, reproducible test, not a hypothetical; (4) the stress suite still has no scenario that re-navigates to an invalidated dapp — the review's WR-11 finding names the exact missing regression test. Arguably this instance is more severe than the first two: those let the *wrong* dapp win; this one lets *no* dapp mount despite an explicit, later user navigation.
 
-The remaining review findings (WR-01 through WR-10, IN-01 through IN-06) are real but do not map to any stated phase must-have truth — they are noted in the Anti-Patterns table for visibility but are not scored as gaps against this phase's goal, consistent with the prior verification pass's scoping judgment.
+The remaining review findings (WR-02 through WR-10, IN-01 through IN-06) are real but do not map to any stated phase must-have truth beyond what is already captured in Truth #4 — they are noted in the Anti-Patterns table for visibility but are not separately scored as gaps, consistent with both prior verification passes' scoping judgment. WR-01 and WR-07 share Truth #4's root cause and will likely resolve as a side effect of whatever fix closes it.
+
+No override is suggested for Truth #4: this is not an intentional deviation or an alternative implementation achieving the same intent — it is an incomplete fix for a bug this phase's own standing policy commits to closing in-phase. If the team judges the third gap-closure round to have diminishing returns relative to the milestone's timeline, that is a call for the developer to make explicitly (e.g. via an accepted override with a stated reason and follow-up tracking), not one this verification should make silently by passing the phase.
 
 ---
 
-_Verified: 2026-07-13T22:05:00Z_
+_Verified: 2026-07-13T21:15:00Z_
 _Verifier: Claude (gsd-verifier)_
