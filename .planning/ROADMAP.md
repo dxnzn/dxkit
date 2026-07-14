@@ -102,7 +102,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Manifest-validation tests cover invalid route formats, deep-merge override behavior, and multi-match routes, each asserting the correct accept/reject/merge outcome.
   3. A regression test verifies settings handlers registered by a dapp do not fire after that dapp is disabled via `disableDapp()`.
 
-**Plans**: 5/5 plans complete
+**Plans**: 6 plans (5 complete, 1 pending)
 
 **Wave 1**
 
@@ -117,6 +117,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] 04-04-PLAN.md — TEST-01: close D-01 hole for the dapp→unmatched-route transition — `handleRouteChange`'s null-manifest branch invalidates the in-flight pending mount, plus a stress regression scenario [wave 1, no deps]
 - [x] 04-05-PLAN.md — TEST-01: close D-01 hole reopened by the `pendingMountId` clobber — guard `mountDapp`'s finally + add `lifecycle.invalidateAnyPendingMount()` (shell-independent), wire it into `handleRouteChange`'s null branch, plus an A→B-overlap-then-unmatched-route stress regression scenario [wave 1, no deps]
+- [ ] 04-06-PLAN.md — TEST-01: close the third D-01 instance (CR-01) — make the shell dedupe slot call-scoped (`pendingMountToken`) and free it on invalidation at both call sites (`handleRouteChange` null branch, `disableDapp`) so a re-navigation to an invalidated dapp mounts fresh, plus A→unmatched→A (WR-11) and disableDapp→enableDapp→re-navigate stress regression scenarios [wave 1, no deps]
 
 ### Phase 5: Documentation — Truth Pass
 
