@@ -241,6 +241,50 @@ describe('stress: concurrency & mount races (TEST-01, D-01/D-02/D-03)', () => {
     window.removeEventListener('dx:route:subpath', onSubpath);
   });
 
+  it('A->B overlap where stale A settles first, then an unmatched-route navigation abandons the still-in-flight B (CR-01 reopened/D-01)', async () => {
+    const scriptGate = keyedGate<void>();
+    const scriptLoader: ScriptLoader = (src) => scriptGate.loader(src);
+
+    shell = createShell({
+      lifecycle: { scriptLoader, styleLoader: async () => {} },
+      mode: 'history',
+      manifests: [dappA, dappB],
+    });
+    await shell.init();
+
+    const mountsA = countMounts('a');
+    const mountsB = countMounts('b');
+    const mountedDapp = vi.fn();
+    window.addEventListener('dx:dapp:mounted', mountedDapp);
+    const alternation = recordAlternation();
+
+    shell.navigate('/a');
+    await tick(); // A's mount suspends at the held entry-script gate (pendingMountId='a')
+
+    shell.navigate('/b');
+    await tick(); // B supersedes A and suspends at the held entry-script gate (pendingMountId='b')
+
+    scriptGate.release('/dapps/a/app.js', undefined);
+    await tick(); // A resumes stale, hits isStale() and returns; guarded finally leaves pendingMountId='b'
+
+    shell.navigate('/nowhere'); // no manifest matches — drives handleRouteChange(null)
+    await tick(); // must invalidateAnyPendingMount() and bump the generation so B goes stale
+
+    scriptGate.release('/dapps/b/app.js', undefined);
+    await tick(); // B resumes stale, hits its final isStale() gate and returns before committing
+
+    expect(mountsB.count()).toBe(0);
+    expect(mountsA.count()).toBe(0);
+    expect(mountedDapp).not.toHaveBeenCalled();
+    expect(shell.getCurrentRoute()).toBe('/nowhere');
+    alternation.assertStrict();
+
+    mountsA.cleanup();
+    mountsB.cleanup();
+    window.removeEventListener('dx:dapp:mounted', mountedDapp);
+    alternation.cleanup();
+  });
+
   describe('load timeout races navigation (fake timers)', () => {
     beforeEach(() => {
       vi.useFakeTimers();
