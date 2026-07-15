@@ -21,10 +21,10 @@ current_phase_name: documentation-truth-pass
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-11)
+See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** DxKit stays trustworthy for real use — failures are visible (never silent), documented behavior matches actual behavior, and the alpha is stable enough to build on with confidence.
-**Current focus:** Phase 05 — documentation-truth-pass
+**Current focus:** Planning next milestone (v1.0 shipped as 0.2.0)
 
 ## Current Position
 
