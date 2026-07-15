@@ -4,8 +4,8 @@ milestone: v1.1
 milestone_name: TypeScript 6 Migration & Toolchain Modernization
 current_phase: 06
 current_phase_name: toolchain-audit-modernization
-status: verifying
-stopped_at: Completed 06-04-PLAN.md
+status: gaps_found
+stopped_at: Verification found gaps in 06 (CR-01 Node floor mismatch)
 last_updated: "2026-07-15T17:06:53.759Z"
 last_activity: 2026-07-15
 last_activity_desc: Phase 06 execution started
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 
 ## Current Position
 
-Phase: 06 (toolchain-audit-modernization) — EXECUTING
-Plan: 5 of 5
-Status: Phase complete — ready for verification
-Last activity: 2026-07-15 — Phase 06 execution started
+Phase: 06 (toolchain-audit-modernization) — VERIFIED WITH GAPS
+Plan: 5 of 5 executed
+Status: Verification found gaps — awaiting gap closure (/gsd-plan-phase 06 --gaps)
+Last activity: 2026-07-15 — Phase 06 verification found gaps (CR-01: Node floor vs pinned toolchain)
 
 ## Milestone Phase Map (v1.1)
 
