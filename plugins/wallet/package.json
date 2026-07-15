@@ -10,6 +10,7 @@
     "directory": "plugins/wallet"
   },
   "homepage": "https://dnzn.dev",
+  "engines": { "node": ">=22" },
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
