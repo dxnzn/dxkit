@@ -73,7 +73,7 @@ storage keys, a stress/edge-case/regression test suite, and a full documentation
   4. The commitizen flow uses maintained `cz-git` (unmaintained `cz-conventional-changelog` removed) and still emits conventional commits.
   5. All three build outputs (ESM `dist/index.js`, CJS `dist/index.cjs`, IIFE `dist/index.global.js`) are still produced per package and confirmed present after the toolchain bumps.
 
-**Plans**: 2/5 plans executed
+**Plans**: 3/5 plans executed
 **Wave 1**
 
 - [x] 06-01-PLAN.md — Node 22 floor + engine-strict enforcement across all 5 package.json + .npmrc (TOOL-01)
@@ -81,7 +81,7 @@ storage keys, a stress/edge-case/regression test suite, and a full documentation
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 06-03-PLAN.md — Core toolchain bumps: tsup, vite (7→8 isolated), vitest, happy-dom (TOOL-03)
+- [x] 06-03-PLAN.md — Core toolchain bumps: tsup, vite (7→8 isolated), vitest, happy-dom (TOOL-03)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -148,7 +148,7 @@ v1.1 phases execute in numeric order: 6 → 7 → 8 → 9
 | 3. Security — Sanitization & Storage Isolation | v1.0 | 3/3 | Complete | 2026-07-12 |
 | 4. Testing — Stress, Edge-Case & Regression Coverage | v1.0 | 6/6 | Complete | 2026-07-14 |
 | 5. Documentation — Truth Pass | v1.0 | 8/8 | Complete | 2026-07-14 |
-| 6. Toolchain Audit & Modernization | v1.1 | 2/5 | In Progress|  |
+| 6. Toolchain Audit & Modernization | v1.1 | 3/5 | In Progress|  |
 | 7. TypeScript 6 Migration & Standalone Typecheck | v1.1 | 0/? | Not started | - |
 | 8. Forward-Compat Typing | v1.1 | 0/? | Not started | - |
 | 9. Continuous Debt Guardrails & Registry Robustness | v1.1 | 0/? | Not started | - |
