@@ -613,31 +613,31 @@ describe('LifecycleManager', () => {
       lm.destroy();
     });
 
-    it.each([
-      0,
-      Infinity,
-    ])('timeout: %s disables the guard — a slow-but-eventually-resolving loader is awaited to completion', async (timeoutValue) => {
-      const lm = createLifecycleManager(events, {
-        scriptLoader: () => new Promise((resolve) => setTimeout(resolve, 60_000)),
-        timeout: timeoutValue,
-      });
+    it.each([0, Infinity])(
+      'timeout: %s disables the guard — a slow-but-eventually-resolving loader is awaited to completion',
+      async (timeoutValue) => {
+        const lm = createLifecycleManager(events, {
+          scriptLoader: () => new Promise((resolve) => setTimeout(resolve, 60_000)),
+          timeout: timeoutValue,
+        });
 
-      const errorHandler = vi.fn();
-      const mountedHandler = vi.fn();
-      events.on('dx:error', errorHandler);
-      events.on('dx:dapp:mounted', mountedHandler);
+        const errorHandler = vi.fn();
+        const mountedHandler = vi.fn();
+        events.on('dx:error', errorHandler);
+        events.on('dx:dapp:mounted', mountedHandler);
 
-      const m = manifest('slow-but-fine');
-      const mountPromise = lm.mount(m, container);
-      await vi.advanceTimersByTimeAsync(60_000);
-      await mountPromise;
+        const m = manifest('slow-but-fine');
+        const mountPromise = lm.mount(m, container);
+        await vi.advanceTimersByTimeAsync(60_000);
+        await mountPromise;
 
-      expect(errorHandler).not.toHaveBeenCalled();
-      expect(mountedHandler).toHaveBeenCalledWith({ id: 'slow-but-fine' });
-      expect(lm.getCurrentDapp()).toBe('slow-but-fine');
+        expect(errorHandler).not.toHaveBeenCalled();
+        expect(mountedHandler).toHaveBeenCalledWith({ id: 'slow-but-fine' });
+        expect(lm.getCurrentDapp()).toBe('slow-but-fine');
 
-      lm.destroy();
-    });
+        lm.destroy();
+      },
+    );
 
     it('custom (opaque) loader hang guard fires dx:error via Promise.race even though the underlying load keeps running', async () => {
       let resolveHang: () => void = () => {};
