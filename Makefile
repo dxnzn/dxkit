@@ -61,14 +61,14 @@ superclean:
 commit:
 	npx cz
 
-release: build test
+release: build verify-outputs test
 	npx commit-and-tag-version
 	@echo
 	@echo "Release tagged. Review the changelog, then run:"
 	@echo "  make publish"
 	@echo "  git push --follow-tags"
 
-publish: build test
+publish: build verify-outputs test
 	pnpm publish --access public
 	@for dir in $(PLUGIN_BUILD_ORDER); do \
 		(cd $$dir && pnpm publish --access public) || exit 1; \
