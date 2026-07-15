@@ -1,3 +1,6 @@
 tmp/
 dist/
 node_modules/
+
+# GSD research cache — content-addressed web search/fetch results, regenerable
+.planning/research/.cache/
