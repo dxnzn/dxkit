@@ -21,6 +21,26 @@ DxKit stays trustworthy for real use: failures are visible (never silent), the d
 behavior matches the actual behavior, and the alpha is stable enough to build on with
 confidence.
 
+## Current Milestone: v1.1 TypeScript 6 Migration & Toolchain Modernization
+
+**Goal:** Migrate core + all plugins to TypeScript 6, audit and modernize the full toolchain,
+and put continuous forward-compat guardrails in place so the eventual jump to TS 7.1 is clean.
+
+**Target features:**
+- **TS6 migration** — core + 4 plugins onto TypeScript 6, resolving every deprecation TS6 surfaces.
+- **Toolchain audit & modernization** — bump tsup / vite / vitest / Biome / commit tooling to current;
+  raise the Node floor from EOL Node 18 to **Node 20**.
+- **Forward-compat typing** — adopt `isolatedDeclarations` and `verbatimModuleSyntax` across all packages.
+- **Continuous debt guardrails** — CI deprecation gate (fail on `tsc`/lint deprecation warnings) plus
+  dependency-freshness automation (Renovate/Dependabot-style).
+- **WR-01 robustness fix** — validate `registry.json` is an array so a wrong-shape `200` can't throw an
+  uncaught `TypeError` in `init()` before `window.__DXKIT__` is exposed (closes the last open Phase-1 todo).
+
+**Why now:** TS6 is the transitional/deprecation-alignment release before the native compiler (TS7). This
+milestone treats it as a stepping stone — every measure is chosen to de-risk the TS 7.1 jump later (waiting
+on a TS7 point release for stable ABI/API). Storage encryption and new routing features are deferred again
+to keep this a focused modernization pass.
+
 ## Requirements
 
 ### Validated
@@ -65,27 +85,26 @@ confidence.
 
 ### Active
 
-<!-- The 0.2.0 hardening + docs-truth milestone. Hypotheses until shipped and validated. -->
+<!-- The v1.1 TS6 + toolchain modernization milestone. Hypotheses until shipped and validated.
+     Detailed, REQ-ID'd scope lives in .planning/REQUIREMENTS.md. -->
 
-**Hardening — robustness guards** — ✓ validated Phase 2
-- [x] Optional load timeouts for script/style/template fetches (no hang-forever mounts)
-- [x] Cache sorted manifests in the router (avoid re-sort on every resolve)
-- [x] Template caching by URL with explicit invalidation
+**TS6 migration**
+- [ ] Migrate core + 4 plugins to TypeScript 6; resolve every deprecation TS6 surfaces
 
-**Hardening — test coverage** — ✓ validated Phase 4
-- [x] Stress tests for concurrent navigation and mount races (fast A→B→A with slow loaders) — validated Phase 4
-- [x] Manifest-validation edge-case tests (bad route formats, merge behavior) — validated Phase 4
-- [x] Settings handler cleanup + tests for `disableDapp()` (no handler leaks / firing on disabled dapps) — validated Phase 2; end-to-end shell regression added Phase 4
+**Toolchain audit & modernization**
+- [ ] Bump build/test/lint/commit tooling (tsup, vite, vitest, Biome, commit tooling) to current
+- [ ] Raise the Node floor from EOL Node 18 to Node 20 (`engines` + CI matrix)
 
-**Hardening — security posture** — ✓ validated Phase 3 + Phase 5
-- [x] Optional template sanitizer hook on the lifecycle manager
-- [x] Configurable wallet storage key (avoid same-origin collisions)
-- [x] CSP guidance documented for `innerHTML` templates + external scripts — validated Phase 5 (`docs/security.md`)
+**Forward-compat typing**
+- [ ] Adopt `isolatedDeclarations` across all packages
+- [ ] Adopt `verbatimModuleSyntax` across all packages
 
-**Docs — truth pass** — ✓ validated Phase 5
-- [x] Verify every framework + plugin doc and README against code (code is truth); correct drift — validated Phase 5 (DOC-01)
-- [x] Remove "AI tells" / slop from docs (filler, hedging, restated obviousness, invented detail) — validated Phase 5 (DOC-02)
-- [x] Fill documentation gaps surfaced by the concerns audit (CSP guide, security/limitations notes) — validated Phase 5 (DOC-03)
+**Continuous debt guardrails**
+- [ ] CI deprecation gate — fail the build on `tsc`/lint deprecation warnings
+- [ ] Dependency-freshness automation (Renovate/Dependabot-style)
+
+**Robustness carryover**
+- [ ] WR-01 — validate `registry.json` is an array (no uncaught `TypeError` before `window.__DXKIT__`)
 
 ### Out of Scope
 
@@ -115,14 +134,15 @@ confidence.
 
 ## Next Milestone Goals
 
-Candidate scope for the next milestone (carried forward from Out of Scope — not yet committed):
+Candidate scope for the milestone *after* v1.1 (not yet committed):
 
-- **TypeScript 6 migration** — deferred from this milestone; the largest standalone modernization.
-- **Storage encryption** for persisted settings/wallet state (STOR-01 territory) — larger design effort.
-- **Robustness follow-up (WR-01 tier):** `loadManifests()` does not validate registry.json is an
-  array; a wrong-shape 200 throws an uncaught `TypeError` in `init()` before `window.__DXKIT__` is
-  exposed. Surfaced by the Phase 5 code review (`05-REVIEW.md`); a good beta-hardening carryover.
-- Possible new routing features (wildcard / `:param`) if consumer demand appears — a feature, not hardening.
+- **TypeScript 7.1 migration** — the payoff of v1.1's forward-compat groundwork; waiting on a TS7 point
+  release for stable ABI/API before committing.
+- **Storage encryption** for persisted settings/wallet state (STOR-01 territory) — larger design effort;
+  deferred again out of v1.1 to keep it a focused modernization pass.
+- Possible new routing features (wildcard / `:param`) if consumer demand appears — a feature, not modernization.
+
+*(TS6 migration and the WR-01 robustness fix moved into the committed v1.1 milestone above.)*
 
 ## Constraints
 
@@ -163,4 +183,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-15 after v1.0 milestone (Beta Hardening, shipped as 0.2.0) — all 5 phases verified, 15/15 requirements validated, PR #5 merged to main, tagged v1.0.*
+*Last updated: 2026-07-15 after starting v1.1 milestone (TypeScript 6 Migration & Toolchain Modernization) — TS6 + toolchain audit + forward-compat guardrails (isolatedDeclarations, verbatimModuleSyntax, CI deprecation gate, dep-freshness automation) + WR-01, aimed at a clean TS 7.1 jump. Continues phase numbering from v1.0.*
