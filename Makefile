@@ -4,7 +4,7 @@ PLUGIN_DIRS := $(dir $(PLUGINS))
 # Build order: plugins with no cross-plugin deps first, then their dependents
 PLUGIN_BUILD_ORDER := plugins/settings/ plugins/wallet/ plugins/auth/ plugins/theme/
 
-.PHONY: setup build test test-watch lint lint-fix format clean superclean audit commit publish release
+.PHONY: setup build test test-watch lint lint-fix format clean superclean audit commit publish release verify-outputs
 
 setup:
 	pnpm install
@@ -73,6 +73,26 @@ publish: build test
 	@for dir in $(PLUGIN_BUILD_ORDER); do \
 		(cd $$dir && pnpm publish --access public) || exit 1; \
 	done
+
+verify-outputs:
+	@echo
+	@echo "VERIFYING BUILD OUTPUTS: ."
+	@echo
+	@for f in dist/index.js dist/index.cjs dist/index.global.js; do \
+		test -f "$$f" || { echo "MISSING: $$f (root package)"; exit 1; }; \
+		echo "OK: $$f"; \
+	done
+	@for dir in $(PLUGIN_BUILD_ORDER); do \
+		echo; \
+		echo "VERIFYING BUILD OUTPUTS: $$dir"; \
+		echo; \
+		for f in dist/index.js dist/index.cjs dist/index.global.js; do \
+			test -f "$$dir$$f" || { echo "MISSING: $$dir$$f"; exit 1; }; \
+			echo "OK: $$dir$$f"; \
+		done; \
+	done
+	@echo
+	@echo "All build outputs present (3 formats x 5 packages)."
 
 audit:
 	@echo
