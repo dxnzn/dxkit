@@ -29,8 +29,10 @@ and put continuous forward-compat guardrails in place so the eventual jump to TS
 **Target features:**
 - **TS6 migration** — core + 4 plugins onto TypeScript 6, resolving every deprecation TS6 surfaces.
 - **Toolchain audit & modernization** — bump tsup / vite / vitest / Biome / commit tooling to current;
-  raise the Node floor from EOL Node 18 to **Node 20**.
-- **Forward-compat typing** — adopt `isolatedDeclarations` and `verbatimModuleSyntax` across all packages.
+  raise the Node floor from EOL Node 18 to **Node 22 LTS** (research found Node 20 is also EOL);
+  swap the ~6-years-unmaintained `cz-conventional-changelog` for the maintained `cz-git`.
+- **Forward-compat typing** — adopt `isolatedDeclarations`, `verbatimModuleSyntax`, and `erasableSyntaxOnly`
+  across all packages.
 - **Continuous debt guardrails** — CI deprecation gate (fail on `tsc`/lint deprecation warnings) plus
   dependency-freshness automation (Renovate/Dependabot-style).
 - **WR-01 robustness fix** — validate `registry.json` is an array so a wrong-shape `200` can't throw an
@@ -92,12 +94,14 @@ to keep this a focused modernization pass.
 - [ ] Migrate core + 4 plugins to TypeScript 6; resolve every deprecation TS6 surfaces
 
 **Toolchain audit & modernization**
-- [ ] Bump build/test/lint/commit tooling (tsup, vite, vitest, Biome, commit tooling) to current
-- [ ] Raise the Node floor from EOL Node 18 to Node 20 (`engines` + CI matrix)
+- [ ] Bump build/test/lint tooling (tsup, vite, vitest, Biome) to current
+- [ ] Raise the Node floor from EOL Node 18 to Node 22 LTS (`engines` + CI matrix)
+- [ ] Replace unmaintained `cz-conventional-changelog` with maintained `cz-git`
 
 **Forward-compat typing**
 - [ ] Adopt `isolatedDeclarations` across all packages
 - [ ] Adopt `verbatimModuleSyntax` across all packages
+- [ ] Adopt `erasableSyntaxOnly` across all packages
 
 **Continuous debt guardrails**
 - [ ] CI deprecation gate — fail the build on `tsc`/lint deprecation warnings
