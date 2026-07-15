@@ -21,7 +21,7 @@ Requirements for this milestone. Each maps to a roadmap phase.
 
 ### Toolchain Modernization
 
-- [ ] **TOOL-01**: `engines` in every package.json requires Node ≥22 (Node 22 LTS floor); a wrong-Node install fails fast (engine-strict)
+- [x] **TOOL-01**: `engines` in every package.json requires Node ≥22 (Node 22 LTS floor); a wrong-Node install fails fast (engine-strict)
 - [ ] **TOOL-02**: CI runs on Node 22 and no longer tests EOL Node 18/20
 - [ ] **TOOL-03**: Build/test/lint tooling (tsup, vite, vitest, happy-dom, Biome) bumped to current TS6-compatible versions with the full test suite green
 - [ ] **TOOL-04**: `cz-conventional-changelog` replaced by maintained `cz-git`; the commitizen flow still emits conventional commits
@@ -75,7 +75,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | TS6-01 | Phase 7 | Pending |
 | TS6-02 | Phase 7 | Pending |
 | TS6-03 | Phase 7 | Pending |
-| TOOL-01 | Phase 6 | Pending |
+| TOOL-01 | Phase 6 | Complete |
 | TOOL-02 | Phase 6 | Pending |
 | TOOL-03 | Phase 6 | Pending |
 | TOOL-04 | Phase 6 | Pending |
@@ -90,11 +90,13 @@ Which phases cover which requirements. Populated during roadmap creation.
 | ROB-05 | Phase 9 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 16 total
 - Mapped to phases: 16 ✓
 - Unmapped: 0 ✓
 
 **Per-phase distribution:**
+
 - Phase 6 — Toolchain Audit & Modernization: TOOL-01, TOOL-02, TOOL-03, TOOL-04, TOOL-05 (5)
 - Phase 7 — TypeScript 6 Migration & Standalone Typecheck: TS6-01, TS6-02, TS6-03 (3)
 - Phase 8 — Forward-Compat Typing: FCT-01, FCT-02, FCT-03, FCT-04 (4)

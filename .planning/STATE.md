@@ -2,17 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: TypeScript 6 Migration & Toolchain Modernization
-current_phase: 6
-status: planning
-stopped_at: Phase 6 context gathered
-last_updated: "2026-07-15T07:02:33.301Z"
+current_phase: 06
+current_phase_name: toolchain-audit-modernization
+status: executing
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-07-15T16:45:49.730Z"
 last_activity: 2026-07-15
-last_activity_desc: v1.1 roadmap created (Phases 6–9)
+last_activity_desc: Phase 06 execution started
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 5
+  completed_plans: 1
   percent: 0
 ---
 
@@ -23,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** DxKit stays trustworthy for real use — failures are visible (never silent), documented behavior matches actual behavior, and the alpha is stable enough to build on with confidence.
-**Current focus:** v1.1 roadmap created — 4 phases (6–9), 16/16 requirements mapped. Ready for phase planning starting at Phase 6.
+**Current focus:** Phase 06 — toolchain-audit-modernization
 
 ## Current Position
 
-Phase: 6 — Toolchain Audit & Modernization (not started)
-Plan: —
-Status: Roadmap complete; awaiting phase planning
-Last activity: 2026-07-15 — v1.1 roadmap created (Phases 6–9)
+Phase: 06 (toolchain-audit-modernization) — EXECUTING
+Plan: 2 of 5
+Status: Ready to execute
+Last activity: 2026-07-15 — Phase 06 execution started
 
 ## Milestone Phase Map (v1.1)
 
@@ -94,6 +95,7 @@ Phase 7) is a precondition — it must exist before/with the TS6 bump and before
 | Phase 05 P06 | 35min | 2 tasks | 4 files |
 | Phase 05 P07 | 20min | 2 tasks | 2 files |
 | Phase 05 P08 | 19min | 3 tasks | 14 files |
+| Phase 06 P01 | 6min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -127,6 +129,9 @@ Recent decisions affecting current work:
 - [Phase 05-08]: Mechanical tsc-based doc snippet compile-check caught 2 real API-shape bugs eyeball review missed — mechanical verification against real types is strictly more reliable.
 
 </details>
+
+- [Phase 06-01]: Node floor raised to Node >=22 (not 20, since Node 20 is also EOL); engines + .npmrc engine-strict=true landed as one atomic commit since neither alone enforces the floor — engines alone is advisory-only under pnpm; engine-strict is the load-bearing mechanism (D-05/D-06)
+- [Phase 06-01]: Migration note for the Node engines bump recommends Node 22.12+ or Node 24 specifically, not just Node 22, because Vite 8's own floor (^20.19.0 || >=22.12.0) is narrower than DxKit's >=22 — avoids a confusing two-stage failure where a contributor passes the engine-strict gate on Node 22.0-22.11 but then fails inside vitest/vite
 
 ### Pending Todos
 
@@ -168,10 +173,10 @@ Items acknowledged and carried forward:
 
 ## Session Continuity
 
-Last session: 2026-07-15T07:02:33.291Z
-Stopped at: Phase 6 context gathered
+Last session: 2026-07-15T16:45:49.714Z
+Stopped at: Completed 06-01-PLAN.md
 Resume file:
-.planning/phases/06-toolchain-audit-modernization/06-CONTEXT.md
+None
 
 ## Operator Next Steps
 
