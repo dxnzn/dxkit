@@ -1,109 +1,126 @@
 ---
 phase: 06-toolchain-audit-modernization
-reviewed: 2026-07-15T17:11:53Z
+reviewed: 2026-07-15T19:10:34Z
 depth: standard
-files_reviewed: 10
+files_reviewed: 7
 files_reviewed_list:
-  - .github/workflows/ci.yml
-  - .npmrc
-  - Makefile
-  - biome.json
   - package.json
   - plugins/auth/package.json
-  - plugins/settings/package.json
-  - plugins/theme/package.json
   - plugins/wallet/package.json
-  - tests/lifecycle.test.ts
+  - plugins/theme/package.json
+  - plugins/settings/package.json
+  - .github/workflows/ci.yml
+  - Makefile
 findings:
-  critical: 1
-  warning: 3
-  info: 0
-  total: 4
+  critical: 0
+  warning: 1
+  info: 2
+  total: 3
 status: issues_found
 ---
 
-# Phase 06: Code Review Report
+# Phase 06: Code Review Report (Gap-Closure Re-Review)
 
-**Reviewed:** 2026-07-15T17:11:53Z
+**Reviewed:** 2026-07-15T19:10:34Z
 **Depth:** standard
-**Files Reviewed:** 10
+**Files Reviewed:** 7
 **Status:** issues_found
 
 ## Summary
 
-This phase raised the Node engines floor to `>=22` with `engine-strict=true`, moved CI to Node `[22, 24]`, bumped tsup/vite/vitest/happy-dom/Biome, swapped `cz-conventional-changelog` for `cz-git`, and added a `verify-outputs` Makefile target.
+This is a re-review of the three gap-closure commits (`13f7766`, `00e586e`, `aaac2c7`) written to
+close CR-01, WR-01, and WR-02 from the original `06-REVIEW.md`. All three targeted gaps were
+verified directly against the installed toolchain (actual `engines` fields read out of
+`node_modules/.pnpm/.../package.json`, not just trusted from commit messages) and against `make`
+prerequisite semantics — **all three are cleanly closed with no new Critical/BLOCKER issues.**
+Two minor residual findings were surfaced in the same files (below), plus a note on the prior
+review's WR-03 (`@types/node`) which remains outstanding but was explicitly out of scope for this
+gap-closure cycle.
 
-Version consistency across the five `package.json` files is clean: all are `0.2.1`, all declare `engines.node: ">=22"`, all point at the same repo. The Biome schema bump (2.5.1 → 2.5.4) matches the dep bump, and the reformatted `tests/lifecycle.test.ts` is a whitespace-only Biome reflow with no behavioral change. `cz-git` resolves correctly and the commitizen `path` uses cz-git's documented form.
+**CR-01 (engines range) — CLOSED, correctly.** `engines.node` now reads
+`^22.12.0 || >=24.0.0` in all five `package.json` files (root + 4 plugins), changed in lockstep in
+a single commit (`13f7766`). I confirmed the actual installed ranges rather than trusting the
+commit message: `vite@8.1.4` declares `^20.19.0 || >=22.12.0` and `vitest@4.1.10` declares
+`^20.0.0 || ^22.0.0 || >=24.0.0`. `^22.12.0` (22.12.0–22.999) is a subset of both `>=22.12.0`
+(vite) and `^22.0.0` (vitest, since 22.12.0–22.999 ⊂ 22.0.0–22.999); `>=24.0.0` matches both
+exactly. So every Node version the project now declares supported is accepted by both pinned
+tools under `engine-strict=true` (`.npmrc:3`) — the original defect (`>=22`, which admitted
+22.0.0–22.11.x that vite's `>=22.12.0` floor rejects, and admitted 23.x that vitest rejects) is
+narrowed in the *correct* direction: to the actual intersection, not an arbitrary tightening.
+`pnpm-lock.yaml` is confirmed unchanged by this commit (`git diff 13f7766~1..13f7766 --
+pnpm-lock.yaml` is empty), consistent with a metadata-only edit.
 
-The central defect is in the very thing this phase set out to harden: the declared `engines.node` range is self-contradictory with the toolchain versions pinned this phase, and `engine-strict=true` is exactly the flag that converts that contradiction into a hard `pnpm install` failure. The CI matrix `[22, 24]` happens to sidestep every failing point, so CI stays green while the declared support contract is wrong — the opposite of the milestone's "documented behavior matches actual behavior" goal. Two secondary issues: the new `verify-outputs` safeguard is never invoked by any automated flow, and the toolchain now type-checks against `@types/node@25` while shipping to a Node 22 runtime floor.
+**WR-02 (CI matrix floor pinning) — CLOSED, correctly.** `node-version: ['22.12.0', 24]` pins the
+exact floor patch on the low leg (quoting is redundant but harmless — a two-dot value like
+`22.12.0` can't be misparsed as a YAML number even unquoted) while `24` stays unquoted/floating to
+continue testing "latest 24.x". `pnpm/action-setup@v4` still precedes `actions/setup-node@v4` with
+`cache: pnpm` — required ordering, since `setup-node`'s pnpm-cache resolution shells out to `pnpm
+store path`, unavailable until `pnpm/action-setup` has installed pnpm. Ordering is intact.
 
-## Critical Issues
-
-### CR-01: `engines.node: ">=22"` is self-contradictory with the pinned toolchain under `engine-strict=true`
-
-**File:** `package.json:8-10` (mirrored in all four plugin `package.json` `engines` fields); `.npmrc:3`
-**Issue:**
-The declared floor `>=22` admits Node versions that the devDependencies bumped this phase explicitly reject, and `.npmrc`'s `engine-strict=true` turns those mismatches into install-time failures — provable directly from `pnpm-lock.yaml`:
-
-- `vite@8.1.4` (and 16 related packages) declare `engines: {node: ^20.19.0 || >=22.12.0}`. Node `22.0.0`–`22.11.x` satisfy the project's `>=22` floor but **fail** vite's constraint. A contributor on, say, Node 22.9 hits an `Unsupported engine` failure on `pnpm install --frozen-lockfile`.
-- `vitest@4.1.10` declares `engines: {node: ^20.0.0 || ^22.0.0 || >=24.0.0}`. Node `23.x` is a legitimate release inside the declared `>=22` range, but satisfies **neither** `^22` nor `>=24`, so it also fails under `engine-strict`.
-
-The CI matrix `[22, 24]` masks this entirely: GitHub Actions resolves bare `22` to the latest 22.x (which is `>22.12`) and `24` is fine, so no CI leg ever exercises the broken sub-ranges (`22.0–22.11`, all of `23.x`). The result is a green pipeline over an inaccurate, self-contradictory engines contract — the exact "documented vs. actual" drift this milestone exists to eliminate.
-
-**Fix:**
-Tighten the floor to the real minimum the toolchain supports, matching vite's constraint, so `engine-strict` and the declared range agree. Apply to the root and all four plugins:
-```json
-"engines": {
-  "node": "^22.12.0 || >=24.0.0"
-}
-```
-This excludes the pre-`22.12` patch releases (vite) and the unsupported `23.x` line (vitest), and keeps CI's `[22, 24]` legs valid. Update the CI matrix to also pin a lower-bound leg (e.g. `22.12`) so the declared floor is actually exercised rather than silently rounded up to latest.
+**WR-01 (verify-outputs wiring) — CLOSED, correctly.** `release` and `publish` Makefile targets
+now declare `build verify-outputs test` (was `build test`). Because these are ordinary (not
+order-only) prerequisites invoked by a single sequential `make` process, GNU Make evaluates them
+left-to-right and halts the whole target if any prerequisite's recipe exits non-zero — so a
+`verify-outputs` failure blocks `test` and the target's own recipe from ever running.
+`verify-outputs` is listed in `.PHONY` so it always executes rather than being skipped due to a
+same-named file matching. `.github/workflows/ci.yml` independently adds `make verify-outputs` as
+a discrete step between `make build` and `make test`, gating the CI path the same way. I traced
+the loop bodies in `Makefile:77-95`: it checks 3 filenames for the root package, then for each of
+the 4 `PLUGIN_BUILD_ORDER` entries (which correctly carry a trailing `/`, matching the
+`$$dir$$f` string concatenation) — 15 checks total, matching the target's own "3 formats x 5
+packages" claim. All three automated paths (CI, release, publish) now fail closed on a dropped
+build output.
 
 ## Warnings
 
-### WR-01: `verify-outputs` is added but never invoked by CI, `release`, or `publish` — the safeguard is inert
+### WR-01: `Makefile` `.PHONY` lists a nonexistent `format` target and omits the real `lint-format` target
 
-**File:** `Makefile:77-95`; `.github/workflows/ci.yml:22-24`
-**Issue:**
-The new `verify-outputs` target asserts all three output formats exist for all five packages, but nothing runs it automatically. CI runs `make build` then `make test` (ci.yml:23-24) and never calls `verify-outputs`. `publish: build test` (Makefile:71) and `release: build test` (Makefile:64) also skip it. So if `tsup` silently stops emitting an IIFE (`dist/index.global.js`) for a plugin, CI stays green and `make publish` will ship a package missing a documented format — the precise regression this target was written to catch. A guard that never runs provides no protection.
-
+**File:** `Makefile:7,30`
+**Issue:** `.PHONY` (line 7) lists `format`, but no target named `format` exists in the Makefile
+— the actual target is `lint-format` (line 30, `README.md`'s `make lint-format` refers to it),
+which is *not* declared phony. This is pre-existing — unchanged by the three gap-closure commits
+(`git diff aaac2c7~1..aaac2c7 -- Makefile` touches only the `release`/`publish` prerequisite
+lines) — but it's a real defect in a file under review, and the review brief explicitly asked for
+`.PHONY` correctness to be checked. Practical impact: if a file or directory literally named
+`lint-format` is ever created at the repo root (editor swap file, generated artifact, etc.), `make
+lint-format` would silently no-op instead of running `biome format --write .`, because Make would
+treat the target as already up to date against that file. The dangling `format` entry is inert
+but misleading, since it names a target that doesn't exist.
 **Fix:**
-Wire it into the automated paths. In CI, add a step after build:
-```yaml
-      - run: make build
-      - run: make verify-outputs
-      - run: make test
-```
-And gate publishing on it so a broken build can't be released:
 ```makefile
-publish: build verify-outputs test
-release: build verify-outputs test
+.PHONY: setup build test test-watch lint lint-fix lint-format clean superclean audit commit publish release verify-outputs
 ```
 
-### WR-02: CI never exercises the declared engines floor, so CR-01 is invisible to the pipeline
+## Info
 
-**File:** `.github/workflows/ci.yml:12-14`
-**Issue:**
-The matrix `node-version: [22, 24]` uses bare major versions, which `actions/setup-node` resolves to the latest patch of each line. Combined with `engine-strict=true`, this means CI only ever installs on Node versions that satisfy every dependency's engines — it can never catch a floor that is set too low or a hole in the supported range (both present in CR-01). The engines contract this phase introduced is therefore untested by the phase's own CI.
-**Fix:**
-Add an explicit lower-bound leg that matches the intended floor so `engine-strict` validates it, e.g. `node-version: ['22.12', 22, 24]` (or whatever floor CR-01 settles on). Pinning at least one exact patch version makes the floor a tested contract rather than an assumption.
+### IN-01: Inconsistent `engines` field formatting between root and plugin `package.json` files
 
-### WR-03: Toolchain type-checks against `@types/node@25` while the runtime floor is Node 22
-
-**File:** `package.json:44-54` (transitively; `pnpm-lock.yaml` resolves `@types/node@25.5.0`)
-**Issue:**
-vite 8, vitest 4, and commitizen all resolve `@types/node@25.5.0`. Type-checking and build tooling therefore see Node 25's API surface, while `engines.node` promises the code runs on Node 22. Any Node 23/24/25-only API used in `src/` or plugin sources would type-check clean yet throw at runtime on the declared floor — a silent hole in the "failures are visible" posture. This is lower severity than CR-01 because `@types/node` is pulled transitively, not declared, and DxKit's runtime is browser/IIFE-oriented, but it still means the type checker is not validating against the supported runtime.
-**Fix:**
-Pin `@types/node` to the supported major as a direct devDependency so types track the runtime floor:
+**File:** `package.json:8-10`, `plugins/auth/package.json:13`, `plugins/wallet/package.json:13`, `plugins/theme/package.json:13`, `plugins/settings/package.json:13`
+**Issue:** Root `package.json` formats `engines` as a multi-line block; all four plugin
+`package.json` files use a single-line `{ "node": "..." }` form. The gap-closure commit
+(`13f7766`) updated the value identically in all five files but preserved this pre-existing split.
+`npx biome check package.json ...` reports these paths as ignored by Biome's configuration, so the
+inconsistency isn't caught by `make lint`. Purely cosmetic, no functional impact.
+**Fix:** Normalize to one style, e.g. matching the plugins' single-line convention in root:
 ```json
-"devDependencies": {
-  "@types/node": "^22.12.0"
-}
+"engines": { "node": "^22.12.0 || >=24.0.0" },
 ```
-Re-run `pnpm install` to update the lockfile resolution.
+
+### IN-02: Prior WR-03 (`@types/node@25` vs. Node 22 runtime floor) remains open — out of scope for this gap-closure cycle
+
+**File:** `package.json` (transitive; `pnpm-lock.yaml` still resolves `@types/node@25.5.0`)
+**Issue:** The original `06-REVIEW.md` WR-03 flagged that vite/vitest/commitizen transitively
+pull `@types/node@25.5.0` even though `engines.node` promises a Node 22/24 floor, so type-checking
+sees a newer API surface than the runtime guarantee. `@types/node` is still not pinned as a direct
+devDependency in the current `package.json`, and the resolved lockfile version is unchanged. This
+finding was not one of the three gaps this cycle's commits (`13f7766`, `00e586e`, `aaac2c7`) were
+scoped to close, so it is not a defect introduced by this pass — noting it here only so it isn't
+silently dropped from tracking.
+**Fix:** Unchanged from the original review — pin `@types/node` to the supported major as a
+direct devDependency (`"@types/node": "^22.12.0"`) and re-run `pnpm install`, in a future pass.
 
 ---
 
-_Reviewed: 2026-07-15T17:11:53Z_
+_Reviewed: 2026-07-15T19:10:34Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
