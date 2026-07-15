@@ -9,8 +9,11 @@ and targets static/IPFS deployment via IIFE builds alongside ESM/CJS for bundler
 for developers assembling small, decoupled dapps (mounted one at a time into `#dx-mount`)
 that talk to the shell only through `window.__DXKIT__`.
 
-The framework is in alpha (0.1.5). This milestone hardens it toward beta — not beta yet,
-but meaningfully more robust — and brings all documentation back into truth with the code.
+The v1.0 "Beta Hardening" milestone shipped as 0.2.0: previously silent failures are now
+visible via `dx:error`, the shell can't hang or leak state across disabled dapps, an optional
+template sanitizer and configurable storage keys close the two concrete security risks, a stress
+suite proves last-navigation-wins, and every doc is verified against the final code. Still
+alpha-track by version, but meaningfully more robust and fully documentation-truthful.
 
 ## Core Value
 
@@ -74,15 +77,15 @@ confidence.
 - [x] Manifest-validation edge-case tests (bad route formats, merge behavior) — validated Phase 4
 - [x] Settings handler cleanup + tests for `disableDapp()` (no handler leaks / firing on disabled dapps) — validated Phase 2; end-to-end shell regression added Phase 4
 
-**Hardening — security posture** — ✓ validated Phase 3 (CSP guidance deferred to Phase 5 docs pass)
+**Hardening — security posture** — ✓ validated Phase 3 + Phase 5
 - [x] Optional template sanitizer hook on the lifecycle manager
 - [x] Configurable wallet storage key (avoid same-origin collisions)
-- [ ] CSP guidance documented for `innerHTML` templates + external scripts
+- [x] CSP guidance documented for `innerHTML` templates + external scripts — validated Phase 5 (`docs/security.md`)
 
-**Docs — truth pass**
-- [ ] Verify every framework + plugin doc and README against code (code is truth); correct drift
-- [ ] Remove "AI tells" / slop from docs (filler, hedging, restated obviousness, invented detail)
-- [ ] Fill documentation gaps surfaced by the concerns audit (CSP guide, security/limitations notes)
+**Docs — truth pass** — ✓ validated Phase 5
+- [x] Verify every framework + plugin doc and README against code (code is truth); correct drift — validated Phase 5 (DOC-01)
+- [x] Remove "AI tells" / slop from docs (filler, hedging, restated obviousness, invented detail) — validated Phase 5 (DOC-02)
+- [x] Fill documentation gaps surfaced by the concerns audit (CSP guide, security/limitations notes) — validated Phase 5 (DOC-03)
 
 ### Out of Scope
 
@@ -105,6 +108,21 @@ confidence.
   types and factory functions.
 - **Plugin lockstep versioning.** Core + all plugins release at the same version (enforced by
   `.versionrc.json`) — a 0.2.0 bump moves everything together.
+- **Shipped state (v1.0 / 0.2.0).** ~2,986 LOC TypeScript source (core + 4 plugins), ~5,932 LOC
+  tests across 321 passing vitest specs. Zero runtime dependencies maintained. 15/15 milestone
+  requirements validated across 5 phases (DIAG, ROB, SEC, TEST, DOC). Three breaking changes
+  shipped with migration notes (nested `ShellConfig.lifecycle`, load-timeout defaults, sanitizer hook).
+
+## Next Milestone Goals
+
+Candidate scope for the next milestone (carried forward from Out of Scope — not yet committed):
+
+- **TypeScript 6 migration** — deferred from this milestone; the largest standalone modernization.
+- **Storage encryption** for persisted settings/wallet state (STOR-01 territory) — larger design effort.
+- **Robustness follow-up (WR-01 tier):** `loadManifests()` does not validate registry.json is an
+  array; a wrong-shape 200 throws an uncaught `TypeError` in `init()` before `window.__DXKIT__` is
+  exposed. Surfaced by the Phase 5 code review (`05-REVIEW.md`); a good beta-hardening carryover.
+- Possible new routing features (wildcard / `:param`) if consumer demand appears — a feature, not hardening.
 
 ## Constraints
 
@@ -120,11 +138,12 @@ confidence.
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Scope milestone as "harden toward beta", ship as 0.2.0 | Alpha is field-stable; increase robustness + doc trust without a feature push | — Pending |
-| Target all four hardening tracks (silent failures, robustness, tests, security) | Concerns audit shows they're interrelated; a partial pass leaves obvious gaps | — Pending |
-| Docs pass = verify-against-code + slop cleanup + gap-fill | "Code is truth"; drift and AI slop erode trust as much as bugs | — Pending |
-| Breaking changes allowed but justified + migration-documented | Still alpha, but consumers exist; churn must earn its keep | — Pending |
-| Defer TS6, new routing, encryption, cross-dapp state | Each is a feature/large effort orthogonal to hardening; keep the milestone focused | — Pending |
+| Scope milestone as "harden toward beta", ship as 0.2.0 | Alpha is field-stable; increase robustness + doc trust without a feature push | ✓ Good — shipped v1.0, 5 phases, 15/15 reqs, 321 tests green |
+| Target all four hardening tracks (silent failures, robustness, tests, security) | Concerns audit shows they're interrelated; a partial pass leaves obvious gaps | ✓ Good — all four tracks landed and verified |
+| Docs pass = verify-against-code + slop cleanup + gap-fill | "Code is truth"; drift and AI slop erode trust as much as bugs | ✓ Good — every doc snippet compile-checked; drift log is DOC-01 proof |
+| Breaking changes allowed but justified + migration-documented | Still alpha, but consumers exist; churn must earn its keep | ✓ Good — nested `ShellConfig.lifecycle` (D-04/05) shipped with migration section |
+| `ShellConfig.lifecycle` nested group replaces flat loader passthrough | Only way to reach the sanitizer/timeout/cache config from `createShell()` | ✓ Good — runtime throw guards untyped consumers |
+| Defer TS6, new routing, encryption, cross-dapp state | Each is a feature/large effort orthogonal to hardening; keep the milestone focused | ✓ Good — kept the milestone focused; carried to next-milestone candidates |
 
 ## Evolution
 
@@ -144,4 +163,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-14 — Phase 5 complete (documentation truth pass: all framework + plugin docs and README verified against 0.2.0 code, folded fixes D-15/D-16/D-17 landed, AI-generated filler removed, every doc TS snippet compile-checked against real types, new docs/security.md published with CSP guidance + DOMPurify recipes + limitations inventory; 321 tests green). Milestone v1.0 hardening complete — all 5 phases done.)*
+*Last updated: 2026-07-15 after v1.0 milestone (Beta Hardening, shipped as 0.2.0) — all 5 phases verified, 15/15 requirements validated, PR #5 merged to main, tagged v1.0.*
