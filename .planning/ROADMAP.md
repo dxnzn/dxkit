@@ -53,7 +53,7 @@ storage keys, a stress/edge-case/regression test suite, and a full documentation
 
 **🚧 v1.1 TypeScript 6 Migration & Toolchain Modernization (Phases 6–9)**
 
-- [ ] **Phase 6: Toolchain Audit & Modernization** - Dev toolchain on current TS6-compatible versions with an enforced Node 22 LTS floor; all three build outputs still emit.
+- [x] **Phase 6: Toolchain Audit & Modernization** - Dev toolchain on current TS6-compatible versions with an enforced Node 22 LTS floor; all three build outputs still emit. (completed 2026-07-15)
 - [ ] **Phase 7: TypeScript 6 Migration & Standalone Typecheck** - A per-package `tsc --noEmit` baseline lands, then core + 4 plugins compile clean on TS6 with zero deprecation shims.
 - [ ] **Phase 8: Forward-Compat Typing** - `verbatimModuleSyntax` + `isolatedDeclarations` + `erasableSyntaxOnly` on across all packages, verified against the built IIFE/CJS artifacts.
 - [ ] **Phase 9: Continuous Debt Guardrails & Registry Robustness** - Scoped CI deprecation gate, zero-runtime-dep assertion, Renovate automation, and the WR-01 registry array-shape fix.
@@ -73,7 +73,7 @@ storage keys, a stress/edge-case/regression test suite, and a full documentation
   4. The commitizen flow uses maintained `cz-git` (unmaintained `cz-conventional-changelog` removed) and still emits conventional commits.
   5. All three build outputs (ESM `dist/index.js`, CJS `dist/index.cjs`, IIFE `dist/index.global.js`) are still produced per package and confirmed present after the toolchain bumps.
 
-**Plans**: 4/5 plans executed
+**Plans**: 5/5 plans complete
 **Wave 1**
 
 - [x] 06-01-PLAN.md — Node 22 floor + engine-strict enforcement across all 5 package.json + .npmrc (TOOL-01)
@@ -89,7 +89,7 @@ storage keys, a stress/edge-case/regression test suite, and a full documentation
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 06-05-PLAN.md — Build-output existence verification, 3 formats × 5 packages (TOOL-05)
+- [x] 06-05-PLAN.md — Build-output existence verification, 3 formats × 5 packages (TOOL-05)
 
 **Breaking change**: Node `engines` floor raised to ≥22 (drops Node 18/20). Requires a `BREAKING CHANGE:` footer + migration note (contributors/consumers must be on Node 22 LTS).
 
@@ -148,7 +148,7 @@ v1.1 phases execute in numeric order: 6 → 7 → 8 → 9
 | 3. Security — Sanitization & Storage Isolation | v1.0 | 3/3 | Complete | 2026-07-12 |
 | 4. Testing — Stress, Edge-Case & Regression Coverage | v1.0 | 6/6 | Complete | 2026-07-14 |
 | 5. Documentation — Truth Pass | v1.0 | 8/8 | Complete | 2026-07-14 |
-| 6. Toolchain Audit & Modernization | v1.1 | 4/5 | In Progress|  |
+| 6. Toolchain Audit & Modernization | v1.1 | 5/5 | Complete   | 2026-07-15 |
 | 7. TypeScript 6 Migration & Standalone Typecheck | v1.1 | 0/? | Not started | - |
 | 8. Forward-Compat Typing | v1.1 | 0/? | Not started | - |
 | 9. Continuous Debt Guardrails & Registry Robustness | v1.1 | 0/? | Not started | - |
