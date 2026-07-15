@@ -38,14 +38,14 @@
   },
   "config": {
     "commitizen": {
-      "path": "cz-conventional-changelog"
+      "path": "node_modules/cz-git"
     }
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.4",
     "commit-and-tag-version": "^12.7.3",
     "commitizen": "^4.3.2",
-    "cz-conventional-changelog": "^3.3.0",
+    "cz-git": "^1.13.1",
     "happy-dom": "^20.10.6",
     "tsup": "^8.5.1",
     "typescript": "^5.8.3",

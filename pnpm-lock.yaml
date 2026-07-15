@@ -21,9 +21,9 @@ importers:
       commitizen:
         specifier: ^4.3.2
         version: 4.3.2(@types/node@25.5.0)(typescript@5.9.3)
-      cz-conventional-changelog:
-        specifier: ^3.3.0
-        version: 3.3.0(@types/node@25.5.0)(typescript@5.9.3)
+      cz-git:
+        specifier: ^1.13.1
+        version: 1.13.1
       happy-dom:
         specifier: ^20.10.6
         version: 20.10.6
@@ -953,6 +953,10 @@ packages:
   cz-conventional-changelog@3.3.0:
     resolution: {integrity: sha512-U466fIzU5U22eES5lTNiNbZ+d8dfcHcssH4o7QsdWaCcRs/feIPCxKYSWkYBNs5mny7MvEfwpTLWjvbm94hecw==}
     engines: {node: '>= 10'}
+
+  cz-git@1.13.1:
+    resolution: {integrity: sha512-xeMA5ci+gkBY6uKmqc6nzhG/Q4pmK1DKbVVUgByOTBgregoiYE0f3otEF0ADelyEWH4vNsO1W2o7QZYEe7Nwlw==}
+    engines: {node: '>=v12.20.0'}
 
   dargs@7.0.0:
     resolution: {integrity: sha512-2iy1EkLdlBzQGvbweYRFxmFath8+K7+AKB0TlhHWkNuH+TmovaMH/Wp7V7R4u7f4SnX3OgLsU9t1NI9ioDnUpg==}
@@ -2933,6 +2937,8 @@ snapshots:
     transitivePeerDependencies:
       - '@types/node'
       - typescript
+
+  cz-git@1.13.1: {}
 
   dargs@7.0.0: {}
 
