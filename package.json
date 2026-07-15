@@ -5,7 +5,9 @@
   "author": "Denizen. <null@dnzn.dev>",
   "license": "MIT",
   "packageManager": "pnpm@10.32.1",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/dxnzn/dxkit"
@@ -40,7 +42,7 @@
     }
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.1",
+    "@biomejs/biome": "^2.5.4",
     "commit-and-tag-version": "^12.7.3",
     "commitizen": "^4.3.2",
     "cz-conventional-changelog": "^3.3.0",
