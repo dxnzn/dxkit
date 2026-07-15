@@ -22,7 +22,7 @@ Requirements for this milestone. Each maps to a roadmap phase.
 ### Toolchain Modernization
 
 - [x] **TOOL-01**: `engines` in every package.json requires Node ≥22 (Node 22 LTS floor); a wrong-Node install fails fast (engine-strict)
-- [ ] **TOOL-02**: CI runs on Node 22 and no longer tests EOL Node 18/20
+- [x] **TOOL-02**: CI runs on Node 22 and no longer tests EOL Node 18/20
 - [ ] **TOOL-03**: Build/test/lint tooling (tsup, vite, vitest, happy-dom, Biome) bumped to current TS6-compatible versions with the full test suite green
 - [ ] **TOOL-04**: `cz-conventional-changelog` replaced by maintained `cz-git`; the commitizen flow still emits conventional commits
 - [ ] **TOOL-05**: All three build outputs (ESM / CJS / IIFE) are still produced per package and verified after the toolchain bumps
@@ -76,7 +76,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | TS6-02 | Phase 7 | Pending |
 | TS6-03 | Phase 7 | Pending |
 | TOOL-01 | Phase 6 | Complete |
-| TOOL-02 | Phase 6 | Pending |
+| TOOL-02 | Phase 6 | Complete |
 | TOOL-03 | Phase 6 | Pending |
 | TOOL-04 | Phase 6 | Pending |
 | TOOL-05 | Phase 6 | Pending |
