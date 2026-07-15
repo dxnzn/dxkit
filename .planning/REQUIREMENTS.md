@@ -72,28 +72,34 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TS6-01 | Phase [N] | Pending |
-| TS6-02 | Phase [N] | Pending |
-| TS6-03 | Phase [N] | Pending |
-| TOOL-01 | Phase [N] | Pending |
-| TOOL-02 | Phase [N] | Pending |
-| TOOL-03 | Phase [N] | Pending |
-| TOOL-04 | Phase [N] | Pending |
-| TOOL-05 | Phase [N] | Pending |
-| FCT-01 | Phase [N] | Pending |
-| FCT-02 | Phase [N] | Pending |
-| FCT-03 | Phase [N] | Pending |
-| FCT-04 | Phase [N] | Pending |
-| GATE-01 | Phase [N] | Pending |
-| GATE-02 | Phase [N] | Pending |
-| GATE-03 | Phase [N] | Pending |
-| ROB-05 | Phase [N] | Pending |
+| TS6-01 | Phase 7 | Pending |
+| TS6-02 | Phase 7 | Pending |
+| TS6-03 | Phase 7 | Pending |
+| TOOL-01 | Phase 6 | Pending |
+| TOOL-02 | Phase 6 | Pending |
+| TOOL-03 | Phase 6 | Pending |
+| TOOL-04 | Phase 6 | Pending |
+| TOOL-05 | Phase 6 | Pending |
+| FCT-01 | Phase 8 | Pending |
+| FCT-02 | Phase 8 | Pending |
+| FCT-03 | Phase 8 | Pending |
+| FCT-04 | Phase 8 | Pending |
+| GATE-01 | Phase 9 | Pending |
+| GATE-02 | Phase 9 | Pending |
+| GATE-03 | Phase 9 | Pending |
+| ROB-05 | Phase 9 | Pending |
 
 **Coverage:**
 - v1 requirements: 16 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 16 ⚠️
+- Mapped to phases: 16 ✓
+- Unmapped: 0 ✓
+
+**Per-phase distribution:**
+- Phase 6 — Toolchain Audit & Modernization: TOOL-01, TOOL-02, TOOL-03, TOOL-04, TOOL-05 (5)
+- Phase 7 — TypeScript 6 Migration & Standalone Typecheck: TS6-01, TS6-02, TS6-03 (3)
+- Phase 8 — Forward-Compat Typing: FCT-01, FCT-02, FCT-03, FCT-04 (4)
+- Phase 9 — Continuous Debt Guardrails & Registry Robustness: GATE-01, GATE-02, GATE-03, ROB-05 (4)
 
 ---
 *Requirements defined: 2026-07-15*
-*Last updated: 2026-07-15 after initial definition*
+*Last updated: 2026-07-15 after roadmap creation — all 16 v1 requirements mapped to Phases 6–9*
