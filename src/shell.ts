@@ -28,6 +28,11 @@ export function createShell(config: ShellConfig = {}): Shell {
     );
   }
 
+  // D-15: captured before the destructure default below erases whether the caller actually
+  // passed registryUrl — gates the registry-failure dx:error emit so the default /registry.json
+  // probe (an expected absence for dapps/manifests-only consumers) stays silent.
+  const registryUrlExplicit = Object.hasOwn(config, 'registryUrl');
+
   const {
     plugins = {},
     dapps: dappEntries,
@@ -133,6 +138,14 @@ export function createShell(config: ShellConfig = {}): Shell {
 
     enabledState.set(id, false);
     if (initialized) {
+      // D-16: captured against the OLD router, before rebuildRouter() below swaps in one that
+      // excludes the disabled dapp — resolve() against the current router still reflects
+      // whether the active browser path belonged to the dapp being disabled.
+      const routeOwnedByDisabledDapp = router.resolve(router.getCurrentPath())?.id === id;
+      // Captured before rebuildRouter() (which may call lifecycle.unmount()) so it still
+      // reflects whether `id`'s mount was committed at the moment disableDapp() was called.
+      const wasUncommittedMount = lifecycle.getCurrentDapp() !== id;
+
       // rebuildRouter() only acts on lifecycle.getCurrentDapp(), which is null for a mount
       // still in flight — this closes that gap so a disabled dapp's not-yet-committed mount
       // is abandoned too (D-03 scenario 1).
@@ -141,6 +154,15 @@ export function createShell(config: ShellConfig = {}): Shell {
       // mounts fresh instead of being dropped by the stale dedupe slot (D-01, CR-01).
       if (pendingMountId === id) releasePendingMount();
       rebuildRouter();
+
+      // D-16: rebuildRouter()'s own navigate-to-/ branch only fires for a COMMITTED mount
+      // (lifecycle.getCurrentDapp() non-null) — an in-flight (uncommitted) mount for the
+      // disabled dapp's active route falls through that gate. Converge the OUTCOME here
+      // (both disable paths end at /) without collapsing the two branches — they stay
+      // distinct so a committed disable's unmount() call isn't duplicated.
+      if (routeOwnedByDisabledDapp && wasUncommittedMount) {
+        router.navigate('/');
+      }
     }
     events.emit('dx:dapp:disabled', { id });
   }
@@ -236,11 +258,32 @@ export function createShell(config: ShellConfig = {}): Shell {
 
     try {
       const res = await fetch(registryUrl);
-      if (res.ok) {
-        return await res.json();
+      if (!res.ok) {
+        // D-15: explicit registryUrl is a deliberate config choice — a non-OK response is
+        // surfaced like every other manifest-load failure. The default probe path (registryUrl
+        // omitted) stays silent below — absence of /registry.json is an expected state.
+        if (registryUrlExplicit) {
+          const statusInfo = typeof res.status === 'number' ? ` (status ${res.status})` : '';
+          events.emit('dx:error', {
+            source: 'shell:manifest',
+            error: new Error(`Failed to fetch registry from ${registryUrl}${statusInfo} — non-OK response`),
+          });
+        }
+        return [];
       }
-    } catch {
-      // No registry.json — that's fine
+      return await res.json();
+    } catch (err) {
+      // D-15: mirrors loadDappManifest()'s unified network/parse-failure message — covers both
+      // a fetch throw and a res.json() parse failure indiscriminately.
+      if (registryUrlExplicit) {
+        events.emit('dx:error', {
+          source: 'shell:manifest',
+          error: new Error(
+            `Failed to load registry from ${registryUrl} — request failed or response was not valid JSON: ${err instanceof Error ? err.message : String(err)}`,
+            { cause: err },
+          ),
+        });
+      }
     }
 
     return [];

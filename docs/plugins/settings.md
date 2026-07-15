@@ -15,8 +15,8 @@ Per-dapp configuration with localStorage persistence. Reads setting definitions 
 ```js
 const shell = DxKit.createShell({
   plugins: {
-    theme: DxTheme.createCSSTheme(),
-    settings: DxSettings.createSettings(), // register last
+    settings: DxSettings.createSettings(),
+    theme: DxTheme.createCSSTheme(), // after settings — its init() writes to dx.settings
   },
   manifests: [/* ... */],
 });
@@ -55,7 +55,7 @@ interface SettingsPluginOptions {
 |--------|------|---------|-------------|
 | `storageKey` | `string` | `'dxkit:settings'` | localStorage key for persistence |
 
-**Register last.** The settings plugin reads setting definitions from all other plugins and manifests during `init()`. Plugins registered after it won't have their settings discovered.
+Every plugin is registered before any plugin's `init()` runs, so `settings` discovers every other plugin's `settings` array and every dapp manifest's settings regardless of where it's declared in `plugins` — registration order doesn't gate that discovery. It does matter for the reverse direction: register `settings` before any plugin whose own `init()` writes to `dx.settings` (the theme plugin's startup sync, for example) — `context.settings` doesn't exist until settings' `init()` has run.
 
 ## API
 
@@ -116,6 +116,12 @@ Subscribe to any setting change for a dapp. Returns unsubscribe function.
 onAnyChange(dappId: string, handler: (key: string, value: unknown) => void): () => void
 ```
 
+### Handler Cleanup
+
+Handlers registered via `onChange()`/`onAnyChange()` for a given `dappId` are pruned when that dapp is disabled — the plugin listens for `dx:dapp:disabled` and deletes that `dappId`'s entries from its internal handler maps. Cleanup is disable-only: it does not fire on `dx:unmount`, so handlers survive ordinary navigation away from and back to a dapp — only an explicit `disableDapp()` call prunes them.
+
+Handlers are stored in a nested `Map<dappId, Map<key, Set<handler>>>` (not a colon-joined composite key), so a dapp id that is itself a colon-prefix of another (`'foo'` vs. `'foo:bar'`) can't collide during cleanup. The `_shell` toggle-bridge handlers (settings-UI toggle → `enableDapp`/`disableDapp`) live under their own `'_shell'` section entry and are untouched by any other dapp's cleanup.
+
 ## Events
 
 | Event | Payload | When |
@@ -129,6 +135,15 @@ dx.events.on('dx:plugin:settings:changed', ({ dappId, key, value }) => {
   }
 });
 ```
+
+### Error Handling
+
+Settings also emits `dx:error` if a localStorage read or write throws — see [Events Reference](../events-reference.md) for the full catalog.
+
+| `source` | Trigger |
+|----------|---------|
+| `plugin:settings:storage:write` | `localStorage.setItem` threw while persisting the store |
+| `plugin:settings:storage:read` | `localStorage.getItem`/`JSON.parse` threw while restoring the store — falls back to manifest/plugin defaults |
 
 ## Persistence
 
@@ -146,7 +161,9 @@ Restored on init, before definitions are loaded.
 
 **Security note**: Settings are stored as plaintext JSON in localStorage. Do not store secrets, API keys, tokens, or any sensitive data via the settings API. localStorage is readable by any script running on the same origin.
 
-The localStorage implementation is intended for local development, or where the application use case does not require portable settings or application state persistence (e.g., light/dark theme preference). Future versions will implement backend storage features (TBD).
+The localStorage implementation is intended for local development, or where the application use case does not require portable settings or application state persistence (e.g., light/dark theme preference).
+
+Like theme, settings has not been given the wallet plugin's SEC-02 per-app-isolation treatment — `storageKey` is a full literal key with no default prefixing, so two DxKit apps on the same origin using the default key share settings state. See `docs/security.md` for the full inventory.
 
 ## Optional Dapp Toggles
 

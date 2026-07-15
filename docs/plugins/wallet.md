@@ -46,16 +46,18 @@ function createWallet(options: WalletOptions): Wallet
 
 interface WalletOptions {
   providers: WalletProvider[];
+  storageKey?: string;  // default: 'dxkit:wallet'
 }
 ```
 
-| Option | Type | Description |
-|--------|------|-------------|
-| `providers` | `WalletProvider[]` | Available providers. First available is used by default on `connect()`. |
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `providers` | `WalletProvider[]` | — | Available providers. First available is used by default on `connect()`. |
+| `storageKey` | `string` | `'dxkit:wallet'` | `localStorage` key for the persisted provider selection — a full literal key, not a prefix. Changing it does not migrate a previously-persisted selection from the old key. |
 
 ### Built-in Providers
 
-**`createEIP1193Provider()`** — Browser injected wallets (MetaMask, Brave, Coinbase). Uses `window.ethereum` directly — no ethers.js or viem dependency. Listens to `accountsChanged` and `chainChanged` events.
+**`createEIP1193Provider()`** — Browser injected wallets (MetaMask, Brave, Coinbase). Uses `window.ethereum` directly — no ethers.js or viem dependency. Listens to `accountsChanged` and `chainChanged` events. Throws if `eth_requestAccounts` resolves with zero accounts, rather than connecting with a null/undefined address.
 
 **`createLocalWalletProvider(options?)`** — Instant-connect dev wallet. Deterministic address, no external dependencies.
 
@@ -64,6 +66,10 @@ interface LocalWalletProviderOptions {
   address?: string;  // default: '0x0000000000000000000000000000000001'
 }
 ```
+
+### `createEthereumWallet()` (deprecated)
+
+Backward-compat shim: `createEthereumWallet()` returns `createWallet({ providers: [createEIP1193Provider()] })`. Use `createWallet()` directly — it is not first-class API surface.
 
 ### Registration
 
@@ -96,7 +102,7 @@ await wallet.connect('eip1193');   // specific provider
 await wallet.connect('local');
 ```
 
-Throws if the provider is not found or not available.
+Throws if a `providerId` is given and no provider matches it or the match isn't `available()`. Throws if no `providerId` is given and no registered provider is `available()`.
 
 ### `disconnect()`
 
@@ -181,6 +187,17 @@ dx.events.on('dx:plugin:wallet:connected', ({ address }) => {
 });
 ```
 
+### Error Handling
+
+Wallet also emits `dx:error` for failures that don't reject a promise the caller is awaiting — see [Events Reference](../events-reference.md) for the full catalog.
+
+| `source` | Trigger |
+|----------|---------|
+| `plugin:wallet:storage:write` | `localStorage.setItem`/`removeItem` threw while persisting the provider selection |
+| `plugin:wallet:storage:read` | `localStorage.getItem` threw while restoring the persisted provider selection |
+| `plugin:wallet:state` | A provider reported `connected: true` with no `address` — a provider-contract violation, surfaced rather than silently dropped |
+| `plugin:wallet:reconnect` | Auto-reconnect on init failed (provider unavailable or `connect()` rejected) — the persisted provider id is cleared after this fires |
+
 ## Settings
 
 | Key | Type | Default | Description |
@@ -189,7 +206,11 @@ dx.events.on('dx:plugin:wallet:connected', ({ address }) => {
 
 ## Persistence
 
-The selected provider ID is saved to `localStorage` under the key `dxkit:wallet`. On init, the plugin attempts to reconnect using the persisted provider.
+The selected provider ID is saved to `localStorage` under `storageKey` (default `'dxkit:wallet'`). On init, the plugin attempts to reconnect using the persisted provider.
+
+If reconnect fails — the provider is no longer available, or `connect()` rejects — the plugin emits `dx:error` (source `plugin:wallet:reconnect`), then clears the persisted provider id.
+
+Setting a custom `storageKey` selects a full, literal key with no prefixing. It does not migrate a selection already persisted under the previous key — two DxKit apps on the same origin using different `storageKey` values keep independent wallet selections.
 
 ## Writing a Custom Provider
 

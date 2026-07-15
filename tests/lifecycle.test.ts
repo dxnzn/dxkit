@@ -1018,5 +1018,42 @@ describe('LifecycleManager', () => {
 
       lm.destroy();
     });
+
+    it('an invalidated mount that exits via the bare isStale() gate (not a catch) leaves the in-flight marker owner-cleared — a reused-id mount afterward commits cleanly (D-17)', async () => {
+      const { loader, release } = keyedScriptLoader();
+      const lm = createLifecycleManager(events, { scriptLoader: loader });
+
+      const mountedHandler = vi.fn();
+      events.on('dx:dapp:mounted', mountedHandler);
+
+      // 'ghost' has no template/dependencies — its only await is the entry-script load, so its
+      // sole exit path once invalidated is the FINAL bare `if (isStale()) return false;` gate
+      // (not a catch block), the exact path D-17's ownership guard targets.
+      const firstPromise = lm.mount(manifest('ghost'), container);
+      lm.invalidatePendingMount('ghost');
+      release('/dapps/ghost/app.js');
+      const firstCommitted = await firstPromise;
+
+      expect(firstCommitted).toBe(false);
+      expect(mountedHandler).not.toHaveBeenCalled();
+      expect(lm.getCurrentDapp()).toBeNull();
+
+      // Nothing is genuinely in flight now — invalidateAnyPendingMount() must be a true no-op,
+      // not one that reacts to a leftover marker from the exited call above.
+      lm.invalidateAnyPendingMount();
+
+      // A fresh mount reusing the SAME id must commit normally — an owner-cleared marker (not a
+      // leaked one) means this call's own generation bookkeeping starts clean.
+      const secondPromise = lm.mount(manifest('ghost'), container);
+      release('/dapps/ghost/app.js');
+      const secondCommitted = await secondPromise;
+
+      expect(secondCommitted).toBe(true);
+      expect(mountedHandler).toHaveBeenCalledTimes(1);
+      expect(mountedHandler).toHaveBeenCalledWith({ id: 'ghost' });
+      expect(lm.getCurrentDapp()).toBe('ghost');
+
+      lm.destroy();
+    });
   });
 });

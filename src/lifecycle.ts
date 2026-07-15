@@ -272,6 +272,11 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
   // closure, never at module scope — multiple shells in one process must not share a counter.
   let mountGeneration = 0;
   let inFlightMountId: string | null = null;
+  // D-17: the generation that currently owns inFlightMountId. Paired with it (mirroring
+  // shell.ts's pendingMountId/pendingMountToken ownership idiom) so a superseded call's exit
+  // can tell whether it still owns the marker before clearing it — a call whose marker was
+  // already overwritten by a newer mount() call must never null out that newer call's marker.
+  let inFlightGeneration: number | null = null;
 
   // Cache wraps OUTERMOST, above the timeout-wrapped loader (D-11/D-12): a cache hit returns
   // immediately and never touches the fetch or its timeout. Only successful fetches are stored —
@@ -295,7 +300,19 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
     // only the single most-recently-started mount can ever reach a commit point (D-01).
     const generation = ++mountGeneration;
     inFlightMountId = manifest.id;
+    inFlightGeneration = generation;
     const isStale = () => generation !== mountGeneration;
+    // Only clears the marker if THIS call still owns it (nothing has overwritten it since —
+    // whether via a newer mount() call, or already cleared by an earlier exit of this same
+    // call). A bump-only supersession (invalidatePendingMount()/invalidateAnyPendingMount()
+    // with no new mount() call following) leaves this call as the owner, so its next isStale()
+    // exit correctly nulls the marker instead of leaking it (D-17).
+    const clearOwnedInFlightMarker = () => {
+      if (inFlightGeneration === generation) {
+        inFlightMountId = null;
+        inFlightGeneration = null;
+      }
+    };
 
     // Unmount current dapp if any — safe unguarded: nothing async has happened yet, so this
     // call is by definition still the current generation.
@@ -311,7 +328,7 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
           source: `lifecycle:${manifest.id}`,
           error: new Error(`Missing required plugin(s): ${missing.join(', ')}`),
         });
-        inFlightMountId = null;
+        clearOwnedInFlightMarker();
         return false;
       }
     }
@@ -343,13 +360,16 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
             source: `lifecycle:${manifest.id}:template`,
             error: err instanceof Error ? err : new Error(String(err)),
           });
-          inFlightMountId = null;
         }
+        clearOwnedInFlightMarker();
         return false;
       }
       // Re-check immediately before the DOM write (Pitfall 1) — a stale mount must never
       // inject its template into a container the newer mount now owns.
-      if (isStale()) return false;
+      if (isStale()) {
+        clearOwnedInFlightMarker();
+        return false;
+      }
 
       // Sanitize step gets its own try/catch (D-08) so its failure source is distinguishable
       // from a fetch failure. No sanitizer configured → html passes through unchanged (0.1.5
@@ -365,11 +385,15 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
               source: `lifecycle:${manifest.id}:sanitize`,
               error: err instanceof Error ? err : new Error(String(err), { cause: err }),
             });
-            inFlightMountId = null;
           }
+          clearOwnedInFlightMarker();
           return false;
         }
-        if (isStale()) return false; // re-check again — the sanitize await is another commit gate
+        if (isStale()) {
+          // re-check again — the sanitize await is another commit gate
+          clearOwnedInFlightMarker();
+          return false;
+        }
         container.innerHTML = sanitized;
       } else {
         container.innerHTML = html;
@@ -389,11 +413,15 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
             });
             // Post-injection failure — clear any template HTML so no stale dapp DOM remains addressable.
             container.innerHTML = '';
-            inFlightMountId = null;
           }
+          clearOwnedInFlightMarker();
           return false;
         }
-        if (isStale()) return false; // superseded mid-loop — don't load further deps for a dead mount
+        if (isStale()) {
+          // superseded mid-loop — don't load further deps for a dead mount
+          clearOwnedInFlightMarker();
+          return false;
+        }
       }
     }
 
@@ -408,14 +436,18 @@ export function createLifecycleManager(events: EventBus, options: LifecycleManag
         });
         // Post-injection failure — clear any template HTML so no stale dapp DOM remains addressable.
         container.innerHTML = '';
-        inFlightMountId = null;
       }
+      clearOwnedInFlightMarker();
       return false;
     }
-    if (isStale()) return false; // final gate before commit
+    if (isStale()) {
+      // final gate before commit
+      clearOwnedInFlightMarker();
+      return false;
+    }
 
     currentDappId = manifest.id;
-    inFlightMountId = null;
+    clearOwnedInFlightMarker();
 
     // Dapp contract: listen for dx:mount on container, render into it, listen for dx:unmount to teardown
     events.emit('dx:mount', { id: manifest.id, container, path: path ?? manifest.route });

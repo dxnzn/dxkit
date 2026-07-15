@@ -1,4 +1,4 @@
-[Getting Started](getting-started.md) | [Dapp Development](dapp-development.md) | [Plugin Development](plugin-development.md) | [System Internals](system-internals.md) | [Events Reference](events-reference.md) | **API Reference** | [Cookbook](cookbook.md)
+[Getting Started](getting-started.md) | [Dapp Development](dapp-development.md) | [Plugin Development](plugin-development.md) | [System Internals](system-internals.md) | [Events Reference](events-reference.md) | **API Reference** | [Cookbook](cookbook.md) | [Configuration](configuration.md) | [Development](development.md) | [Testing](testing.md) | [Security](security.md)
 
 ---
 
@@ -96,7 +96,7 @@ interface LifecycleManagerOptions {
 
 ### `deepMerge(a, b)`
 
-Recursively merges `b` into `a`. Arrays are replaced, not concatenated. `undefined` values in `b` are skipped.
+Recursively merges `b` into `a`. Arrays are replaced, not concatenated. `undefined` values in `b` are skipped; `null` replaces `a`'s value.
 
 ```ts
 function deepMerge<T extends Record<string, any>>(a: T, b: Partial<T>): T
@@ -128,7 +128,7 @@ interface Shell {
 | `getManifests()` | All loaded manifests (including disabled optional dapps). |
 | `getEnabledManifests()` | Only enabled manifests (optional dapps filtered by state). |
 | `enableDapp(id)` | Enable an optional dapp. No-op if already enabled or not optional. |
-| `disableDapp(id)` | Disable an optional dapp. Unmounts if currently mounted. |
+| `disableDapp(id)` | Disable an optional dapp. Unmounts if currently mounted, or navigates to `/` if its route is active but the mount hasn't committed yet. |
 | `isDappEnabled(id)` | Check enabled state. Non-optional dapps always return `true`. |
 | `navigate(path)` | Navigate to a path. Triggers route resolution and mount/unmount. |
 | `getCurrentRoute()` | Current normalized path. |
@@ -155,7 +155,7 @@ interface Context {
   enableDapp: (id: string) => void;
   disableDapp: (id: string) => void;
   isDappEnabled: (id: string) => boolean;
-  settings?: Settings;    // injected by @dxkit/settings
+  settings?: Settings;    // injected by @dnzn/dxkit-settings
 }
 ```
 
@@ -268,6 +268,10 @@ interface LifecycleManager {
   unmount(): void;
   getCurrentDapp(): string | null;
   destroy(): void;
+  clearTemplateCache(): void;
+  invalidateTemplate(url: string): void;
+  invalidatePendingMount(id: string): void;
+  invalidateAnyPendingMount(): void;
 }
 ```
 
@@ -277,6 +281,10 @@ interface LifecycleManager {
 | `unmount()` | Emit `dx:unmount` for the current dapp. No-op if nothing mounted. |
 | `getCurrentDapp()` | ID of the currently mounted dapp, or `null`. |
 | `destroy()` | Unmount current dapp if any. |
+| `clearTemplateCache()` | Drop every cached template — the next mount of any dapp refetches its template. |
+| `invalidateTemplate(url)` | Drop one cached template by its manifest-declared URL. |
+| `invalidatePendingMount(id)` | Abandon an in-flight (not-yet-committed) mount for `id`. No-op if `id` isn't the currently in-flight mount. |
+| `invalidateAnyPendingMount()` | Abandon whatever mount is currently in flight, regardless of id. No-op if nothing is in flight. |
 
 ---
 
@@ -338,11 +346,11 @@ interface ShellConfig {
   registryUrl?: string;     // default: '/registry.json'
   basePath?: string;        // default: '/'
   mode?: 'history' | 'hash'; // default: 'history'
-  lifecycle?: LifecycleManagerOptions;
+  lifecycle?: Omit<LifecycleManagerOptions, 'hasPlugin'>;
 }
 ```
 
-See [`createLifecycleManager`](#createlifecyclemanagerevents-options) above for the `LifecycleManagerOptions` shape nested under `lifecycle`.
+See [`createLifecycleManager`](#createlifecyclemanagerevents-options) above for the `LifecycleManagerOptions` shape nested under `lifecycle`. `hasPlugin` is excluded — the shell always binds it to the plugin registry, so required-plugin enforcement can't be disabled by consumer config.
 
 ### DappEntry
 
@@ -484,7 +492,7 @@ Built-in shell events are typed in core. The index signature allows custom event
 
 ```ts
 interface EventMap {
-  'dx:ready': {};
+  'dx:ready': Record<string, never>;
   'dx:route:changed': { path: string; manifest?: DappManifest };
   'dx:dapp:mounted': { id: string };
   'dx:dapp:unmounted': { id: string };
@@ -503,7 +511,7 @@ interface EventMap {
 Plugins and dapps extend `EventMap` via module augmentation to type their own events:
 
 ```ts
-declare module 'dxkit' {
+declare module '@dnzn/dxkit' {
   interface EventMap {
     'dx:plugin:wallet:connected': { address: string; chainId: number };
   }

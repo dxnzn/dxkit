@@ -1,5 +1,4 @@
-<!-- generated-by: gsd-doc-writer -->
-[Getting Started](getting-started.md) | [Dapp Development](dapp-development.md) | [Plugin Development](plugin-development.md) | [System Internals](system-internals.md) | [Events Reference](events-reference.md) | [API Reference](api-reference.md) | [Cookbook](cookbook.md)
+[Getting Started](getting-started.md) | [Dapp Development](dapp-development.md) | [Plugin Development](plugin-development.md) | [System Internals](system-internals.md) | [Events Reference](events-reference.md) | [API Reference](api-reference.md) | [Cookbook](cookbook.md) | [Configuration](configuration.md) | **Development** | [Testing](testing.md) | [Security](security.md)
 
 ---
 
@@ -47,13 +46,11 @@ packages:
 dxkit/
 ├── src/                  # @dnzn/dxkit core (shell, router, lifecycle, events, registry)
 ├── tests/                # core unit tests (vitest)
-├── plugins/
+├── plugins/              # each has its own src/, tests/, package.json, tsup.config.ts
 │   ├── settings/         # @dnzn/dxkit-settings
 │   ├── wallet/           # @dnzn/dxkit-wallet
 │   ├── auth/             # @dnzn/dxkit-auth
 │   └── theme/            # @dnzn/dxkit-theme
-│       ├── src/
-│       └── tests/
 ├── docs/                 # this documentation set
 ├── tsup.config.ts        # core build config
 ├── vitest.config.ts      # standalone test config (root + all plugins)
@@ -86,7 +83,7 @@ All common workflows are wrapped in the root `Makefile`. Run `make <target>` fro
 | `make lint-format` | `biome format --write .` — auto-fix formatting only |
 | `make clean` | Remove `dist/` from the core package and every plugin |
 | `make superclean` | Remove `dist/` and `node_modules/` from the core package and every plugin |
-| `make audit` | Run `pnpm audit`, `semgrep --config p/typescript` (SAST), and `gitleaks detect` (secret scanning) against `src/` and `plugins/` |
+| `make audit` | Run `pnpm audit` (dependency vulnerabilities), `semgrep --config p/typescript` (SAST) against `src/` and `plugins/`, and `gitleaks detect` (secret scanning) across the whole repo |
 | `make commit` | `npx cz` — open the Commitizen conventional-commit prompt |
 | `make release` | Build, test, then run `commit-and-tag-version` to bump versions and generate the changelog |
 | `make publish` | Build, test, then `pnpm publish --access public` for core and each plugin in build order |
@@ -115,7 +112,7 @@ The `exports` field in each package's `package.json` routes consumers to the rig
 | `@dnzn/dxkit-theme` | `DxTheme` |
 | `@dnzn/dxkit-settings` | `DxSettings` |
 
-Plugin IIFE builds bundle `@dnzn/dxkit` (and any intra-plugin dependency, e.g. `wallet` bundles `settings`) inline via `noExternal`, so a plugin `<script>` tag works standalone. ESM/CJS builds instead mark `@dnzn/dxkit` `external`, so bundler consumers don't get it duplicated. See `tsup.config.ts` (root) and `plugins/*/tsup.config.ts` for the exact per-package config.
+Each plugin's `tsup.config.ts` sets `noExternal: ['@dnzn/dxkit']` on its IIFE build (and `external: ['@dnzn/dxkit']` on its ESM/CJS builds, so bundler consumers don't get it duplicated). In practice every plugin imports only *types* from `@dnzn/dxkit`, so nothing from core ends up in any output — the `<script>` tag works standalone because the plugin doesn't need `@dnzn/dxkit`'s runtime at all, not because it's bundled in. Cross-plugin references (e.g. wallet's `import '@dnzn/dxkit-settings'`, used only to pull in that package's ambient type declarations) are left external in every build target and are not inlined. See `tsup.config.ts` (root) and `plugins/*/tsup.config.ts` for the exact per-package config.
 
 TypeScript compiles to `ES2022` with `strict: true` (`tsconfig.json`); `.d.ts` and source maps are emitted for every ESM/CJS build.
 

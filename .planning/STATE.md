@@ -2,18 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 5
-current_phase_name: Documentation — Truth Pass
-status: "Phase 04 shipped — PR #4"
-stopped_at: Completed 04-06-PLAN.md
-last_updated: "2026-07-14T05:49:30.819Z"
+current_phase: 05
+status: verifying
+stopped_at: Completed 05-07-PLAN.md
+last_updated: "2026-07-14T17:57:14.586Z"
 last_activity: 2026-07-14
+last_activity_desc: Phase 05 complete
 progress:
   total_phases: 5
-  completed_phases: 4
-  total_plans: 15
-  completed_plans: 15
-  percent: 80
+  completed_phases: 5
+  total_plans: 23
+  completed_plans: 23
+  percent: 100
+current_phase_name: documentation-truth-pass
 ---
 
 # Project State
@@ -23,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-11)
 
 **Core value:** DxKit stays trustworthy for real use — failures are visible (never silent), documented behavior matches actual behavior, and the alpha is stable enough to build on with confidence.
-**Current focus:** Phase 04 — testing-stress-edge-case-regression-coverage
+**Current focus:** Phase 05 — documentation-truth-pass
 
 ## Current Position
 
-Phase: 5 — Documentation — Truth Pass
+Phase: 05
 Plan: Not started
-Status: Phase 04 shipped — PR #4
-Last activity: 2026-07-14
+Status: Phase complete — ready for verification
+Last activity: 2026-07-14 — Phase 05 complete
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -38,7 +39,7 @@ Progress: [░░░░░░░░░░] 0%
 
 **Velocity:**
 
-- Total plans completed: 15
+- Total plans completed: 23
 - Average duration: - min
 - Total execution time: 0 hours
 
@@ -50,6 +51,7 @@ Progress: [░░░░░░░░░░] 0%
 | 02 | 4 | - | - |
 | 03 | 3 | - | - |
 | 04 | 6 | - | - |
+| 05 | 8 | - | - |
 
 **Recent Trend:**
 
@@ -72,6 +74,14 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04 P04 | 10min | 2 tasks | 2 files |
 | Phase 04 P05 | 12min | 2 tasks | 3 files |
 | Phase 04 P06 | 8min | 2 tasks | 2 files |
+| Phase 05 P01 | 25min | 3 tasks | 5 files |
+| Phase 05 P02 | 35min | 2 tasks | 3 files |
+| Phase 05 P03 | 15min | 2 tasks | 3 files |
+| Phase 05 P04 | 25min | 2 tasks | 3 files |
+| Phase 05 P05 | 30min | 2 tasks | 6 files |
+| Phase 05 P06 | 35min | 2 tasks | 4 files |
+| Phase 05 P07 | 20min | 2 tasks | 2 files |
+| Phase 05 P08 | 19min | 3 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -115,6 +125,22 @@ Recent decisions affecting current work:
 - [Phase 04-05]: invalidateAnyPendingMount() bumps mountGeneration only when inFlightMountId !== null, decoupling unmatched-route invalidation from the corruptible shell-level pendingMountId slot
 - [Phase 04-05]: mountDapp finally guarded (pendingMountId === manifest.id) so a stale settling call cannot clobber a newer mount's in-flight marker
 - [Phase 04-06]: pendingMountToken makes the shell mount dedupe slot call-scoped; releasePendingMount() frees it at both invalidation sites (handleRouteChange null branch, disableDapp) so re-navigation to an invalidated dapp mounts fresh instead of being dropped (CR-01, third D-01 instance)
+- [Phase 05-01]: D-15 message shape mirrors loadDappManifest()'s two-message split (status-info for non-OK, unified network/parse message with cause for the throw/parse catch) — Claude's Discretion per RESEARCH Open Question 1
+- [Phase 05-01]: D-16 keeps committed-mount and in-flight-mount disable paths as two distinct branches, only the navigate-to-/ outcome converges — Per Pitfall 3 in RESEARCH/PATTERNS — collapsing the branches risked duplicating unmount() calls
+- [Phase 05-01]: D-17's ownership-guarded clear applied at every mount() exit path with the leak shape (missing-plugin return, all 4 catch blocks, all 4 bare isStale gates, final commit), not just the 4 literally-named bare gates — The catch blocks' own stale branches had the identical unaddressed leak gap
+- [Phase 05-02]: dx:error catalog presented as 23 distinct source+trigger rows (not collapsed by literal source string) — every distinct trigger is independently actionable for a dx:error handler, and DOC-01 required every source string including D-15's registry emit
+- [Phase 05-02]: createEthereumWallet()'s deprecated status was checked but produced no api-reference.md edit — that doc's Factory Functions section only covers core factories, plugin factories belong to docs/plugins/wallet.md (a later sweep plan's scope)
+- [Phase 05-03]: Config defaults and nested lifecycle shape in configuration.md/getting-started.md were already accurate against source; drift was narrower than expected (D-07 timeless-present violations + missing custom-loader timeout caveat), not wholesale default corrections
+- [Phase 05-03]: Migration section titled 'Migrating to 0.2.0' placed as its own section in getting-started.md per D-05 Claude's-discretion placement; configuration.md's breaking-change note links out to it instead of duplicating history
+- [Phase 05-04]: dapp-development.md and system-internals.md now state the single post-D-16 disable-while-active outcome rule (return to /) per Pitfall 3, without naming a single implementation function
+- [Phase 05-05]: Corrected duck-typing attribution bug and false 'settings should be registered last' claim (duplicated in plugin-development.md and settings.md) by tracing src/shell.ts's register-all-then-init-all loop structure — settings-array discovery is order-independent, but settings must be registered before theme (which writes to dx.settings during its own init())
+- [Phase 05-05]: Added storageKey to wallet.md's WalletOptions table — it was entirely absent despite being the Phase 3 SEC-02 hardening; also added Error Handling subsections (dx:error catalogs) to wallet/theme/settings docs and settings.md's previously-undocumented ROB-04 handler-cleanup-on-disable behavior
+- [Phase 05]: Cookbook Custom Events recipe had the same 'declare module dxkit' bug already fixed elsewhere in Plan 05-02 — fixed to '@dnzn/dxkit'
+- [Phase 05]: Verified development.md's plugin-bundling claim against compiled dist/index.global.js rather than tsup.config.ts intent alone — no plugin config bundles a sibling plugin package, and the noExternal @dnzn/dxkit entry bundles nothing since plugins only type-import from core; rewrote to state the real reason standalone script tags work
+- [Phase 05-07]: Documented that <script> tags parsed via innerHTML never execute, then reasoned why CSP script-src still matters against unsanitized template HTML (inline event-handler attributes / javascript: URLs are blocked without unsafe-inline) — ties CSP guidance directly to src/lifecycle.ts's innerHTML injection point, framing CSP and the sanitizer as complementary layers, not redundant ones
+- [Phase 05-07]: IPFS gateway CSP guidance distinguishes path-style gateways (shared origin, weak self isolation) from subdomain-style gateways (per-CID origin) rather than one blanket caveat — directional per RESEARCH Assumption A2, not a normative claim
+- [Phase 05-08]: Compile-check harness caught 2 real doc bugs (plugin-development.md wrong package specifiers, system-internals.md flat ShellConfig.scriptLoader) that eyeball review in prior plans missed — Mechanical tsc verification against real 0.2.0 types (D-04) is strictly more reliable than manual reading for catching stale API shapes
+- [Phase 05-08]: Cross-doc consistency sweep expanded to fix a nav-bar gap across all 11 docs/*.md files (Configuration/Development/Testing/Security were unreachable from any doc's internal nav) — Same class of independently-edited-docs drift the sweep is meant to catch; directly serves discoverability of the README rows just added
 
 ### Pending Todos
 
@@ -145,7 +171,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-14T02:57:55.148Z
-Stopped at: Completed 04-06-PLAN.md
+Last session: 2026-07-14T16:44:10.530Z
+Stopped at: Completed 05-07-PLAN.md
 Resume file: 
 None

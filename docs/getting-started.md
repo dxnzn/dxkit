@@ -1,4 +1,4 @@
-**Getting Started** | [Dapp Development](dapp-development.md) | [Plugin Development](plugin-development.md) | [System Internals](system-internals.md) | [Events Reference](events-reference.md) | [API Reference](api-reference.md) | [Cookbook](cookbook.md)
+**Getting Started** | [Dapp Development](dapp-development.md) | [Plugin Development](plugin-development.md) | [System Internals](system-internals.md) | [Events Reference](events-reference.md) | [API Reference](api-reference.md) | [Cookbook](cookbook.md) | [Configuration](configuration.md) | [Development](development.md) | [Testing](testing.md) | [Security](security.md)
 
 ---
 
@@ -6,7 +6,7 @@
 
 DxKit is a headless microframework for composable dapp development. It provides routing, lifecycle management, an event bus, and a plugin system. You bring the UI — DxKit brings the orchestration.
 
-[Architecture](#architecture) | [Framework Overview](#framework-overview) | [Core Concepts](#core-concepts) | [System Lifecycle](#system-lifecycle) | [Configuration](#configuration) | [Sample Project](#sample-project)
+[Architecture](#architecture) | [Framework Overview](#framework-overview) | [Core Concepts](#core-concepts) | [System Lifecycle](#system-lifecycle) | [Configuration](#configuration) | [Sample Project](#sample-project) | [Migrating to 0.2.0](#migrating-to-020)
 
 ---
 
@@ -251,9 +251,49 @@ This copies the built IIFE bundles into a local `vendor/` directory and serves t
 
 ## Further Configuration
 
-The `ShellConfig` example above covers the common path. Two things worth knowing on the current version:
+The `ShellConfig` example above covers the common path.
 
-- **`lifecycle` options** — `scriptLoader`, `styleLoader`, and `templateLoader` moved from top-level `ShellConfig` fields into a nested `lifecycle` group, which also adds `timeout`, `cacheTemplates`, and `sanitizeTemplate` for load timeouts, template caching, and bring-your-own template sanitization. Passing the old flat fields to `createShell()` now throws.
+- **`lifecycle` options** — the nested `lifecycle` group also carries `timeout`, `cacheTemplates`, and `sanitizeTemplate`, for load timeouts, template caching, and bring-your-own template sanitization, alongside the loader overrides shown above.
 - **Plugin options** — plugins take their own factory options beyond what's shown here, e.g. `@dxkit/wallet`'s `createWallet()` accepts a `storageKey` to override the `localStorage` key used to persist the active provider.
 
-See [Configuration](configuration.md) for the full reference of every shell, lifecycle, and plugin option.
+See [Configuration](configuration.md) for the full reference of every shell, lifecycle, and plugin option. Upgrading from an older release? See [Migrating to 0.2.0](#migrating-to-020).
+
+## Migrating to 0.2.0
+
+0.2.0 carries three breaking changes from 0.1.5. Everything else in this doc describes current (0.2.0) behavior only — this is the one section that talks about the previous release.
+
+**1. Loaders moved under `lifecycle`**
+
+`scriptLoader`, `styleLoader`, and `templateLoader` are no longer top-level `ShellConfig` fields — they live under `config.lifecycle`. Passing them at the top level throws an `Error` at `createShell()` time, naming the offending key(s):
+
+```js
+// 0.1.5
+DxKit.createShell({
+  scriptLoader: (src) => { /* custom */ },
+  styleLoader: (href) => { /* custom */ },
+});
+
+// 0.2.0
+DxKit.createShell({
+  lifecycle: {
+    scriptLoader: (src) => { /* custom */ },
+    styleLoader: (href) => { /* custom */ },
+  },
+});
+```
+
+**2. Load timeout defaults on**
+
+Script, style, and template fetches now abort after 30000ms by default — a hung load no longer freezes the mount forever. Pass `timeout: 0` or `Infinity` under `lifecycle` to disable the timeout and restore 0.1.5's hang-forever behavior — the escape hatch for legitimately slow IPFS gateways:
+
+```js
+DxKit.createShell({
+  lifecycle: { timeout: 0 }, // no timeout — 0.1.5 behavior
+});
+```
+
+**3. Manifest routes are validated**
+
+An empty or whitespace-only `route` is rejected at manifest-load time — the manifest is discarded and a `shell:route` `dx:error` fires naming the offending id. Non-empty routes are still normalized (leading slash added, trailing slash stripped).
+
+The generated changelog is the full release record; this section covers only what a consumer needs to change to move from 0.1.5 to 0.2.0.

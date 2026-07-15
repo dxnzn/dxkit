@@ -33,9 +33,9 @@ Requirements for the 0.2.0 hardening milestone. Each maps to a roadmap phase.
 
 ### Documentation
 
-- [ ] **DOC-01**: Every framework and plugin doc plus README is verified against the code (code is truth) and drift is corrected
-- [ ] **DOC-02**: "AI tells" / slop is removed from docs (filler, hedging, restated obviousness, invented or unverifiable detail)
-- [ ] **DOC-03**: Documentation gaps surfaced by the concerns audit are filled — CSP guidance for `innerHTML` templates + external scripts, and a security/limitations note
+- [x] **DOC-01**: Every framework and plugin doc plus README is verified against the code (code is truth) and drift is corrected
+- [x] **DOC-02**: "AI tells" / slop is removed from docs (filler, hedging, restated obviousness, invented or unverifiable detail)
+- [x] **DOC-03**: Documentation gaps surfaced by the concerns audit are filled — CSP guidance for `innerHTML` templates + external scripts, and a security/limitations note
 
 ## v2 Requirements
 
@@ -81,9 +81,9 @@ Which phases cover which requirements. Populated during roadmap creation.
 | TEST-01 | Phase 4 | Complete |
 | TEST-02 | Phase 4 | Complete |
 | TEST-03 | Phase 4 | Complete |
-| DOC-01 | Phase 5 | Pending |
-| DOC-02 | Phase 5 | Pending |
-| DOC-03 | Phase 5 | Pending |
+| DOC-01 | Phase 5 | Complete |
+| DOC-02 | Phase 5 | Complete |
+| DOC-03 | Phase 5 | Complete |
 
 **Coverage:**
 

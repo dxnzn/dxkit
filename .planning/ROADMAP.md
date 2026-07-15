@@ -27,7 +27,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Robustness — Load Guards, Caching & Handler Cleanup** - Mounts can't hang, router/template work isn't repeated, and disabled dapps stop leaking settings handlers (completed 2026-07-12)
 - [x] **Phase 3: Security — Sanitization & Storage Isolation** - Templates can be sanitized before injection and wallet storage keys no longer collide across apps (completed 2026-07-12)
 - [x] **Phase 4: Testing — Stress, Edge-Case & Regression Coverage** - Concurrent-navigation, manifest-validation, and settings-cleanup behavior gets dedicated test coverage (completed 2026-07-14)
-- [ ] **Phase 5: Documentation — Truth Pass** - Every doc and the README are verified against 0.2.0 code, slop is removed, and CSP/security gaps are filled
+- [x] **Phase 5: Documentation — Truth Pass** - Every doc and the README are verified against 0.2.0 code, slop is removed, and CSP/security gaps are filled (completed 2026-07-14)
 
 ## Phase Details
 
@@ -130,7 +130,24 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. No filler, hedging, restated-obviousness, or invented/unverifiable detail remains in the docs — every technical claim traces to source.
   3. A CSP guidance section (covering `innerHTML` template injection and external script loading) and a security/limitations note exist in the docs.
 
-**Plans**: TBD
+**Plans**: 8/8 plans complete
+
+**Wave 1** *(folded code fixes land first — docs then describe post-fix behavior)*
+
+- [x] 05-01-PLAN.md — Folded fixes: D-15 registry.json failure `dx:error` (explicit `registryUrl`), D-16 disable-mid-flight navigates to `/`, D-17 `inFlightMountId` ownership guard + test nits [wave 1]
+
+**Wave 2** *(doc-by-doc sweep + new security.md; all depend on 05-01)*
+
+- [x] 05-02-PLAN.md — Reference docs: events-reference.md (`dx:error` catalog rewrite) + api-reference.md [wave 2]
+- [x] 05-03-PLAN.md — configuration.md + getting-started.md (+ 0.1.5→0.2.0 migration section, D-05) [wave 2]
+- [x] 05-04-PLAN.md — Behavior docs: dapp-development.md + system-internals.md (single disable rule, D-16) [wave 2]
+- [x] 05-05-PLAN.md — Plugin docs: plugin-development.md + wallet/auth/theme/settings [wave 2]
+- [x] 05-06-PLAN.md — cookbook.md + development.md + testing.md [wave 2]
+- [x] 05-07-PLAN.md — New docs/security.md: CSP guidance + DOMPurify recipes + limitations inventory (DOC-03) [wave 2]
+
+**Wave 3** *(close-out; depends on all wave-2)*
+
+- [x] 05-08-PLAN.md — D-04 compile-check harness + README index reconciliation (D-12) + example spot-check + cross-doc consistency + drift-log assembly (D-01) [wave 3]
 
 ## Progress
 
@@ -143,4 +160,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Robustness — Load Guards, Caching & Handler Cleanup | 4/4 | Complete    | 2026-07-12 |
 | 3. Security — Sanitization & Storage Isolation | 3/3 | Complete    | 2026-07-12 |
 | 4. Testing — Stress, Edge-Case & Regression Coverage | 6/6 | Complete    | 2026-07-14 |
-| 5. Documentation — Truth Pass | 0/TBD | Not started | - |
+| 5. Documentation — Truth Pass | 8/8 | Complete    | 2026-07-14 |

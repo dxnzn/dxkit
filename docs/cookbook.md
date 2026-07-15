@@ -1,4 +1,4 @@
-[Getting Started](getting-started.md) | [Dapp Development](dapp-development.md) | [Plugin Development](plugin-development.md) | [System Internals](system-internals.md) | [Events Reference](events-reference.md) | [API Reference](api-reference.md) | **Cookbook**
+[Getting Started](getting-started.md) | [Dapp Development](dapp-development.md) | [Plugin Development](plugin-development.md) | [System Internals](system-internals.md) | [Events Reference](events-reference.md) | [API Reference](api-reference.md) | **Cookbook** | [Configuration](configuration.md) | [Development](development.md) | [Testing](testing.md) | [Security](security.md)
 
 ---
 
@@ -190,7 +190,7 @@ Type your event payloads so both sides get autocomplete and validation:
 
 ```ts
 // shared types (e.g. in a shared package or ambient declaration)
-declare module 'dxkit' {
+declare module '@dnzn/dxkit' {
   interface EventMap {
     'cart:item:added': { productId: string; quantity: number };
     'cart:cleared': Record<string, never>;
@@ -307,7 +307,7 @@ const shell = DxKit.createShell({
 });
 ```
 
-Deep merge rules: objects merge recursively, arrays replace entirely, `undefined` is skipped.
+Deep merge rules: objects merge recursively, arrays replace entirely, `null` replaces the previous value, `undefined` is skipped.
 
 ---
 

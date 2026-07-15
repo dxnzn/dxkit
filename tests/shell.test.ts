@@ -13,6 +13,15 @@ const testLoaders: Pick<ShellConfig, 'lifecycle'> = {
 describe('createShell', () => {
   let shell: Shell;
   let container: HTMLElement;
+  // D-17 test nit: several tests below register a dx:error listener to capture emitted errors
+  // and previously never removed it. Registering through this helper guarantees removal in
+  // afterEach without repeating the add/remove pairing at every call site.
+  const dxErrorListeners: EventListener[] = [];
+
+  function onDxError(handler: EventListener): void {
+    window.addEventListener('dx:error', handler);
+    dxErrorListeners.push(handler);
+  }
 
   beforeEach(() => {
     container = document.createElement('div');
@@ -25,6 +34,10 @@ describe('createShell', () => {
     if (shell) shell.destroy();
     container.remove();
     delete window.__DXKIT__;
+    for (const handler of dxErrorListeners) {
+      window.removeEventListener('dx:error', handler);
+    }
+    dxErrorListeners.length = 0;
   });
 
   it('init() exposes context on window.__DXKIT__', async () => {
@@ -116,7 +129,7 @@ describe('createShell', () => {
     });
 
     // Listen for dx:error before init
-    window.addEventListener('dx:error', ((e: CustomEvent) => {
+    onDxError(((e: CustomEvent) => {
       errors.push(e.detail);
     }) as EventListener);
 
@@ -309,7 +322,7 @@ describe('createShell', () => {
 
   it('skips dapps with failed manifest fetch and emits a dx:error (WR-01)', async () => {
     const errors: { source: string; error: Error }[] = [];
-    window.addEventListener('dx:error', ((e: CustomEvent) => {
+    onDxError(((e: CustomEvent) => {
       errors.push(e.detail);
     }) as EventListener);
 
@@ -330,7 +343,7 @@ describe('createShell', () => {
 
   it('emits a dx:error when the manifest fetch itself rejects (WR-01 network-throw mode)', async () => {
     const errors: { source: string; error: Error }[] = [];
-    window.addEventListener('dx:error', ((e: CustomEvent) => {
+    onDxError(((e: CustomEvent) => {
       errors.push(e.detail);
     }) as EventListener);
 
@@ -350,7 +363,7 @@ describe('createShell', () => {
 
   it('emits a dx:error when manifest fetch resolves but JSON parsing throws (WR-01 parse-failure mode)', async () => {
     const errors: { source: string; error: Error }[] = [];
-    window.addEventListener('dx:error', ((e: CustomEvent) => {
+    onDxError(((e: CustomEvent) => {
       errors.push(e.detail);
     }) as EventListener);
 
@@ -371,6 +384,100 @@ describe('createShell', () => {
     window.fetch = originalFetch;
   });
 
+  it('emits a dx:error when an explicit registryUrl returns a non-OK response (D-15)', async () => {
+    const errors: { source: string; error: Error }[] = [];
+    const handler = ((e: CustomEvent) => {
+      errors.push(e.detail);
+    }) as EventListener;
+    window.addEventListener('dx:error', handler);
+
+    const originalFetch = window.fetch;
+    window.fetch = vi.fn(async () => ({ ok: false, status: 404 }) as Response) as any;
+
+    shell = createShell({ ...testLoaders, registryUrl: '/custom-registry.json' });
+    await shell.init();
+
+    expect(shell.getManifests()).toHaveLength(0);
+    expect(errors.some((e) => e.source === 'shell:manifest' && e.error.message.includes('/custom-registry.json'))).toBe(
+      true,
+    );
+
+    window.fetch = originalFetch;
+    window.removeEventListener('dx:error', handler);
+  });
+
+  it('emits a dx:error when an explicit registryUrl fetch rejects (D-15)', async () => {
+    const errors: { source: string; error: Error }[] = [];
+    const handler = ((e: CustomEvent) => {
+      errors.push(e.detail);
+    }) as EventListener;
+    window.addEventListener('dx:error', handler);
+
+    const originalFetch = window.fetch;
+    window.fetch = vi.fn(async () => {
+      throw new Error('registry host unreachable');
+    }) as any;
+
+    shell = createShell({ ...testLoaders, registryUrl: '/custom-registry.json' });
+    await shell.init();
+
+    expect(shell.getManifests()).toHaveLength(0);
+    expect(
+      errors.some(
+        (e) => e.source === 'shell:manifest' && e.error.message.includes('registry host unreachable') && e.error.cause,
+      ),
+    ).toBe(true);
+
+    window.fetch = originalFetch;
+    window.removeEventListener('dx:error', handler);
+  });
+
+  it('emits a dx:error when an explicit registryUrl resolves but JSON parsing throws (D-15)', async () => {
+    const errors: { source: string; error: Error }[] = [];
+    const handler = ((e: CustomEvent) => {
+      errors.push(e.detail);
+    }) as EventListener;
+    window.addEventListener('dx:error', handler);
+
+    const originalFetch = window.fetch;
+    window.fetch = vi.fn(async () => ({
+      ok: true,
+      json: async () => {
+        throw new Error('Unexpected token in JSON');
+      },
+    })) as any;
+
+    shell = createShell({ ...testLoaders, registryUrl: '/custom-registry.json' });
+    await shell.init();
+
+    expect(shell.getManifests()).toHaveLength(0);
+    expect(errors.some((e) => e.source === 'shell:manifest')).toBe(true);
+
+    window.fetch = originalFetch;
+    window.removeEventListener('dx:error', handler);
+  });
+
+  it('stays silent on the default registryUrl probe failure — no dx:error, empty manifests (D-15)', async () => {
+    const errors: { source: string; error: Error }[] = [];
+    const handler = ((e: CustomEvent) => {
+      errors.push(e.detail);
+    }) as EventListener;
+    window.addEventListener('dx:error', handler);
+
+    const originalFetch = window.fetch;
+    window.fetch = vi.fn(async () => ({ ok: false, status: 404 }) as Response) as any;
+
+    // registryUrl omitted entirely — this is the default /registry.json probe.
+    shell = createShell({ ...testLoaders });
+    await shell.init();
+
+    expect(shell.getManifests()).toEqual([]);
+    expect(errors.some((e) => e.source === 'shell:manifest')).toBe(false);
+
+    window.fetch = originalFetch;
+    window.removeEventListener('dx:error', handler);
+  });
+
   it('emits dx:error (source shell:mount) when #dx-mount is absent, without throwing', async () => {
     // No <div id="dx-mount"> in the DOM at all — exercises lazy getMountContainer() returning null.
     container.remove();
@@ -387,7 +494,7 @@ describe('createShell', () => {
     shell = createShell({ ...testLoaders, manifests: [dapp] });
 
     const errors: { source: string; error: Error }[] = [];
-    window.addEventListener('dx:error', ((e: CustomEvent) => {
+    onDxError(((e: CustomEvent) => {
       errors.push(e.detail);
     }) as EventListener);
 
@@ -402,7 +509,7 @@ describe('createShell', () => {
 
   it('rejects manifests missing required fields and emits dx:error', async () => {
     const errors: { source: string; error: Error }[] = [];
-    window.addEventListener('dx:error', ((e: CustomEvent) => {
+    onDxError(((e: CustomEvent) => {
       errors.push(e.detail);
     }) as EventListener);
 
@@ -504,7 +611,7 @@ describe('createShell', () => {
 
     it('discards a manifest with an empty/whitespace-only route and emits a shell:route dx:error', async () => {
       const errors: { source: string; error: Error }[] = [];
-      window.addEventListener('dx:error', ((e: CustomEvent) => {
+      onDxError(((e: CustomEvent) => {
         errors.push(e.detail);
       }) as EventListener);
 
@@ -530,7 +637,7 @@ describe('createShell', () => {
 
     it('discards an invalid inline manifest and emits a shell:manifest dx:error (tier parity)', async () => {
       const errors: { source: string; error: Error }[] = [];
-      window.addEventListener('dx:error', ((e: CustomEvent) => {
+      onDxError(((e: CustomEvent) => {
         errors.push(e.detail);
       }) as EventListener);
 
@@ -547,7 +654,7 @@ describe('createShell', () => {
 
     it('discards an invalid registry.json manifest and emits a shell:manifest dx:error (tier parity)', async () => {
       const errors: { source: string; error: Error }[] = [];
-      window.addEventListener('dx:error', ((e: CustomEvent) => {
+      onDxError(((e: CustomEvent) => {
         errors.push(e.detail);
       }) as EventListener);
 
@@ -570,7 +677,7 @@ describe('createShell', () => {
 
     it('emits a shell:manifest dx:error naming both ids on duplicate exact routes; first-registered wins at mount', async () => {
       const errors: { source: string; error: Error }[] = [];
-      window.addEventListener('dx:error', ((e: CustomEvent) => {
+      onDxError(((e: CustomEvent) => {
         errors.push(e.detail);
       }) as EventListener);
 
@@ -666,7 +773,7 @@ describe('createShell', () => {
     };
 
     const errors: { source: string; error: Error }[] = [];
-    window.addEventListener('dx:error', ((e: CustomEvent) => {
+    onDxError(((e: CustomEvent) => {
       errors.push(e.detail);
     }) as EventListener);
     const mounted = vi.fn();
@@ -988,6 +1095,57 @@ describe('createShell', () => {
 
       expect(shell.isDappEnabled('hello')).toBe(false);
       expect(shell.getEnabledManifests()).toHaveLength(1);
+    });
+
+    it('disableDapp() mid-flight (uncommitted mount) for the currently-routed dapp navigates to / (D-16)', async () => {
+      const home: DappManifest = {
+        id: 'home',
+        name: 'Home',
+        version: '0.0.1',
+        route: '/',
+        entry: '/dapps/home/app.js',
+        nav: { label: 'Home' },
+      };
+      const helloOptional: DappManifest = {
+        id: 'hello',
+        name: 'Hello',
+        version: '0.0.1',
+        route: '/hello',
+        entry: '/dapps/hello/app.js',
+        nav: { label: 'Hello' },
+        optional: true,
+      };
+
+      // Gated only on hello's entry — home's initial-route mount during init() resolves
+      // immediately so it doesn't hang the test.
+      let releaseHelloEntry: (() => void) | undefined;
+      const scriptLoader: ScriptLoader = (src: string) => {
+        if (src === helloOptional.entry) {
+          return new Promise<void>((resolve) => {
+            releaseHelloEntry = resolve;
+          });
+        }
+        return Promise.resolve();
+      };
+
+      shell = createShell({
+        lifecycle: { scriptLoader, styleLoader: async () => {} },
+        manifests: [home, helloOptional],
+      });
+      await shell.init();
+
+      shell.navigate('/hello');
+      await new Promise((r) => setTimeout(r, 0)); // mountDapp('hello') suspends at the entry-script gate
+
+      shell.disableDapp('hello'); // uncommitted mount whose route is active — must navigate to /
+
+      expect(shell.getCurrentRoute()).toBe('/');
+
+      releaseHelloEntry?.();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Releasing the abandoned mount's held loader must not re-navigate away from /.
+      expect(shell.getCurrentRoute()).toBe('/');
     });
 
     it('enableDapp() is no-op for non-optional dapps', async () => {
