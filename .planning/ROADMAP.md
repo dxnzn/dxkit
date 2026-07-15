@@ -73,7 +73,12 @@ storage keys, a stress/edge-case/regression test suite, and a full documentation
   4. The commitizen flow uses maintained `cz-git` (unmaintained `cz-conventional-changelog` removed) and still emits conventional commits.
   5. All three build outputs (ESM `dist/index.js`, CJS `dist/index.cjs`, IIFE `dist/index.global.js`) are still produced per package and confirmed present after the toolchain bumps.
 
-**Plans**: TBD
+**Plans**: 5 plans
+- [ ] 06-01-PLAN.md — Node 22 floor + engine-strict enforcement across all 5 package.json + .npmrc (TOOL-01)
+- [ ] 06-02-PLAN.md — CI Node matrix [20] → [22, 24] (TOOL-02)
+- [ ] 06-03-PLAN.md — Core toolchain bumps: tsup, vite (7→8 isolated), vitest, happy-dom (TOOL-03)
+- [ ] 06-04-PLAN.md — Biome bump + reformat + cz-git adapter swap (TOOL-03, TOOL-04)
+- [ ] 06-05-PLAN.md — Build-output existence verification, 3 formats × 5 packages (TOOL-05)
 **Breaking change**: Node `engines` floor raised to ≥22 (drops Node 18/20). Requires a `BREAKING CHANGE:` footer + migration note (contributors/consumers must be on Node 22 LTS).
 
 ### Phase 7: TypeScript 6 Migration & Standalone Typecheck
