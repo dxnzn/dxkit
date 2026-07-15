@@ -73,7 +73,7 @@ storage keys, a stress/edge-case/regression test suite, and a full documentation
   4. The commitizen flow uses maintained `cz-git` (unmaintained `cz-conventional-changelog` removed) and still emits conventional commits.
   5. All three build outputs (ESM `dist/index.js`, CJS `dist/index.cjs`, IIFE `dist/index.global.js`) are still produced per package and confirmed present after the toolchain bumps.
 
-**Plans**: 5/5 plans complete
+**Plans**: 6 plans (5 executed; 06-06 gap closure pending)
 **Wave 1**
 
 - [x] 06-01-PLAN.md — Node 22 floor + engine-strict enforcement across all 5 package.json + .npmrc (TOOL-01)
@@ -90,6 +90,10 @@ storage keys, a stress/edge-case/regression test suite, and a full documentation
 **Wave 4** *(blocked on Wave 3 completion)*
 
 - [x] 06-05-PLAN.md — Build-output existence verification, 3 formats × 5 packages (TOOL-05)
+
+**Wave 5** *(gap closure — closes CR-01/WR-02/WR-01 from 06-VERIFICATION.md)*
+
+- [ ] 06-06-PLAN.md — Tighten engines to `^22.12.0 || >=24.0.0` (×5), pin CI `22.12.0` floor leg, wire verify-outputs into release/publish/CI (TOOL-01, TOOL-02, TOOL-05)
 
 **Breaking change**: Node `engines` floor raised to ≥22 (drops Node 18/20). Requires a `BREAKING CHANGE:` footer + migration note (contributors/consumers must be on Node 22 LTS).
 
