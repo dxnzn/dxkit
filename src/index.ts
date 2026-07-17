@@ -37,3 +37,4 @@ export type {
   WalletProvider,
   WalletState,
 } from './types/index.js';
+export type { DeepPartial } from './utils.js';
