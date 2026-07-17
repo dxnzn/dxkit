@@ -136,7 +136,16 @@ storage keys, a stress/edge-case/regression test suite, and a full documentation
   3. `erasableSyntaxOnly` is enabled across all packages, with no non-erasable TS syntax remaining anywhere.
   4. A smoke test loads the built `dist/` artifacts and confirms each IIFE global attaches with its expected top-level keys and CJS `require()` interop returns the expected exports — the artifact path neither `tsc` nor the current vitest suite exercises today.
 
-**Plans**: TBD
+**Plans**: 2 plans
+
+**Wave 1** *(the flags — one bisectable rollout in the single base tsconfig, D-01/D-06)*
+
+- [ ] 08-01-PLAN.md — Enable verbatimModuleSyntax + erasableSyntaxOnly + isolatedDeclarations in root tsconfig.json (at-source fixes only where demanded) + durable flag-presence guard test (FCT-01, FCT-02, FCT-03)
+
+**Wave 2** *(the artifact gate — lands after the flags, D-06 "smoke test last")*
+
+- [ ] 08-02-PLAN.md — FCT-04 build-artifact smoke test: `make smoke` (build → vitest against real dist/) asserting IIFE global-attach + CJS require() interop for all 5 packages, wired into release/publish/CI after verify-outputs (FCT-04)
+
 **Breaking change**: `isolatedDeclarations` can require consumers who augment DxKit's public types (module augmentation on `Context` / `window.__DXKIT__`) to add explicit export type annotations. Flag with a `BREAKING CHANGE:` footer + migration note if consumer-visible type behavior changes.
 
 ### Phase 9: Continuous Debt Guardrails & Registry Robustness
