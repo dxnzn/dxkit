@@ -109,7 +109,20 @@ storage keys, a stress/edge-case/regression test suite, and a full documentation
   3. No `ignoreDeprecations` shim remains in any `tsconfig.json` — every deprecation TS6 surfaces is resolved at the source.
   4. The full vitest suite stays green after the TS6 bump.
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+**Wave 1** *(pre-bump baseline — parallel, disjoint files)*
+
+- [ ] 07-01-PLAN.md — Root `tsconfig.typecheck.json` + `DeepPartial<T>` + root test-only type fixes; green root typecheck on today's TS (TS6-01, TS6-03)
+- [ ] 07-02-PLAN.md — 4 plugin `tsconfig.typecheck.json` + per-plugin test-only type fixes; green plugin typechecks on today's TS (TS6-01, TS6-03)
+
+**Wave 2** *(completes the committed green baseline)*
+
+- [ ] 07-03-PLAN.md — `make typecheck` target (reuse `PLUGIN_BUILD_ORDER`) + `make test` prereq wiring + `.PHONY`; full standalone typecheck green on today's TS (TS6-03)
+
+**Wave 3** *(the bump — lands strictly after the green baseline)*
+
+- [ ] 07-04-PLAN.md — Bump `typescript` `^5.8.3` → `^6.0.0` + lockfile; verify `make typecheck`/`build`/`test` under TS6, resolve any deprecations at source, no `ignoreDeprecations` (TS6-01, TS6-02)
 
 ### Phase 8: Forward-Compat Typing
 
