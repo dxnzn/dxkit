@@ -77,6 +77,7 @@ ASVS L1 grep-depth verification is sufficient for this surface.
 | Audit Date | Threats Total | Closed | Open | Run By |
 |------------|---------------|--------|------|--------|
 | 2026-07-16 | 13 | 13 | 0 | Claude (gsd-secure-phase, ASVS L1 short-circuit) |
+| 2026-07-17 | 13 | 13 | 0 | Claude (re-audit — register reconciled 13/13 vs PLAN threat models; no threat-surface change since 1ad2d23; ASVS L1 short-circuit) |
 
 ---
 
