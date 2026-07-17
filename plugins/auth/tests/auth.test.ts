@@ -1,4 +1,4 @@
-import type { Auth, Context, Wallet, WalletState } from '@dnzn/dxkit';
+import type { Auth, Context, Plugin, Wallet, WalletState } from '@dnzn/dxkit';
 import { createEventBus } from '@dnzn/dxkit';
 import { createPassthroughAuth } from '@dnzn/dxkit-auth';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -32,6 +32,8 @@ function mockWallet(
       handlers.add(handler);
       return () => handlers.delete(handler);
     },
+    getProviders: () => [],
+    getActiveProvider: () => null,
     _triggerChange: (updates: Partial<WalletState>) => {
       state = { ...state, ...updates };
       for (const h of handlers) h(state);
@@ -50,7 +52,11 @@ function mockContext(wallet?: Wallet): Context {
     },
     router: { navigate: vi.fn(), getCurrentPath: () => '/' },
     getPlugin: (name: string) => (name === 'wallet' ? wallet : undefined) as any,
-    getPlugins: () => (wallet ? { wallet } : {}),
+    getPlugins: () => {
+      const plugins: Record<string, Plugin> = {};
+      if (wallet) plugins.wallet = wallet;
+      return plugins;
+    },
     getManifests: () => [],
     getEnabledManifests: () => [],
     enableDapp: vi.fn(),
