@@ -4,7 +4,7 @@ milestone: v1.1
 milestone_name: TypeScript 6 Migration & Toolchain Modernization
 current_phase: 8
 current_phase_name: Forward-Compat Typing
-status: "Phase 07 shipped — PR #7"
+status: "Phase 07 merged to main (PR #7, squash c926c7f) — ready to start Phase 8"
 stopped_at: Completed 07-04-PLAN.md
 last_updated: "2026-07-17T18:51:24.493Z"
 last_activity: 2026-07-17
