@@ -109,7 +109,7 @@ storage keys, a stress/edge-case/regression test suite, and a full documentation
   3. No `ignoreDeprecations` shim remains in any `tsconfig.json` — every deprecation TS6 surfaces is resolved at the source.
   4. The full vitest suite stays green after the TS6 bump.
 
-**Plans**: 3/4 plans executed
+**Plans**: 4/4 plans executed
 
 **Wave 1** *(pre-bump baseline — parallel, disjoint files)*
 
@@ -122,7 +122,7 @@ storage keys, a stress/edge-case/regression test suite, and a full documentation
 
 **Wave 3** *(the bump — lands strictly after the green baseline)*
 
-- [ ] 07-04-PLAN.md — Bump `typescript` `^5.8.3` → `^6.0.0` + lockfile; verify `make typecheck`/`build`/`test` under TS6, resolve any deprecations at source, no `ignoreDeprecations` (TS6-01, TS6-02)
+- [x] 07-04-PLAN.md — Bump `typescript` `^5.8.3` → `^6.0.0` + lockfile; verify `make typecheck`/`build`/`test` under TS6, resolve any deprecations at source, no `ignoreDeprecations` (TS6-01, TS6-02)
 
 ### Phase 8: Forward-Compat Typing
 
@@ -166,6 +166,6 @@ v1.1 phases execute in numeric order: 6 → 7 → 8 → 9
 | 4. Testing — Stress, Edge-Case & Regression Coverage | v1.0 | 6/6 | Complete | 2026-07-14 |
 | 5. Documentation — Truth Pass | v1.0 | 8/8 | Complete | 2026-07-14 |
 | 6. Toolchain Audit & Modernization | v1.1 | 6/6 | Complete    | 2026-07-15 |
-| 7. TypeScript 6 Migration & Standalone Typecheck | v1.1 | 3/4 | In Progress|  |
+| 7. TypeScript 6 Migration & Standalone Typecheck | v1.1 | 4/4 | In Progress|  |
 | 8. Forward-Compat Typing | v1.1 | 0/? | Not started | - |
 | 9. Continuous Debt Guardrails & Registry Robustness | v1.1 | 0/? | Not started | - |

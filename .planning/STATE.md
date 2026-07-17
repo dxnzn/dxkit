@@ -4,17 +4,17 @@ milestone: v1.1
 milestone_name: TypeScript 6 Migration & Toolchain Modernization
 current_phase: 07
 current_phase_name: typescript-6-migration-standalone-typecheck
-status: executing
-stopped_at: Completed 07-03-PLAN.md
-last_updated: "2026-07-17T15:24:30.000Z"
+status: verifying
+stopped_at: Completed 07-04-PLAN.md
+last_updated: "2026-07-17T15:36:51.452Z"
 last_activity: 2026-07-17
 last_activity_desc: Phase 07 execution started
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 10
-  completed_plans: 9
-  percent: 25
+  completed_plans: 10
+  percent: 50
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 
 Phase: 07 (typescript-6-migration-standalone-typecheck) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-17 — Phase 07 execution started
 
 ## Milestone Phase Map (v1.1)
@@ -109,6 +109,7 @@ Phase 7) is a precondition — it must exist before/with the TS6 bump and before
 | Phase 07 P01 | 25min | 2 tasks | 4 files |
 | Phase 07 P02 | 15min | 2 tasks | 8 files |
 | Phase 07 P03 | 6min | 1 tasks | 1 files |
+| Phase 07 P04 | 15min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -156,6 +157,8 @@ Recent decisions affecting current work:
 - [Phase ?]: wallet.test.ts Buffer-based hex assertion rewritten to TextEncoder + manual hex encoding (mirrors plugin's own dev-signer implementation) instead of adding @types/node — zero new devDependencies, browser-first posture
 - [Phase ?]: theme.test.ts mock settings object was also missing getSections() (not in original RESEARCH catalog) — same shallow-mock root cause as cataloged errors, fixed at source per Rule 1
 - [Phase ?]: [Phase 07-03]: typecheck kept standalone (not folded into test) so Phase 9's deprecation gate can call make typecheck directly; lint -> typecheck -> vitest ordering wired with no ci.yml edit needed
+- [Phase ?]: typescript devDep range set to caret ^6.0.0 per D-08 (pnpm add wrote back ^6.0.3, manually corrected + resynced lockfile specifier)
+- [Phase ?]: tsup 8.5.1's dts:true bundler unconditionally injects baseUrl (TS5101 under TS6); replaced with a direct tsc --emitDeclarationOnly pass via onSuccess across all 5 packages, zero ignoreDeprecations shims
 
 ### Pending Todos
 
@@ -197,8 +200,8 @@ Items acknowledged and carried forward:
 
 ## Session Continuity
 
-Last session: 2026-07-17T15:24:29.994Z
-Stopped at: Completed 07-03-PLAN.md
+Last session: 2026-07-17T15:36:51.446Z
+Stopped at: Completed 07-04-PLAN.md
 Resume file:
 None
 

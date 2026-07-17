@@ -16,7 +16,7 @@ Requirements for this milestone. Each maps to a roadmap phase.
 ### TypeScript 6 Migration
 
 - [x] **TS6-01**: Core and all four plugins compile under TypeScript 6.0.x with zero type errors
-- [ ] **TS6-02**: Every deprecation TS6 surfaces is resolved at the source — no `ignoreDeprecations` shim remains in any tsconfig
+- [x] **TS6-02**: Every deprecation TS6 surfaces is resolved at the source — no `ignoreDeprecations` shim remains in any tsconfig
 - [x] **TS6-03**: A standalone `tsc --noEmit` typecheck runs per package, independent of tsup's `dts:true` emit (the repo has no dedicated typecheck step today)
 
 ### Toolchain Modernization
@@ -73,7 +73,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | TS6-01 | Phase 7 | Complete |
-| TS6-02 | Phase 7 | Pending |
+| TS6-02 | Phase 7 | Complete |
 | TS6-03 | Phase 7 | Complete |
 | TOOL-01 | Phase 6 | Complete |
 | TOOL-02 | Phase 6 | Complete |
