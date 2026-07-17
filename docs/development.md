@@ -14,7 +14,7 @@ If you're building a *dapp* that runs inside DxKit, see [Dapp Development](dapp-
 
 ## Prerequisites
 
-- **Node.js `^22.12.0 || >=24.0.0`** — the workspace declares this floor in every `package.json` `engines` field and enforces it via `.npmrc` `engine-strict=true`, so `pnpm install` fails fast on an unsupported Node (the project targets ES2022 — see `tsconfig.json`). The floor matches the pinned toolchain: Vite and Vitest reject Node 22.0–22.11 and the 23.x line, so those are excluded by design.
+- **Node.js `^22.12.0 || >=24.0.0`** — the workspace declares this floor in every `package.json` `engines` field and enforces it via `.npmrc` `engine-strict=true`, so `pnpm install` fails fast on an unsupported Node (the project targets ES2022 — see `tsconfig.json`). The floor sits inside what the pinned toolchain accepts: Vite requires `^20.19.0 || >=22.12.0` (so it rejects Node 22.0–22.11) and Vitest requires `^20.0.0 || ^22.0.0 || >=24.0.0` (so it rejects the 23.x line) — between them, 22.0–22.11 and 23.x are both out. The project additionally drops the Node 20 line those tools would still accept (EOL, by decision), leaving `^22.12.0 || >=24.0.0`.
 - **pnpm 10.32.1** — pinned via the `packageManager` field in `package.json`; use [corepack](https://nodejs.org/api/corepack.html) or install this exact version to avoid lockfile drift
 - **make** — all common workflows are wrapped in the root `Makefile`
 

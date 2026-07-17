@@ -3,6 +3,7 @@ phase: 06
 status: current
 verified_against: 4620ad1cc71911d5e4d5b2f3f6c97411ce616433
 updated: 2026-07-17
+post_review_refinements: PR #6 self-review — README verify-outputs entry added; development.md engine-range wording made precise
 ---
 
 # Phase 06 — Documentation Ship Gate
@@ -35,10 +36,19 @@ stack reference for references to the changed values, and corrected every stale 
     `Biome 2.5.1` → `2.5.4` (2 occurrences).
   - Commit tooling: `cz-conventional-changelog 3.3.0` → `cz-git 1.13.1`.
 
+## Post-review refinements (PR #6 self-review)
+
+- **`README.md`** — added `make verify-outputs` to the Common Helpers list (self-review finding #2;
+  the list was otherwise complete, so the new target's omission was a real gap).
+- **`docs/development.md`** — sharpened the engine-range explanation (self-review finding #1): the
+  declared floor is a *subset* of the vite∩vitest intersection (Node 20.19.x dropped by EOL decision,
+  not toolchain force), and the tool rejections are split (Vite rejects 22.0–22.11 / accepts 23.x;
+  Vitest rejects 23.x / accepts 22.0–22.11), not joint.
+
 ## Verified accurate (no change needed)
 
-- `README.md` — states no Node floor, CI matrix, or commitizen-adapter facts; the `make` helper
-  list and build-output format table remain correct. No drift.
+- `README.md` — beyond the `verify-outputs` addition above, states no Node floor / CI matrix /
+  commitizen-adapter facts; build-output format table remains correct.
 - `docs/getting-started.md`, `docs/api-reference.md`, `docs/dapp-development.md`,
   `docs/plugin-development.md`, `docs/system-internals.md`, `docs/events-reference.md`,
   `docs/cookbook.md`, `docs/security.md`, and `docs/plugins/*.md` — describe framework

@@ -68,6 +68,7 @@ npm install @dnzn/dxkit-theme
 ```bash
 make setup          # Install dependencies and initialize development environment
 make build          # Build dxkit + all plugins -> dist/ + plugins/*/dist/
+make verify-outputs # Assert all 3 build outputs (ESM/CJS/IIFE) exist per package
 make test           # Lint + run all tests (vitest + happy-dom)
 make test-watch     # Lint + run tests in watch mode
 make lint           # Run biome check
