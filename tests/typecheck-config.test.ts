@@ -9,6 +9,11 @@ import { describe, expect, it } from 'vitest';
 /**
  * Parse a JSON file, stripping JSONC comments (single-line and multi-line),
  * ensuring JSONC files with comments can be safely parsed. For plain JSON, this is a no-op.
+ *
+ * Limitation: the comment-stripping is naive regex, not a real JSONC tokenizer — a `//` or `/*`
+ * sequence *inside a string value* (e.g. a URL) would be wrongly stripped. Safe for the tsconfig
+ * files this guard reads today (none carry such values); revisit with a real JSONC parser if that
+ * ever changes.
  */
 function parseJsonWithComments(content: string): unknown {
   // Strip single-line comments
@@ -218,5 +223,37 @@ describe('TypeScript 6 Config Invariants (TS6-02 Guard)', () => {
       // Verify typecheck is a prerequisite
       expect(testPrereqs, 'test target should have typecheck as prerequisite').toContain('typecheck');
     });
+  });
+
+  describe('tsup declaration emit (TS6-02: no reintroduced baseUrl via tsup dts)', () => {
+    // tsup 8.5's bundled `dts: true` injects a `baseUrl` that TS6 deprecates (TS5101). Declarations
+    // are emitted by a direct `tsc --emitDeclarationOnly` pass in `onSuccess` instead. Re-enabling
+    // tsup's dts would silently reintroduce the shim-forcing baseUrl without failing typecheck —
+    // so guard the tsup side of TS6-02 here, not just the tsconfig side.
+    const tsupConfigPaths = [
+      'tsup.config.ts',
+      'plugins/auth/tsup.config.ts',
+      'plugins/wallet/tsup.config.ts',
+      'plugins/theme/tsup.config.ts',
+      'plugins/settings/tsup.config.ts',
+    ];
+
+    for (const configPath of tsupConfigPaths) {
+      describe(configPath, () => {
+        it('should emit declarations via a tsc --emitDeclarationOnly onSuccess pass', () => {
+          const fullPath = resolve(process.cwd(), configPath);
+          const content = readFileSync(fullPath, 'utf-8');
+          expect(content, `${configPath} should run tsc --emitDeclarationOnly`).toMatch(/--emitDeclarationOnly/);
+        });
+
+        it('should NOT enable tsup dts bundling (would reinject a TS6-deprecated baseUrl)', () => {
+          const fullPath = resolve(process.cwd(), configPath);
+          const content = readFileSync(fullPath, 'utf-8');
+          // Strip comments so the explanatory `dts:true` mention in the config header doesn't match.
+          const code = content.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
+          expect(code, `${configPath} should not set dts: true`).not.toMatch(/\bdts\s*:\s*true\b/);
+        });
+      });
+    }
   });
 });
