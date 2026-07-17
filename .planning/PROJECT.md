@@ -91,13 +91,15 @@ to keep this a focused modernization pass.
 - ✓ Commitizen adapter swapped to maintained `cz-git` (`cz-conventional-changelog` removed); interactive flow confirmed to emit conventional commits (UAT) — validated Phase 6 (TOOL-04)
 - ✓ All three build outputs (ESM/CJS/IIFE) confirmed present per package post-bump; `verify-outputs` wired into release/publish/CI so a dropped output fails automatically — validated Phase 6 (TOOL-05)
 
+<!-- Validated in Phase 7: TypeScript 6 Migration & Standalone Typecheck (v1.1) -->
+- ✓ Standalone per-package `tsc --noEmit` typecheck (`tsconfig.typecheck.json` ×5 + `make typecheck`, independent of tsup's dts emit), wired into `make test`/CI as a green baseline before the bump — validated Phase 7 (TS6-03)
+- ✓ Core + all 4 plugins compile clean under TypeScript 6.0.3; dts emission switched from tsup's `dts:true` to `tsc --emitDeclarationOnly` to avoid TS6's `TS5101` baseUrl deprecation — validated Phase 7 (TS6-01)
+- ✓ No `ignoreDeprecations` shim in any tsconfig; every TS6 deprecation resolved at source; full vitest suite (321) green under TS6 — validated Phase 7 (TS6-02)
+
 ### Active
 
 <!-- The v1.1 TS6 + toolchain modernization milestone. Hypotheses until shipped and validated.
      Detailed, REQ-ID'd scope lives in .planning/REQUIREMENTS.md. -->
-
-**TS6 migration**
-- [ ] Migrate core + 4 plugins to TypeScript 6; resolve every deprecation TS6 surfaces
 
 **Forward-compat typing**
 - [ ] Adopt `isolatedDeclarations` across all packages
@@ -189,4 +191,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-17 after Phase 6 (Toolchain Audit & Modernization) complete — TOOL-01..05 validated (tooling bumps, Node 22 floor via `^22.12.0 || >=24.0.0` + engine-strict + CI matrix, cz-git swap, build-output verification). Remaining v1.1: TS6 migration, forward-compat typing, CI deprecation gate + dep-freshness automation, WR-01. Aimed at a clean TS 7.1 jump.*
+*Last updated: 2026-07-17 after Phase 7 (TypeScript 6 Migration & Standalone Typecheck) complete — TS6-01..03 validated (per-package `tsc --noEmit` baseline wired into `make test`/CI, core + 4 plugins clean under TS 6.0.3, zero `ignoreDeprecations`; dts emission moved off tsup's bundler to sidestep TS6's TS5101). Remaining v1.1: forward-compat typing, CI deprecation gate + dep-freshness automation, WR-01. Aimed at a clean TS 7.1 jump.*
