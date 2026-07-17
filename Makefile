@@ -4,7 +4,7 @@ PLUGIN_DIRS := $(dir $(PLUGINS))
 # Build order: plugins with no cross-plugin deps first, then their dependents
 PLUGIN_BUILD_ORDER := plugins/settings/ plugins/wallet/ plugins/auth/ plugins/theme/
 
-.PHONY: setup build test test-watch lint lint-fix format clean superclean audit commit publish release verify-outputs
+.PHONY: setup build test test-watch lint lint-fix format clean superclean audit commit publish release verify-outputs typecheck
 
 setup:
 	pnpm install
@@ -30,10 +30,10 @@ lint-fix:
 lint-format:
 	npx biome format --write .
 
-test: lint
+test: lint typecheck
 	npx vitest run
 
-test-watch: lint
+test-watch: lint typecheck
 	npx vitest
 
 clean:
@@ -93,6 +93,18 @@ verify-outputs:
 	done
 	@echo
 	@echo "All build outputs present (3 formats x 5 packages)."
+
+typecheck:
+	@echo
+	@echo "TYPECHECKING: ."
+	@echo
+	@npx tsc --noEmit -p tsconfig.typecheck.json
+	@for dir in $(PLUGIN_BUILD_ORDER); do \
+		echo; \
+		echo "TYPECHECKING: $$dir"; \
+		echo; \
+		(cd $$dir && npx tsc --noEmit -p tsconfig.typecheck.json) || exit 1; \
+	done
 
 audit:
 	@echo

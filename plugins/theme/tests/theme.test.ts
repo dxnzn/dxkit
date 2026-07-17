@@ -422,7 +422,7 @@ describe('createCSSTheme', () => {
 
     it('emits no dx:error when storage is unavailable', async () => {
       const original = (globalThis as any).localStorage;
-      // @ts-expect-error simulate localStorage being unavailable (SSR/private mode)
+      // simulate localStorage being unavailable (SSR/private mode)
       delete (globalThis as any).localStorage;
 
       try {
@@ -459,11 +459,12 @@ describe('createCSSTheme', () => {
       disableDapp: vi.fn(),
       isDappEnabled: () => true,
       settings: {
-        get: (id: string, key: string) => settingsStore.get(`${id}:${key}`),
+        get: <T = unknown>(id: string, key: string) => settingsStore.get(`${id}:${key}`) as T | undefined,
         set: (id: string, key: string, value: unknown) => {
           settingsStore.set(`${id}:${key}`, value);
         },
         getAll: () => ({}),
+        getSections: () => [],
         onChange: () => () => {},
         onAnyChange: () => () => {},
       },

@@ -44,8 +44,8 @@ export default defineConfig({
 
 | Command | Runs |
 |---|---|
-| `make test` | `make lint` (Biome check) then `npx vitest run` — the full suite, once, non-interactively. This is what CI runs. |
-| `make test-watch` | `make lint` then `npx vitest` — full suite in watch mode, re-running on file change. |
+| `make test` | `make lint` (Biome check), then `make typecheck` (`tsc --noEmit` per package), then `npx vitest run` — the full suite, once, non-interactively. This is what CI runs. |
+| `make test-watch` | `make lint`, then `make typecheck`, then `npx vitest` — full suite in watch mode, re-running on file change. |
 | `npm run test` / `pnpm test` | `vitest run` directly (no lint step) — root `package.json` script. |
 | `npm run test:watch` / `pnpm test:watch` | `vitest` in watch mode (no lint step) — root `package.json` script. |
 
@@ -116,4 +116,4 @@ steps:
   - run: make test
 ```
 
-CI builds every package first (`make build`), asserts all three build outputs exist per package (`make verify-outputs`), then runs `make test`, which lints (`biome check .`) and runs the full Vitest suite (`vitest run`) — the same commands a contributor runs locally. The matrix runs two Node legs, `['22.12.0', 24]`: the pinned `22.12.0` leg exercises the exact `engines` floor (so a floor regression can't hide behind a rounded-up patch), and `24` is the current stable line. No coverage upload or reporting step is configured.
+CI builds every package first (`make build`), asserts all three build outputs exist per package (`make verify-outputs`), then runs `make test`, which lints (`biome check .`), type-checks (`make typecheck` — standalone `tsc --noEmit` per package), and runs the full Vitest suite (`vitest run`) — the same commands a contributor runs locally. The matrix runs two Node legs, `['22.12.0', 24]`: the pinned `22.12.0` leg exercises the exact `engines` floor (so a floor regression can't hide behind a rounded-up patch), and `24` is the current stable line. No coverage upload or reporting step is configured.

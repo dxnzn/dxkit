@@ -69,8 +69,9 @@ npm install @dnzn/dxkit-theme
 make setup          # Install dependencies and initialize development environment
 make build          # Build dxkit + all plugins -> dist/ + plugins/*/dist/
 make verify-outputs # Assert all 3 build outputs (ESM/CJS/IIFE) exist per package
-make test           # Lint + run all tests (vitest + happy-dom)
-make test-watch     # Lint + run tests in watch mode
+make typecheck      # Standalone `tsc --noEmit` per package (core + all 4 plugins)
+make test           # Lint + typecheck + run all tests (vitest + happy-dom)
+make test-watch     # Lint + typecheck + run tests in watch mode
 make lint           # Run biome check
 make lint-fix       # Run biome check with auto-fix
 make lint-format    # Run biome format with auto-fix

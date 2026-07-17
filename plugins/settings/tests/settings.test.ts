@@ -508,7 +508,7 @@ describe('createSettings', () => {
 
     it('emits no dx:error when storage is unavailable', async () => {
       const original = (globalThis as any).localStorage;
-      // @ts-expect-error simulate localStorage being unavailable (SSR/private mode)
+      // simulate localStorage being unavailable (SSR/private mode)
       delete (globalThis as any).localStorage;
 
       try {

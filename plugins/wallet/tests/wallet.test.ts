@@ -251,7 +251,10 @@ describe('createLocalWalletProvider', () => {
     await provider.connect();
 
     const sig = await provider.sign('hi');
-    expect(sig).toBe(`0x${Buffer.from('hi').toString('hex')}`);
+    const expectedHex = Array.from(new TextEncoder().encode('hi'))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+    expect(sig).toBe(`0x${expectedHex}`);
   });
 
   it('sign() throws when not connected', async () => {
@@ -560,7 +563,7 @@ describe('createWallet', () => {
 
     it('emits no dx:error when storage is unavailable', async () => {
       const original = (globalThis as any).localStorage;
-      // @ts-expect-error simulate localStorage being unavailable (SSR/private mode)
+      // simulate localStorage being unavailable (SSR/private mode)
       delete (globalThis as any).localStorage;
 
       try {

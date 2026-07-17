@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": ".",
+    "paths": {
+      "@dnzn/dxkit": ["./src/index.ts"],
+      "@dnzn/dxkit-wallet": ["./plugins/wallet/src/index.ts"],
+      "@dnzn/dxkit-auth": ["./plugins/auth/src/index.ts"],
+      "@dnzn/dxkit-theme": ["./plugins/theme/src/index.ts"],
+      "@dnzn/dxkit-settings": ["./plugins/settings/src/index.ts"]
+    }
+  },
+  "include": ["src", "tests"]
+}

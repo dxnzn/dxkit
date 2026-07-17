@@ -146,7 +146,7 @@ Each package (core + each plugin under `plugins/*/`) has its own `tsup.config.ts
 
 | Format | Output | Notes |
 |---|---|---|
-| ESM + CJS | `dist/index.js`, `dist/index.cjs` | `dts: true` (type declarations), `clean: true`, `sourcemap: true`. Core is declared `external` in plugin builds to avoid bundling it twice. |
+| ESM + CJS | `dist/index.js`, `dist/index.cjs` | `clean: true`, `sourcemap: true`. `.d.ts` declarations are emitted by a `tsc --emitDeclarationOnly` pass in tsup's `onSuccess` hook (not tsup's bundled `dts`, which injects a `baseUrl` deprecated under TypeScript 6). Core is declared `external` in plugin builds to avoid bundling it twice. |
 | IIFE | `dist/index.global.js` | `platform: 'browser'`, attaches to a `globalName` (`DxKit`, `DxWallet`, `DxAuth`, `DxTheme`, `DxSettings`). Plugin IIFE builds set `noExternal: ['@dnzn/dxkit']` to bundle core inline so the `<script>` tag works standalone. |
 
 ### `tsconfig.json`
@@ -158,8 +158,11 @@ Each package (core + each plugin under `plugins/*/`) has its own `tsup.config.ts
 | `lib` | `['ES2022', 'DOM']` |
 | `strict` | `true` |
 | `esModuleInterop` | `true` |
-| `declaration` / `declarationMap` / `sourceMap` | `true` |
+| `declaration` / `sourceMap` | `true` |
+| `declarationMap` | `false` — the published package ships only `dist` (`files: ["dist"]`), so declaration maps pointing back at `src/` would dead-link for consumers; they are not emitted |
 | `outDir` / `rootDir` | `dist` / `src` |
+
+Each package also has a `tsconfig.typecheck.json` that extends its build config with `noEmit: true` and widens `include` to cover `tests/` as well as `src/`. This is the config `make typecheck` runs (`tsc --noEmit -p tsconfig.typecheck.json`) — a standalone type-check over source *and* tests, independent of the build's declaration emit. It sets `paths` (mirroring `vitest.config.ts`'s workspace aliases) but deliberately **no** `baseUrl`, since `baseUrl` is deprecated under TypeScript 6 (`TS5101`).
 
 ### `biome.json`
 

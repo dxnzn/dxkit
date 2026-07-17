@@ -240,7 +240,7 @@ describe('stress: concurrency & mount races (TEST-01, D-01/D-02/D-03)', () => {
 
     const mounts = countMounts('a');
     const subpathEvents: { id: string; path: string; previousPath: string }[] = [];
-    const onSubpath = ((e: CustomEvent) => subpathEvents.push(e.detail)) as EventListener;
+    const onSubpath = ((e: CustomEvent) => subpathEvents.push(e.detail)) as unknown as EventListener;
     window.addEventListener('dx:route:subpath', onSubpath);
 
     shell.navigate('/a');
@@ -335,7 +335,7 @@ describe('stress: concurrency & mount races (TEST-01, D-01/D-02/D-03)', () => {
       await shell.init();
 
       const errors: { source: string }[] = [];
-      window.addEventListener('dx:error', ((e: CustomEvent) => errors.push(e.detail)) as EventListener);
+      window.addEventListener('dx:error', ((e: CustomEvent) => errors.push(e.detail)) as unknown as EventListener);
 
       shell.navigate('/a'); // A's entry load hangs forever
       await vi.advanceTimersByTimeAsync(0); // flush A's template resolve, reach the entry hang
@@ -363,7 +363,7 @@ describe('stress: concurrency & mount races (TEST-01, D-01/D-02/D-03)', () => {
     await shell.init();
 
     const subpathEvents: { id: string; path: string; previousPath: string }[] = [];
-    const onSubpath = ((e: CustomEvent) => subpathEvents.push(e.detail)) as EventListener;
+    const onSubpath = ((e: CustomEvent) => subpathEvents.push(e.detail)) as unknown as EventListener;
     window.addEventListener('dx:route:subpath', onSubpath);
 
     shell.navigate('/a'); // A's entry load pending
@@ -504,7 +504,7 @@ describe('stress: concurrency & mount races (TEST-01, D-01/D-02/D-03)', () => {
     await shell.init();
 
     const subpathEvents: { id: string; path: string; previousPath: string }[] = [];
-    const onSubpath = ((e: CustomEvent) => subpathEvents.push(e.detail)) as EventListener;
+    const onSubpath = ((e: CustomEvent) => subpathEvents.push(e.detail)) as unknown as EventListener;
     window.addEventListener('dx:route:subpath', onSubpath);
     const alternation = recordAlternation();
 

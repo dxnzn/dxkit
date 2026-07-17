@@ -2,18 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: TypeScript 6 Migration & Toolchain Modernization
-current_phase: 7
-current_phase_name: TypeScript 6 Migration & Standalone Typecheck
-status: "Phase 06 shipped — PR #6"
-stopped_at: Completed 06-04-PLAN.md
-last_updated: "2026-07-17T01:51:10.991Z"
+current_phase: 8
+current_phase_name: Forward-Compat Typing
+status: "Phase 07 shipped — PR #7"
+stopped_at: Completed 07-04-PLAN.md
+last_updated: "2026-07-17T18:51:24.493Z"
 last_activity: 2026-07-17
 progress:
   total_phases: 4
-  completed_phases: 1
-  total_plans: 6
-  completed_plans: 6
-  percent: 25
+  completed_phases: 2
+  total_plans: 10
+  completed_plans: 10
+  percent: 50
+last_activity_desc: Phase 07 complete, transitioned to Phase 8
 ---
 
 # Project State
@@ -23,13 +24,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** DxKit stays trustworthy for real use — failures are visible (never silent), documented behavior matches actual behavior, and the alpha is stable enough to build on with confidence.
-**Current focus:** Phase 06 — toolchain-audit-modernization
+**Current focus:** Phase 07 — typescript-6-migration-standalone-typecheck
 
 ## Current Position
 
-Phase: 7 — TypeScript 6 Migration & Standalone Typecheck
+Phase: 8 — Forward-Compat Typing
 Plan: Not started
-Status: Phase 06 shipped — PR #6
+Status: Phase 07 shipped — PR #7
 Last activity: 2026-07-17
 
 ## Milestone Phase Map (v1.1)
@@ -51,7 +52,7 @@ Phase 7) is a precondition — it must exist before/with the TS6 bump and before
 
 **Velocity:**
 
-- Total plans completed: 29 (v1.0)
+- Total plans completed: 33 (v1.0)
 - Average duration: - min
 - Total execution time: 0 hours
 
@@ -65,6 +66,7 @@ Phase 7) is a precondition — it must exist before/with the TS6 bump and before
 | 04 | 6 | - | - |
 | 05 | 8 | - | - |
 | 06 | 6 | - | - |
+| 07 | 4 | - | - |
 
 **Recent Trend:**
 
@@ -101,6 +103,14 @@ Phase 7) is a precondition — it must exist before/with the TS6 bump and before
 | Phase 06 P04 | 6min | 2 tasks | 4 files |
 | Phase 06 P05 | 4min | 2 tasks | 1 files |
 | Phase 06 P06 | 8min | 3 tasks | 7 files |
+**Per-Plan Metrics:**
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 07 P01 | 25min | 2 tasks | 4 files |
+| Phase 07 P02 | 15min | 2 tasks | 8 files |
+| Phase 07 P03 | 6min | 1 tasks | 1 files |
+| Phase 07 P04 | 15min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -144,6 +154,12 @@ Recent decisions affecting current work:
 - [Phase 06-04]: Verified the cz-git adapter swap via a non-interactive npx cz smoke run (no TTY in this environment) - confirmed the adapter resolves at node_modules/cz-git and renders the correct type-selection prompt, satisfying Pitfall 5's failure-mode check
 - [Phase 06-05]: verify-outputs Makefile target reuses PLUGIN_BUILD_ORDER as the plugin directory list rather than a hardcoded list, keeping the check and the build target from drifting out of sync
 - [Phase 06-06]: Tightened engines.node to ^22.12.0 || >=24.0.0 (exact intersection of vite@8.1.4 and vitest@4.1.10 pinned engine ranges) across all 5 package.json, closing CR-01; CI matrix pins exact-floor 22.12.0 leg (WR-02); verify-outputs wired into release/publish/CI (WR-01)
+- [Phase 07-01]: DappEntry.overrides switched to DeepPartial<DappManifest> at declaration (src/types/shell.ts), resolving shell.test.ts's shallow-Partial<T> symptom at source rather than the call site
+- [Phase ?]: wallet.test.ts Buffer-based hex assertion rewritten to TextEncoder + manual hex encoding (mirrors plugin's own dev-signer implementation) instead of adding @types/node — zero new devDependencies, browser-first posture
+- [Phase ?]: theme.test.ts mock settings object was also missing getSections() (not in original RESEARCH catalog) — same shallow-mock root cause as cataloged errors, fixed at source per Rule 1
+- [Phase ?]: [Phase 07-03]: typecheck kept standalone (not folded into test) so Phase 9's deprecation gate can call make typecheck directly; lint -> typecheck -> vitest ordering wired with no ci.yml edit needed
+- [Phase ?]: typescript devDep range set to caret ^6.0.0 per D-08 (pnpm add wrote back ^6.0.3, manually corrected + resynced lockfile specifier)
+- [Phase ?]: tsup 8.5.1's dts:true bundler unconditionally injects baseUrl (TS5101 under TS6); replaced with a direct tsc --emitDeclarationOnly pass via onSuccess across all 5 packages, zero ignoreDeprecations shims
 
 ### Pending Todos
 
@@ -185,8 +201,8 @@ Items acknowledged and carried forward:
 
 ## Session Continuity
 
-Last session: 2026-07-15T19:05:14.344Z
-Stopped at: Completed 06-04-PLAN.md
+Last session: 2026-07-17T15:36:51.446Z
+Stopped at: Completed 07-04-PLAN.md
 Resume file:
 None
 

@@ -54,7 +54,7 @@ storage keys, a stress/edge-case/regression test suite, and a full documentation
 **🚧 v1.1 TypeScript 6 Migration & Toolchain Modernization (Phases 6–9)**
 
 - [x] **Phase 6: Toolchain Audit & Modernization** - Dev toolchain on current TS6-compatible versions with an enforced Node 22 LTS floor; all three build outputs still emit. (6/6 plans; gap-closure 06-06 tightened the Node floor to `^22.12.0 || >=24.0.0`, pinned the CI floor leg, and wired verify-outputs; re-verification 9/9, UAT + security green) (completed 2026-07-17)
-- [ ] **Phase 7: TypeScript 6 Migration & Standalone Typecheck** - A per-package `tsc --noEmit` baseline lands, then core + 4 plugins compile clean on TS6 with zero deprecation shims.
+- [x] **Phase 7: TypeScript 6 Migration & Standalone Typecheck** - A per-package `tsc --noEmit` baseline lands, then core + 4 plugins compile clean on TS6 with zero deprecation shims. (completed 2026-07-17)
 - [ ] **Phase 8: Forward-Compat Typing** - `verbatimModuleSyntax` + `isolatedDeclarations` + `erasableSyntaxOnly` on across all packages, verified against the built IIFE/CJS artifacts.
 - [ ] **Phase 9: Continuous Debt Guardrails & Registry Robustness** - Scoped CI deprecation gate, zero-runtime-dep assertion, Renovate automation, and the WR-01 registry array-shape fix.
 
@@ -109,7 +109,20 @@ storage keys, a stress/edge-case/regression test suite, and a full documentation
   3. No `ignoreDeprecations` shim remains in any `tsconfig.json` — every deprecation TS6 surfaces is resolved at the source.
   4. The full vitest suite stays green after the TS6 bump.
 
-**Plans**: TBD
+**Plans**: 4/4 plans executed
+
+**Wave 1** *(pre-bump baseline — parallel, disjoint files)*
+
+- [x] 07-01-PLAN.md — Root `tsconfig.typecheck.json` + `DeepPartial<T>` + root test-only type fixes; green root typecheck on today's TS (TS6-01, TS6-03)
+- [x] 07-02-PLAN.md — 4 plugin `tsconfig.typecheck.json` + per-plugin test-only type fixes; green plugin typechecks on today's TS (TS6-01, TS6-03)
+
+**Wave 2** *(completes the committed green baseline)*
+
+- [x] 07-03-PLAN.md — `make typecheck` target (reuse `PLUGIN_BUILD_ORDER`) + `make test` prereq wiring + `.PHONY`; full standalone typecheck green on today's TS (TS6-03)
+
+**Wave 3** *(the bump — lands strictly after the green baseline)*
+
+- [x] 07-04-PLAN.md — Bump `typescript` `^5.8.3` → `^6.0.0` + lockfile; verify `make typecheck`/`build`/`test` under TS6, resolve any deprecations at source, no `ignoreDeprecations` (TS6-01, TS6-02)
 
 ### Phase 8: Forward-Compat Typing
 
@@ -153,6 +166,6 @@ v1.1 phases execute in numeric order: 6 → 7 → 8 → 9
 | 4. Testing — Stress, Edge-Case & Regression Coverage | v1.0 | 6/6 | Complete | 2026-07-14 |
 | 5. Documentation — Truth Pass | v1.0 | 8/8 | Complete | 2026-07-14 |
 | 6. Toolchain Audit & Modernization | v1.1 | 6/6 | Complete    | 2026-07-15 |
-| 7. TypeScript 6 Migration & Standalone Typecheck | v1.1 | 0/? | Not started | - |
+| 7. TypeScript 6 Migration & Standalone Typecheck | v1.1 | 4/4 | Complete    | 2026-07-17 |
 | 8. Forward-Compat Typing | v1.1 | 0/? | Not started | - |
 | 9. Continuous Debt Guardrails & Registry Robustness | v1.1 | 0/? | Not started | - |

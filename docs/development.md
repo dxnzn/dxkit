@@ -27,7 +27,7 @@ git clone https://github.com/dxnzn/dxkit
 cd dxkit
 make setup    # pnpm install
 make build    # build core + all plugins
-make test     # lint + run the full test suite
+make test     # lint + typecheck + run the full test suite
 ```
 
 `make setup` runs `pnpm install`, which resolves the workspace (root package + `plugins/*`) in one lockfile. There is no `.env` file or environment-based config to set up — DxKit is configured entirely in code (see [Configuration](configuration.md)).
@@ -76,8 +76,9 @@ All common workflows are wrapped in the root `Makefile`. Run `make <target>` fro
 |---|---|
 | `make setup` | Install dependencies (`pnpm install`) and initialize the workspace |
 | `make build` | Build `@dnzn/dxkit` core, then each plugin in dependency order, into `dist/` and `plugins/*/dist/` |
-| `make test` | Run `make lint`, then the full vitest suite (`vitest run`) across core + all plugins |
-| `make test-watch` | Run `make lint`, then vitest in watch mode |
+| `make test` | Run `make lint`, then `make typecheck`, then the full vitest suite (`vitest run`) across core + all plugins |
+| `make test-watch` | Run `make lint`, then `make typecheck`, then vitest in watch mode |
+| `make typecheck` | Standalone `tsc --noEmit -p tsconfig.typecheck.json` for the core package and each plugin (5 packages) — a dedicated type-check pass independent of the `tsup` build's declaration emit. Exits non-zero on any type error. |
 | `make lint` | `biome check .` — lint check only, no writes |
 | `make lint-fix` | `biome check --write .` — auto-fix lint issues |
 | `make lint-format` | `biome format --write .` — auto-fix formatting only |
@@ -89,7 +90,7 @@ All common workflows are wrapped in the root `Makefile`. Run `make <target>` fro
 | `make release` | `build`, `verify-outputs`, `test`, then run `commit-and-tag-version` to bump versions and generate the changelog |
 | `make publish` | `build`, `verify-outputs`, `test`, then `pnpm publish --access public` for core and each plugin in build order |
 
-`make test` and `make test-watch` always lint first — a lint failure blocks the test run.
+`make test` and `make test-watch` run in order — `make lint`, then `make typecheck`, then vitest — so a lint failure or a type error blocks the test run before any specs execute.
 
 Individual packages also expose their own `package.json` scripts (`build`, `clean`, and, on the root package only, `test`, `test:watch`, `lint`, `lint:fix`, `format`) if you prefer to run tools directly with `npx` instead of `make`. Plugin packages only define `build` and `clean` — lint and test are run from the root via the shared `vitest.config.ts` and `biome.json`, not per-plugin.
 
@@ -115,7 +116,7 @@ The `exports` field in each package's `package.json` routes consumers to the rig
 
 Each plugin's `tsup.config.ts` sets `noExternal: ['@dnzn/dxkit']` on its IIFE build (and `external: ['@dnzn/dxkit']` on its ESM/CJS builds, so bundler consumers don't get it duplicated). In practice every plugin imports only *types* from `@dnzn/dxkit`, so nothing from core ends up in any output — the `<script>` tag works standalone because the plugin doesn't need `@dnzn/dxkit`'s runtime at all, not because it's bundled in. Cross-plugin references (e.g. wallet's `import '@dnzn/dxkit-settings'`, used only to pull in that package's ambient type declarations) are left external in every build target and are not inlined. See `tsup.config.ts` (root) and `plugins/*/tsup.config.ts` for the exact per-package config.
 
-TypeScript compiles to `ES2022` with `strict: true` (`tsconfig.json`); `.d.ts` and source maps are emitted for every ESM/CJS build.
+TypeScript compiles to `ES2022` with `strict: true` (`tsconfig.json`); `.d.ts` declarations and source maps are emitted for every ESM/CJS build. Declaration emit runs as a dedicated `tsc --emitDeclarationOnly` pass wired into each package's `tsup` `onSuccess` hook (rather than tsup's built-in `dts` bundler) — tsup 8.5's bundled `dts` injects a `baseUrl` that TypeScript 6 deprecates (`TS5101`), so declarations are emitted by `tsc` directly to keep the build free of deprecation shims.
 
 ## Code Style
 
@@ -138,7 +139,7 @@ make lint-fix      # auto-fix lint issues
 make lint-format    # auto-fix formatting only
 ```
 
-`make test` and `make test-watch` run `make lint` first, so lint failures are caught before tests execute — both locally and in CI (`make test` is invoked directly in `.github/workflows/ci.yml`).
+`make test` and `make test-watch` run `make lint` and `make typecheck` first, so lint failures and type errors are caught before tests execute — both locally and in CI (`make test` is invoked directly in `.github/workflows/ci.yml`).
 
 ## Testing
 
@@ -156,8 +157,8 @@ include: [
 Run the suite:
 
 ```bash
-make test         # lint + vitest run (core + all plugins)
-make test-watch    # lint + vitest watch mode
+make test         # lint + typecheck + vitest run (core + all plugins)
+make test-watch    # lint + typecheck + vitest watch mode
 ```
 
 Or directly from the root, bypassing the lint gate:
@@ -178,7 +179,7 @@ plugins/auth/tests/
 plugins/theme/tests/
 ```
 
-There is no separate coverage-threshold configuration in this repo — `make test` gates on lint + all tests passing, not a coverage percentage.
+There is no separate coverage-threshold configuration in this repo — `make test` gates on lint + typecheck + all tests passing, not a coverage percentage.
 
 ## Commit Conventions
 
