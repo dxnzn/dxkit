@@ -5,6 +5,9 @@
   "author": "Denizen. <null@dnzn.dev>",
   "license": "MIT",
   "packageManager": "pnpm@10.32.1",
+  "engines": {
+    "node": "^22.12.0 || >=24.0.0"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/dxnzn/dxkit"
@@ -35,19 +38,19 @@
   },
   "config": {
     "commitizen": {
-      "path": "cz-conventional-changelog"
+      "path": "node_modules/cz-git"
     }
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.1",
+    "@biomejs/biome": "^2.5.4",
     "commit-and-tag-version": "^12.7.3",
     "commitizen": "^4.3.2",
-    "cz-conventional-changelog": "^3.3.0",
+    "cz-git": "^1.13.1",
     "happy-dom": "^20.10.6",
-    "tsup": "^8.4.0",
+    "tsup": "^8.5.1",
     "typescript": "^5.8.3",
-    "vite": "^7.3.6",
-    "vitest": "^4.1.9"
+    "vite": "^8.1.4",
+    "vitest": "^4.1.10"
   },
   "pnpm": {
     "overrides": {

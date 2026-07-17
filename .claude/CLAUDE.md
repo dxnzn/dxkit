@@ -20,7 +20,7 @@ confidence.
 
 ### Constraints
 
-- **Tech stack**: TypeScript 5.8.3, Node 18+ / ES2022, pnpm 10.32.1, tsup, vitest + happy-dom, Biome — established; stay on TS 5.x this milestone (TS6 deferred).
+- **Tech stack**: TypeScript 5.8.3, Node `^22.12.0 || >=24.0.0` / ES2022, pnpm 10.32.1, tsup, vitest + happy-dom, Biome — established; stay on TS 5.x this milestone (TS6 deferred).
 - **Compatibility**: Breaking changes are acceptable (still alpha) *only where they clearly
   improve the API*; each must carry a `BREAKING CHANGE:` footer and migration notes. Prefer
   additive (new events / optional config) wherever it's equivalent.
@@ -43,7 +43,7 @@ confidence.
 
 ## Runtime
 
-- Node.js 18+ (ES2022 target)
+- Node.js `^22.12.0 || >=24.0.0` (ES2022 target)
 - pnpm 10.32.1
 - Lockfile: `pnpm-lock.yaml` (present)
 
@@ -54,15 +54,15 @@ confidence.
 - @dnzn/dxkit-auth 0.1.5 - Passthrough authentication (wallet-based)
 - @dnzn/dxkit-theme 0.1.5 - CSS theme management with light/dark/system modes
 - @dnzn/dxkit-settings 0.1.5 - Per-dapp configuration and settings persistence
-- vitest 4.1.9 - Unit and integration test runner
+- vitest 4.1.10 - Unit and integration test runner
 - happy-dom 20.10.6 - Lightweight DOM implementation for test environment
-- tsup 8.4.0 - Bundler for ES2022 → ESM/CJS/IIFE outputs
-- vite 7.3.6 - Development server and module resolution
-- @biomejs/biome 2.5.1 - Linter and formatter (replaces ESLint/Prettier)
+- tsup 8.5.1 - Bundler for ES2022 → ESM/CJS/IIFE outputs
+- vite 8.1.4 - Development server and module resolution
+- @biomejs/biome 2.5.4 - Linter and formatter (replaces ESLint/Prettier)
 - TypeScript 5.8.3 - Language compiler
 - commit-and-tag-version 12.7.3 - Automated versioning and changelog
 - commitizen 4.3.2 - Conventional commit interface
-- cz-conventional-changelog 3.3.0 - Commit message template
+- cz-git 1.13.1 - Commit message adapter (maintained; replaces cz-conventional-changelog)
 
 ## Key Dependencies
 
@@ -95,7 +95,7 @@ confidence.
 
 ## Platform Requirements
 
-- Node.js 18+ (ES2022 support)
+- Node.js `^22.12.0 || >=24.0.0` (ES2022 support)
 - pnpm 10.32.1
 - Linux/macOS/Windows with bash/make
 - Browser with ES2022 support (via IIFE or bundler)
@@ -131,7 +131,7 @@ confidence.
 
 ## Code Style
 
-- Tool: Biome 2.5.1
+- Tool: Biome 2.5.4
 - Indent: 2 spaces
 - Line width: 120 characters
 - Quotes: Single quotes (enforced)

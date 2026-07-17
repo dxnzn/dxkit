@@ -21,6 +21,28 @@ DxKit stays trustworthy for real use: failures are visible (never silent), the d
 behavior matches the actual behavior, and the alpha is stable enough to build on with
 confidence.
 
+## Current Milestone: v1.1 TypeScript 6 Migration & Toolchain Modernization
+
+**Goal:** Migrate core + all plugins to TypeScript 6, audit and modernize the full toolchain,
+and put continuous forward-compat guardrails in place so the eventual jump to TS 7.1 is clean.
+
+**Target features:**
+- **TS6 migration** — core + 4 plugins onto TypeScript 6, resolving every deprecation TS6 surfaces.
+- **Toolchain audit & modernization** — bump tsup / vite / vitest / Biome / commit tooling to current;
+  raise the Node floor from EOL Node 18 to **Node 22 LTS** (research found Node 20 is also EOL);
+  swap the ~6-years-unmaintained `cz-conventional-changelog` for the maintained `cz-git`.
+- **Forward-compat typing** — adopt `isolatedDeclarations`, `verbatimModuleSyntax`, and `erasableSyntaxOnly`
+  across all packages.
+- **Continuous debt guardrails** — CI deprecation gate (fail on `tsc`/lint deprecation warnings) plus
+  dependency-freshness automation (Renovate/Dependabot-style).
+- **WR-01 robustness fix** — validate `registry.json` is an array so a wrong-shape `200` can't throw an
+  uncaught `TypeError` in `init()` before `window.__DXKIT__` is exposed (closes the last open Phase-1 todo).
+
+**Why now:** TS6 is the transitional/deprecation-alignment release before the native compiler (TS7). This
+milestone treats it as a stepping stone — every measure is chosen to de-risk the TS 7.1 jump later (waiting
+on a TS7 point release for stable ABI/API). Storage encryption and new routing features are deferred again
+to keep this a focused modernization pass.
+
 ## Requirements
 
 ### Validated
@@ -63,29 +85,31 @@ confidence.
 - ✓ Manifest/route validation edge-case tests: invalid route formats rejected with `dx:error`, multi-match/duplicate routes resolved deterministically, deep-merge override semantics locked — validated Phase 4
 - ✓ Full-shell regression proves settings handlers registered by a dapp stop firing after `disableDapp()` — validated Phase 4
 
+<!-- Validated in Phase 6: Toolchain Audit & Modernization (v1.1) -->
+- ✓ Build/test/lint tooling bumped to current TS6-compatible versions (tsup ^8.5, vite ^8.1, vitest ^4.1, happy-dom ^20.10, Biome ^2.5), `make test` green (321 specs) — validated Phase 6 (TOOL-03)
+- ✓ Node floor raised to 22 LTS via `engines.node: "^22.12.0 || >=24.0.0"` (tightened to match pinned vite/vitest ranges) + `.npmrc` engine-strict + CI matrix `['22.12.0', 24]`; negative install on Node 20 confirmed to fail-fast (UAT) — validated Phase 6 (TOOL-01, TOOL-02)
+- ✓ Commitizen adapter swapped to maintained `cz-git` (`cz-conventional-changelog` removed); interactive flow confirmed to emit conventional commits (UAT) — validated Phase 6 (TOOL-04)
+- ✓ All three build outputs (ESM/CJS/IIFE) confirmed present per package post-bump; `verify-outputs` wired into release/publish/CI so a dropped output fails automatically — validated Phase 6 (TOOL-05)
+
 ### Active
 
-<!-- The 0.2.0 hardening + docs-truth milestone. Hypotheses until shipped and validated. -->
+<!-- The v1.1 TS6 + toolchain modernization milestone. Hypotheses until shipped and validated.
+     Detailed, REQ-ID'd scope lives in .planning/REQUIREMENTS.md. -->
 
-**Hardening — robustness guards** — ✓ validated Phase 2
-- [x] Optional load timeouts for script/style/template fetches (no hang-forever mounts)
-- [x] Cache sorted manifests in the router (avoid re-sort on every resolve)
-- [x] Template caching by URL with explicit invalidation
+**TS6 migration**
+- [ ] Migrate core + 4 plugins to TypeScript 6; resolve every deprecation TS6 surfaces
 
-**Hardening — test coverage** — ✓ validated Phase 4
-- [x] Stress tests for concurrent navigation and mount races (fast A→B→A with slow loaders) — validated Phase 4
-- [x] Manifest-validation edge-case tests (bad route formats, merge behavior) — validated Phase 4
-- [x] Settings handler cleanup + tests for `disableDapp()` (no handler leaks / firing on disabled dapps) — validated Phase 2; end-to-end shell regression added Phase 4
+**Forward-compat typing**
+- [ ] Adopt `isolatedDeclarations` across all packages
+- [ ] Adopt `verbatimModuleSyntax` across all packages
+- [ ] Adopt `erasableSyntaxOnly` across all packages
 
-**Hardening — security posture** — ✓ validated Phase 3 + Phase 5
-- [x] Optional template sanitizer hook on the lifecycle manager
-- [x] Configurable wallet storage key (avoid same-origin collisions)
-- [x] CSP guidance documented for `innerHTML` templates + external scripts — validated Phase 5 (`docs/security.md`)
+**Continuous debt guardrails**
+- [ ] CI deprecation gate — fail the build on `tsc`/lint deprecation warnings
+- [ ] Dependency-freshness automation (Renovate/Dependabot-style)
 
-**Docs — truth pass** — ✓ validated Phase 5
-- [x] Verify every framework + plugin doc and README against code (code is truth); correct drift — validated Phase 5 (DOC-01)
-- [x] Remove "AI tells" / slop from docs (filler, hedging, restated obviousness, invented detail) — validated Phase 5 (DOC-02)
-- [x] Fill documentation gaps surfaced by the concerns audit (CSP guide, security/limitations notes) — validated Phase 5 (DOC-03)
+**Robustness carryover**
+- [ ] WR-01 — validate `registry.json` is an array (no uncaught `TypeError` before `window.__DXKIT__`)
 
 ### Out of Scope
 
@@ -115,14 +139,15 @@ confidence.
 
 ## Next Milestone Goals
 
-Candidate scope for the next milestone (carried forward from Out of Scope — not yet committed):
+Candidate scope for the milestone *after* v1.1 (not yet committed):
 
-- **TypeScript 6 migration** — deferred from this milestone; the largest standalone modernization.
-- **Storage encryption** for persisted settings/wallet state (STOR-01 territory) — larger design effort.
-- **Robustness follow-up (WR-01 tier):** `loadManifests()` does not validate registry.json is an
-  array; a wrong-shape 200 throws an uncaught `TypeError` in `init()` before `window.__DXKIT__` is
-  exposed. Surfaced by the Phase 5 code review (`05-REVIEW.md`); a good beta-hardening carryover.
-- Possible new routing features (wildcard / `:param`) if consumer demand appears — a feature, not hardening.
+- **TypeScript 7.1 migration** — the payoff of v1.1's forward-compat groundwork; waiting on a TS7 point
+  release for stable ABI/API before committing.
+- **Storage encryption** for persisted settings/wallet state (STOR-01 territory) — larger design effort;
+  deferred again out of v1.1 to keep it a focused modernization pass.
+- Possible new routing features (wildcard / `:param`) if consumer demand appears — a feature, not modernization.
+
+*(TS6 migration and the WR-01 robustness fix moved into the committed v1.1 milestone above.)*
 
 ## Constraints
 
@@ -144,6 +169,7 @@ Candidate scope for the next milestone (carried forward from Out of Scope — no
 | Breaking changes allowed but justified + migration-documented | Still alpha, but consumers exist; churn must earn its keep | ✓ Good — nested `ShellConfig.lifecycle` (D-04/05) shipped with migration section |
 | `ShellConfig.lifecycle` nested group replaces flat loader passthrough | Only way to reach the sanitizer/timeout/cache config from `createShell()` | ✓ Good — runtime throw guards untyped consumers |
 | Defer TS6, new routing, encryption, cross-dapp state | Each is a feature/large effort orthogonal to hardening; keep the milestone focused | ✓ Good — kept the milestone focused; carried to next-milestone candidates |
+| Tighten Node floor to `^22.12.0 \|\| >=24.0.0` (not literal `>=22`) | Gap closure found `>=22` admitted Node 22.0–22.11/23.x that the pinned vite/vitest engines reject under engine-strict — the declared floor must equal the *enforceable* floor | ✓ Good (Phase 6) — declared floor now internally consistent; shipped as BREAKING CHANGE; ROADMAP/docs wording still says `>=22` and must follow in the docs pass |
 
 ## Evolution
 
@@ -163,4 +189,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-15 after v1.0 milestone (Beta Hardening, shipped as 0.2.0) — all 5 phases verified, 15/15 requirements validated, PR #5 merged to main, tagged v1.0.*
+*Last updated: 2026-07-17 after Phase 6 (Toolchain Audit & Modernization) complete — TOOL-01..05 validated (tooling bumps, Node 22 floor via `^22.12.0 || >=24.0.0` + engine-strict + CI matrix, cz-git swap, build-output verification). Remaining v1.1: TS6 migration, forward-compat typing, CI deprecation gate + dep-freshness automation, WR-01. Aimed at a clean TS 7.1 jump.*
