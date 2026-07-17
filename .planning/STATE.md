@@ -5,15 +5,15 @@ milestone_name: TypeScript 6 Migration & Toolchain Modernization
 current_phase: 07
 current_phase_name: typescript-6-migration-standalone-typecheck
 status: executing
-stopped_at: Completed 07-02-PLAN.md
-last_updated: "2026-07-17T15:20:11.369Z"
+stopped_at: Completed 07-03-PLAN.md
+last_updated: "2026-07-17T15:24:30.000Z"
 last_activity: 2026-07-17
 last_activity_desc: Phase 07 execution started
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 9
   percent: 25
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 ## Current Position
 
 Phase: 07 (typescript-6-migration-standalone-typecheck) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-07-17 — Phase 07 execution started
 
@@ -108,6 +108,7 @@ Phase 7) is a precondition — it must exist before/with the TS6 bump and before
 |------|----------|-------|-------|
 | Phase 07 P01 | 25min | 2 tasks | 4 files |
 | Phase 07 P02 | 15min | 2 tasks | 8 files |
+| Phase 07 P03 | 6min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -154,6 +155,7 @@ Recent decisions affecting current work:
 - [Phase 07-01]: DappEntry.overrides switched to DeepPartial<DappManifest> at declaration (src/types/shell.ts), resolving shell.test.ts's shallow-Partial<T> symptom at source rather than the call site
 - [Phase ?]: wallet.test.ts Buffer-based hex assertion rewritten to TextEncoder + manual hex encoding (mirrors plugin's own dev-signer implementation) instead of adding @types/node — zero new devDependencies, browser-first posture
 - [Phase ?]: theme.test.ts mock settings object was also missing getSections() (not in original RESEARCH catalog) — same shallow-mock root cause as cataloged errors, fixed at source per Rule 1
+- [Phase ?]: [Phase 07-03]: typecheck kept standalone (not folded into test) so Phase 9's deprecation gate can call make typecheck directly; lint -> typecheck -> vitest ordering wired with no ci.yml edit needed
 
 ### Pending Todos
 
@@ -195,8 +197,8 @@ Items acknowledged and carried forward:
 
 ## Session Continuity
 
-Last session: 2026-07-17T15:20:11.363Z
-Stopped at: Completed 07-02-PLAN.md
+Last session: 2026-07-17T15:24:29.994Z
+Stopped at: Completed 07-03-PLAN.md
 Resume file:
 None
 
