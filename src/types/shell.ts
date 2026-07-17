@@ -1,4 +1,5 @@
 import type { LifecycleManagerOptions } from '../lifecycle.js';
+import type { DeepPartial } from '../utils.js';
 import type { Plugin } from './interfaces.js';
 import type { DappManifest } from './manifest.js';
 
@@ -6,8 +7,8 @@ import type { DappManifest } from './manifest.js';
 export interface DappEntry {
   /** Path to the dapp's manifest.json (fetched at init). */
   manifest: string;
-  /** Partial overrides deep-merged on top of the fetched manifest. */
-  overrides?: Partial<DappManifest>;
+  /** Partial overrides deep-merged on top of the fetched manifest (nested fields stay optional — matches deepMerge's recursive contract). */
+  overrides?: DeepPartial<DappManifest>;
 }
 
 /** Configuration passed to createShell(). */
