@@ -53,7 +53,7 @@ storage keys, a stress/edge-case/regression test suite, and a full documentation
 
 **🚧 v1.1 TypeScript 6 Migration & Toolchain Modernization (Phases 6–9)**
 
-- [x] **Phase 6: Toolchain Audit & Modernization** - Dev toolchain on current TS6-compatible versions with an enforced Node 22 LTS floor; all three build outputs still emit. (all 5 plans executed; verification found gaps 2026-07-15 — awaiting gap closure) (completed 2026-07-15)
+- [x] **Phase 6: Toolchain Audit & Modernization** - Dev toolchain on current TS6-compatible versions with an enforced Node 22 LTS floor; all three build outputs still emit. (6/6 plans; gap-closure 06-06 tightened the Node floor to `^22.12.0 || >=24.0.0`, pinned the CI floor leg, and wired verify-outputs; re-verification 9/9, UAT + security green) (completed 2026-07-17)
 - [ ] **Phase 7: TypeScript 6 Migration & Standalone Typecheck** - A per-package `tsc --noEmit` baseline lands, then core + 4 plugins compile clean on TS6 with zero deprecation shims.
 - [ ] **Phase 8: Forward-Compat Typing** - `verbatimModuleSyntax` + `isolatedDeclarations` + `erasableSyntaxOnly` on across all packages, verified against the built IIFE/CJS artifacts.
 - [ ] **Phase 9: Continuous Debt Guardrails & Registry Robustness** - Scoped CI deprecation gate, zero-runtime-dep assertion, Renovate automation, and the WR-01 registry array-shape fix.
