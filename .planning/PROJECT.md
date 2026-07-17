@@ -85,6 +85,12 @@ to keep this a focused modernization pass.
 - ✓ Manifest/route validation edge-case tests: invalid route formats rejected with `dx:error`, multi-match/duplicate routes resolved deterministically, deep-merge override semantics locked — validated Phase 4
 - ✓ Full-shell regression proves settings handlers registered by a dapp stop firing after `disableDapp()` — validated Phase 4
 
+<!-- Validated in Phase 6: Toolchain Audit & Modernization (v1.1) -->
+- ✓ Build/test/lint tooling bumped to current TS6-compatible versions (tsup ^8.5, vite ^8.1, vitest ^4.1, happy-dom ^20.10, Biome ^2.5), `make test` green (321 specs) — validated Phase 6 (TOOL-03)
+- ✓ Node floor raised to 22 LTS via `engines.node: "^22.12.0 || >=24.0.0"` (tightened to match pinned vite/vitest ranges) + `.npmrc` engine-strict + CI matrix `['22.12.0', 24]`; negative install on Node 20 confirmed to fail-fast (UAT) — validated Phase 6 (TOOL-01, TOOL-02)
+- ✓ Commitizen adapter swapped to maintained `cz-git` (`cz-conventional-changelog` removed); interactive flow confirmed to emit conventional commits (UAT) — validated Phase 6 (TOOL-04)
+- ✓ All three build outputs (ESM/CJS/IIFE) confirmed present per package post-bump; `verify-outputs` wired into release/publish/CI so a dropped output fails automatically — validated Phase 6 (TOOL-05)
+
 ### Active
 
 <!-- The v1.1 TS6 + toolchain modernization milestone. Hypotheses until shipped and validated.
@@ -92,11 +98,6 @@ to keep this a focused modernization pass.
 
 **TS6 migration**
 - [ ] Migrate core + 4 plugins to TypeScript 6; resolve every deprecation TS6 surfaces
-
-**Toolchain audit & modernization**
-- [ ] Bump build/test/lint tooling (tsup, vite, vitest, Biome) to current
-- [ ] Raise the Node floor from EOL Node 18 to Node 22 LTS (`engines` + CI matrix)
-- [ ] Replace unmaintained `cz-conventional-changelog` with maintained `cz-git`
 
 **Forward-compat typing**
 - [ ] Adopt `isolatedDeclarations` across all packages
@@ -168,6 +169,7 @@ Candidate scope for the milestone *after* v1.1 (not yet committed):
 | Breaking changes allowed but justified + migration-documented | Still alpha, but consumers exist; churn must earn its keep | ✓ Good — nested `ShellConfig.lifecycle` (D-04/05) shipped with migration section |
 | `ShellConfig.lifecycle` nested group replaces flat loader passthrough | Only way to reach the sanitizer/timeout/cache config from `createShell()` | ✓ Good — runtime throw guards untyped consumers |
 | Defer TS6, new routing, encryption, cross-dapp state | Each is a feature/large effort orthogonal to hardening; keep the milestone focused | ✓ Good — kept the milestone focused; carried to next-milestone candidates |
+| Tighten Node floor to `^22.12.0 \|\| >=24.0.0` (not literal `>=22`) | Gap closure found `>=22` admitted Node 22.0–22.11/23.x that the pinned vite/vitest engines reject under engine-strict — the declared floor must equal the *enforceable* floor | ✓ Good (Phase 6) — declared floor now internally consistent; shipped as BREAKING CHANGE; ROADMAP/docs wording still says `>=22` and must follow in the docs pass |
 
 ## Evolution
 
@@ -187,4 +189,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-15 after starting v1.1 milestone (TypeScript 6 Migration & Toolchain Modernization) — TS6 + toolchain audit + forward-compat guardrails (isolatedDeclarations, verbatimModuleSyntax, CI deprecation gate, dep-freshness automation) + WR-01, aimed at a clean TS 7.1 jump. Continues phase numbering from v1.0.*
+*Last updated: 2026-07-17 after Phase 6 (Toolchain Audit & Modernization) complete — TOOL-01..05 validated (tooling bumps, Node 22 floor via `^22.12.0 || >=24.0.0` + engine-strict + CI matrix, cz-git swap, build-output verification). Remaining v1.1: TS6 migration, forward-compat typing, CI deprecation gate + dep-freshness automation, WR-01. Aimed at a clean TS 7.1 jump.*

@@ -2,7 +2,9 @@
 phase: 06
 slug: toolchain-audit-modernization
 status: verified
+
 # threats_open = count of OPEN threats at or above workflow.security_block_on severity (the blocking gate)
+
 threats_open: 0
 asvs_level: 1
 created: 2026-07-16

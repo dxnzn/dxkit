@@ -1,7 +1,7 @@
 ---
 phase: 06-toolchain-audit-modernization
 verified: 2026-07-15T20:30:00Z
-status: human_needed
+status: passed
 score: 9/9 truths verified
 behavior_unverified: 0
 overrides_applied: 0
@@ -9,6 +9,7 @@ re_verification:
   previous_status: gaps_found
   previous_score: 7/9 (1 present-but-behavior-unverified, 1 failed)
   gaps_closed:
+
     - "CR-01: engines.node tightened from over-broad \">=22\" to the toolchain-consistent \"^22.12.0 || >=24.0.0\" across all five package.json — no version admitted by the declared floor is rejected by vite@8.1.4 or vitest@4.1.10 under engine-strict."
     - "WR-02: CI matrix now pins the exact floor patch (['22.12.0', 24]) instead of a bare 22 that actions/setup-node silently rounds up to latest — the declared floor is now a tested contract."
     - "WR-01: verify-outputs is now a hard prerequisite of both release and publish Makefile targets, and runs as a dedicated CI step between make build and make test — confirmed behaviorally (deleted dist/index.global.js, verify-outputs exited 2 with a MISSING: line; rebuild restored exit 0)."
