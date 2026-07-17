@@ -14,11 +14,11 @@ If you're building a *dapp* that runs inside DxKit, see [Dapp Development](dapp-
 
 ## Prerequisites
 
-- **Node.js 18+** (the project targets ES2022 — see `tsconfig.json`)
+- **Node.js `^22.12.0 || >=24.0.0`** — the workspace declares this floor in every `package.json` `engines` field and enforces it via `.npmrc` `engine-strict=true`, so `pnpm install` fails fast on an unsupported Node (the project targets ES2022 — see `tsconfig.json`). The floor matches the pinned toolchain: Vite and Vitest reject Node 22.0–22.11 and the 23.x line, so those are excluded by design.
 - **pnpm 10.32.1** — pinned via the `packageManager` field in `package.json`; use [corepack](https://nodejs.org/api/corepack.html) or install this exact version to avoid lockfile drift
 - **make** — all common workflows are wrapped in the root `Makefile`
 
-CI (`.github/workflows/ci.yml`) runs against Node 20 on `ubuntu-latest`, triggered on pushes and pull requests to `main`.
+CI (`.github/workflows/ci.yml`) runs the build + test suite against a Node matrix of `['22.12.0', 24]` on `ubuntu-latest`, triggered on pushes and pull requests to `main`. The pinned `22.12.0` leg exercises the exact declared floor (rather than letting `actions/setup-node` round `22` up to the latest patch), so the `engines` contract is a tested one.
 
 ## Local Setup
 
@@ -83,10 +83,11 @@ All common workflows are wrapped in the root `Makefile`. Run `make <target>` fro
 | `make lint-format` | `biome format --write .` — auto-fix formatting only |
 | `make clean` | Remove `dist/` from the core package and every plugin |
 | `make superclean` | Remove `dist/` and `node_modules/` from the core package and every plugin |
+| `make verify-outputs` | Assert all three build outputs (`dist/index.js`, `dist/index.cjs`, `dist/index.global.js`) exist for the core package and each plugin — 15 checks total; exits non-zero on any missing artifact. Run it after `make build`. |
 | `make audit` | Run `pnpm audit` (dependency vulnerabilities), `semgrep --config p/typescript` (SAST) against `src/` and `plugins/`, and `gitleaks detect` (secret scanning) across the whole repo |
 | `make commit` | `npx cz` — open the Commitizen conventional-commit prompt |
-| `make release` | Build, test, then run `commit-and-tag-version` to bump versions and generate the changelog |
-| `make publish` | Build, test, then `pnpm publish --access public` for core and each plugin in build order |
+| `make release` | `build`, `verify-outputs`, `test`, then run `commit-and-tag-version` to bump versions and generate the changelog |
+| `make publish` | `build`, `verify-outputs`, `test`, then `pnpm publish --access public` for core and each plugin in build order |
 
 `make test` and `make test-watch` always lint first — a lint failure blocks the test run.
 
@@ -183,7 +184,7 @@ There is no separate coverage-threshold configuration in this repo — `make tes
 
 Follow [Conventional Commits](https://www.conventionalcommits.org/): `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`, with an optional scope (`feat(theme): add onApply hook`) and a `!` suffix plus `BREAKING CHANGE:` footer for breaking changes.
 
-The repo is wired for [Commitizen](https://github.com/commitizen/cz-cli) via the `config.commitizen` field in `package.json` (using `cz-conventional-changelog`) to walk you through building a compliant commit message:
+The repo is wired for [Commitizen](https://github.com/commitizen/cz-cli) via the `config.commitizen` field in `package.json` (`config.commitizen.path` points at the maintained [`cz-git`](https://github.com/Zhengqbbb/cz-git) adapter) to walk you through building a compliant commit message:
 
 ```bash
 make commit    # npx cz

@@ -163,7 +163,7 @@ Each package (core + each plugin under `plugins/*/`) has its own `tsup.config.ts
 
 ### `biome.json`
 
-Biome 2.5.1 replaces ESLint/Prettier for both linting and formatting.
+Biome 2.5.4 replaces ESLint/Prettier for both linting and formatting.
 
 | Setting | Value |
 |---|---|

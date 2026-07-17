@@ -14,7 +14,7 @@ DxKit's test suite runs on [Vitest](https://vitest.dev) 4.x with [happy-dom](htt
 
 | Tool | Version | Role |
 |---|---|---|
-| `vitest` | `^4.1.9` | Test runner, assertions (`expect`), mocking (`vi`) |
+| `vitest` | `^4.1.10` | Test runner, assertions (`expect`), mocking (`vi`) |
 | `happy-dom` | `^20.10.6` | Lightweight DOM implementation — provides `document`, `window`, `CustomEvent`, `localStorage`, etc. for tests that exercise DOM-touching code (mounting, event bus, storage) |
 
 Both are `devDependencies` at the workspace root (`package.json`) — no test dependencies live in the individual plugin `package.json` files. No global setup step is required beyond `pnpm install` (or `make setup`).
@@ -108,11 +108,12 @@ steps:
   - uses: pnpm/action-setup@v4
   - uses: actions/setup-node@v4
     with:
-      node-version: ${{ matrix.node-version }}   # [20]
+      node-version: ${{ matrix.node-version }}   # ['22.12.0', 24]
       cache: pnpm
   - run: pnpm install --frozen-lockfile
   - run: make build
+  - run: make verify-outputs
   - run: make test
 ```
 
-CI builds every package first (`make build`), then runs `make test`, which lints (`biome check .`) and runs the full Vitest suite (`vitest run`) — the same two commands a contributor runs locally. There's a single Node version in the matrix (`20`); no coverage upload or reporting step is configured.
+CI builds every package first (`make build`), asserts all three build outputs exist per package (`make verify-outputs`), then runs `make test`, which lints (`biome check .`) and runs the full Vitest suite (`vitest run`) — the same commands a contributor runs locally. The matrix runs two Node legs, `['22.12.0', 24]`: the pinned `22.12.0` leg exercises the exact `engines` floor (so a floor regression can't hide behind a rounded-up patch), and `24` is the current stable line. No coverage upload or reporting step is configured.
