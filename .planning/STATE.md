@@ -4,17 +4,17 @@ milestone: v1.1
 milestone_name: TypeScript 6 Migration & Toolchain Modernization
 current_phase: 8
 current_phase_name: Forward-Compat Typing
-status: planning
+status: "Phase 07 shipped — PR #7"
 stopped_at: Completed 07-04-PLAN.md
-last_updated: "2026-07-17T15:51:45.529Z"
+last_updated: "2026-07-17T18:51:24.493Z"
 last_activity: 2026-07-17
-last_activity_desc: Phase 07 complete, transitioned to Phase 8
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 10
   completed_plans: 10
   percent: 50
+last_activity_desc: Phase 07 complete, transitioned to Phase 8
 ---
 
 # Project State
@@ -30,8 +30,8 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 
 Phase: 8 — Forward-Compat Typing
 Plan: Not started
-Status: Ready to plan
-Last activity: 2026-07-17 — Phase 07 complete, transitioned to Phase 8
+Status: Phase 07 shipped — PR #7
+Last activity: 2026-07-17
 
 ## Milestone Phase Map (v1.1)
 
