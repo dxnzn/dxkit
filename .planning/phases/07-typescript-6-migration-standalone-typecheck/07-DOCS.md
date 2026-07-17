@@ -1,7 +1,7 @@
 ---
 phase: "07"
 status: current
-verified_against: fd594f46be2f7d8f30c30ef110809af8b85bde62
+verified_against: 8f1e84600352217aa9e8b1f60264c9c5c6ee6f50
 updated: 2026-07-17
 ---
 
@@ -27,6 +27,13 @@ relevant to phase 7` request.
   `tsc --emitDeclarationOnly` in `onSuccess`, not `dts: true`); added a note describing the new
   per-package `tsconfig.typecheck.json` (extends the build config, `noEmit: true`, includes
   `tests/`, `paths` mirror vitest aliases, no `baseUrl`).
+
+## Review follow-up (PR #7, 2026-07-17)
+
+Re-verified after review-response code changes. `docs/configuration.md`'s tsconfig table updated to
+`declarationMap: false` (declaration maps are no longer emitted, since the published package ships
+only `dist`). All other doc claims (make targets, `tsc --emitDeclarationOnly` dts approach, typecheck
+wiring) remain accurate; `verified_against` bumped to the post-fix HEAD.
 
 ## Verified (no drift found)
 
