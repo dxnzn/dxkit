@@ -4,17 +4,17 @@ milestone: v1.1
 milestone_name: TypeScript 6 Migration & Toolchain Modernization
 current_phase: 08
 current_phase_name: forward-compat-typing
-status: executing
-stopped_at: Completed 08-01-PLAN.md
-last_updated: "2026-07-18T00:04:20.813Z"
+status: verifying
+stopped_at: Completed 08-02-PLAN.md
+last_updated: "2026-07-18T00:10:17.054Z"
 last_activity: 2026-07-17
 last_activity_desc: Phase 08 execution started
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 12
-  completed_plans: 11
-  percent: 50
+  completed_plans: 12
+  percent: 75
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 
 Phase: 08 (forward-compat-typing) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-17 — Phase 08 execution started
 
 ## Milestone Phase Map (v1.1)
@@ -112,6 +112,7 @@ Phase 7) is a precondition — it must exist before/with the TS6 bump and before
 | Phase 07 P03 | 6min | 1 tasks | 1 files |
 | Phase 07 P04 | 15min | 2 tasks | 7 files |
 | Phase 08 P01 | 8min | 3 tasks | 2 files |
+| Phase 08 P02 | 6min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -162,6 +163,7 @@ Recent decisions affecting current work:
 - [Phase ?]: typescript devDep range set to caret ^6.0.0 per D-08 (pnpm add wrote back ^6.0.3, manually corrected + resynced lockfile specifier)
 - [Phase ?]: tsup 8.5.1's dts:true bundler unconditionally injects baseUrl (TS5101 under TS6); replaced with a direct tsc --emitDeclarationOnly pass via onSuccess across all 5 packages, zero ignoreDeprecations shims
 - [Phase ?]: Landed verbatimModuleSyntax + erasableSyntaxOnly as one bisectable commit, isolatedDeclarations as its own commit; all three flags required zero source annotations, matching research prediction exactly
+- [Phase ?]: Landed the smoke test infrastructure (Task 1) and Makefile/biome/CI wiring (Task 2) as two bisectable commits; used process.cwd()-relative dist/ path resolution mirroring tests/typecheck-config.test.ts; vm.runInContext against happy-dom Window (never the <script>-element path) verified working for all 5 packages including shared-window coexistence
 
 ### Pending Todos
 
@@ -203,8 +205,8 @@ Items acknowledged and carried forward:
 
 ## Session Continuity
 
-Last session: 2026-07-18T00:04:20.805Z
-Stopped at: Completed 08-01-PLAN.md
+Last session: 2026-07-18T00:10:17.046Z
+Stopped at: Completed 08-02-PLAN.md
 Resume file:
 None
 
