@@ -225,6 +225,30 @@ describe('TypeScript 6 Config Invariants (TS6-02 Guard)', () => {
     });
   });
 
+  describe('Forward-compat flag presence (FCT-01/FCT-02/FCT-03 guard)', () => {
+    // Durable regression guard: a silent removal (or reversion to false) of any of the three
+    // forward-compat flags in the root tsconfig.json must fail make test, not just a one-time
+    // green build. Plugins inherit these via extends '../../tsconfig.json' (D-01 single source
+    // of truth), so asserting on the root config alone is sufficient.
+    it('should have verbatimModuleSyntax: true (FCT-01)', () => {
+      const config = readConfigFile('tsconfig.json') as Record<string, unknown>;
+      const compilerOpts = config.compilerOptions as Record<string, unknown>;
+      expect(compilerOpts.verbatimModuleSyntax).toBe(true);
+    });
+
+    it('should have isolatedDeclarations: true (FCT-02)', () => {
+      const config = readConfigFile('tsconfig.json') as Record<string, unknown>;
+      const compilerOpts = config.compilerOptions as Record<string, unknown>;
+      expect(compilerOpts.isolatedDeclarations).toBe(true);
+    });
+
+    it('should have erasableSyntaxOnly: true (FCT-03)', () => {
+      const config = readConfigFile('tsconfig.json') as Record<string, unknown>;
+      const compilerOpts = config.compilerOptions as Record<string, unknown>;
+      expect(compilerOpts.erasableSyntaxOnly).toBe(true);
+    });
+  });
+
   describe('tsup declaration emit (TS6-02: no reintroduced baseUrl via tsup dts)', () => {
     // tsup 8.5's bundled `dts: true` injects a `baseUrl` that TS6 deprecates (TS5101). Declarations
     // are emitted by a direct `tsc --emitDeclarationOnly` pass in `onSuccess` instead. Re-enabling
