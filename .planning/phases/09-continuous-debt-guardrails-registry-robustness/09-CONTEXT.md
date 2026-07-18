@@ -62,8 +62,9 @@ deprecations are gated via `tsc`, not lint); any new routing/feature surface.
   `.github/workflows/ci.yml` (invoking `make typecheck`) as its **own named red check**, separate
   from `make test` — mirrors how `verify-outputs` and `smoke` are already broken out as distinct CI
   steps. The existing `make test` → `typecheck` dependency stays as a local-dev convenience.
-- **D-06: Scope = `src/` + `tests/` + `plugins/*/src/`, never `node_modules/`.** Keep the existing
-  `tsconfig.typecheck.json` `include` (which already covers `src` + `tests`) as-is — **no config
+- **D-06 — GATE-01 deprecation gate scope.** Scope = `src/` + `tests/` + `plugins/*/src/`, never
+  `node_modules/`. Keep the existing
+  `tsconfig.typecheck.json` `include` (which already covers `src` + `tests`) as-is — no config
   narrowing**. The load-bearing constraint (STATE.md blocker, research Pitfall 6) is *"never fail on
   `node_modules/` deprecation noise"*, which the tsconfig `include` already guarantees; `tests/` is
   project-owned code and is already deprecation-clean under TS6, so gating it too is strictly more
