@@ -478,6 +478,106 @@ describe('createShell', () => {
     window.removeEventListener('dx:error', handler);
   });
 
+  it('emits a dx:error and fail-closes to [] when an explicit registryUrl 200 body is not an array (ROB-05)', async () => {
+    const errors: { source: string; error: Error }[] = [];
+    const handler = ((e: CustomEvent) => {
+      errors.push(e.detail);
+    }) as EventListener;
+    window.addEventListener('dx:error', handler);
+
+    const originalFetch = window.fetch;
+    window.fetch = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ not: 'an array' }),
+    })) as any;
+
+    shell = createShell({ ...testLoaders, registryUrl: '/custom-registry.json' });
+    await expect(shell.init()).resolves.not.toThrow();
+
+    expect(shell.getManifests()).toHaveLength(0);
+    expect(errors.some((e) => e.source === 'shell:manifest' && e.error.message.includes('/custom-registry.json'))).toBe(
+      true,
+    );
+
+    window.fetch = originalFetch;
+    window.removeEventListener('dx:error', handler);
+  });
+
+  it('emits a dx:error on the default registryUrl probe when the 200 body is not an array — ungated (ROB-05, D-10)', async () => {
+    const errors: { source: string; error: Error }[] = [];
+    const handler = ((e: CustomEvent) => {
+      errors.push(e.detail);
+    }) as EventListener;
+    window.addEventListener('dx:error', handler);
+
+    const originalFetch = window.fetch;
+    window.fetch = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ not: 'an array' }),
+    })) as any;
+
+    // registryUrl omitted entirely — this is the default /registry.json probe. Unlike the
+    // silent-404 default-probe test above (D-15), a wrong-shape 200 body is NOT gated by
+    // registryUrlExplicit — it must still emit (D-10 / P2, the one deliberate exception).
+    shell = createShell({ ...testLoaders });
+    await expect(shell.init()).resolves.not.toThrow();
+
+    expect(shell.getManifests()).toHaveLength(0);
+    expect(errors.some((e) => e.source === 'shell:manifest')).toBe(true);
+
+    window.fetch = originalFetch;
+    window.removeEventListener('dx:error', handler);
+  });
+
+  it('still exposes window.__DXKIT__ after init() when the registry 200 body is not an array (ROB-05)', async () => {
+    const originalFetch = window.fetch;
+    window.fetch = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ not: 'an array' }),
+    })) as any;
+
+    shell = createShell({ ...testLoaders, registryUrl: '/custom-registry.json' });
+    await shell.init();
+
+    expect(window.__DXKIT__).toBeDefined();
+    expect(window.__DXKIT__?.getManifests()).toHaveLength(0);
+
+    window.fetch = originalFetch;
+  });
+
+  it('a well-formed array 200 registry body still flows through unchanged (ROB-05 happy path)', async () => {
+    const errors: { source: string; error: Error }[] = [];
+    const handler = ((e: CustomEvent) => {
+      errors.push(e.detail);
+    }) as EventListener;
+    window.addEventListener('dx:error', handler);
+
+    const validManifest: DappManifest = {
+      id: 'rob05-happy',
+      name: 'Rob05Happy',
+      version: '0.0.1',
+      route: '/rob05-happy',
+      entry: 'data:text/javascript,',
+      nav: { label: 'Rob05Happy' },
+    };
+
+    const originalFetch = window.fetch;
+    window.fetch = vi.fn(async () => ({
+      ok: true,
+      json: async () => [validManifest],
+    })) as any;
+
+    shell = createShell({ ...testLoaders, registryUrl: '/custom-registry.json' });
+    await shell.init();
+
+    expect(shell.getManifests()).toHaveLength(1);
+    expect(shell.getManifests()[0]?.id).toBe('rob05-happy');
+    expect(errors.some((e) => e.source === 'shell:manifest')).toBe(false);
+
+    window.fetch = originalFetch;
+    window.removeEventListener('dx:error', handler);
+  });
+
   it('emits dx:error (source shell:mount) when #dx-mount is absent, without throwing', async () => {
     // No <div id="dx-mount"> in the DOM at all — exercises lazy getMountContainer() returning null.
     container.remove();
