@@ -4,17 +4,17 @@ milestone: v1.1
 milestone_name: TypeScript 6 Migration & Toolchain Modernization
 current_phase: 09
 current_phase_name: continuous-debt-guardrails-registry-robustness
-status: executing
-stopped_at: Completed 09-04-PLAN.md
-last_updated: "2026-07-18T06:13:14.438Z"
+status: verifying
+stopped_at: Completed 09-02-PLAN.md
+last_updated: "2026-07-18T06:20:59.914Z"
 last_activity: 2026-07-18
 last_activity_desc: Phase 09 execution started
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 16
-  completed_plans: 15
-  percent: 75
+  completed_plans: 16
+  percent: 100
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 
 Phase: 09 (continuous-debt-guardrails-registry-robustness) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-18 — Phase 09 execution started
 
 ## Milestone Phase Map (v1.1)
@@ -117,6 +117,7 @@ Phase 7) is a precondition — it must exist before/with the TS6 bump and before
 | Phase 09 P01 | 8min | 2 tasks | 2 files |
 | Phase 09 P03 | 6min | 2 tasks | 2 files |
 | Phase 09 P04 | 6min | 2 tasks | 2 files |
+| Phase 09 P02 | 8min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -173,6 +174,8 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 09-03]: renovate-config.test.ts guard mirrors typecheck-config.test.ts's raw-text + parsed-JSON assertion convention, no new devDependency added
 - [Phase ?]: [Phase 09-04]: ROB-05 array guard emit is deliberately ungated by registryUrlExplicit (D-10/P2) — a wrong-shape 200 body is never an expected/benign state, so it must surface even on the default silent /registry.json probe
 - [Phase ?]: [Phase 09-04]: Fix scoped entirely to loadManifests()'s res.json() call site; normalizeAndValidateManifests() left untouched as the single choke point for element-level manifest validation
+- [Phase ?]: [Phase 09-02]: checkNoRuntimeDeps() is deliberately core-only and unconditional per revised D-08 — any dependencies/peerDependencies/optionalDependencies entry is a violation, no workspace-carveout logic needed since root package.json never declares workspace:* links
+- [Phase ?]: [Phase 09-02]: CJS .cjs module loaded via createRequire(import.meta.url) in the new vitest test, reusing smoke/dist-exports.smoke.test.ts's pattern, requiring only a node:module addition to tests/node-builtins.d.ts instead of a new declaration file or @types/node
 
 ### Pending Todos
 
@@ -214,8 +217,8 @@ Items acknowledged and carried forward:
 
 ## Session Continuity
 
-Last session: 2026-07-18T06:13:14.428Z
-Stopped at: Completed 09-04-PLAN.md
+Last session: 2026-07-18T06:20:59.907Z
+Stopped at: Completed 09-02-PLAN.md
 Resume file:
 None
 

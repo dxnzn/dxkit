@@ -160,7 +160,7 @@ storage keys, a stress/edge-case/regression test suite, and a full documentation
   3. Renovate is configured for the pnpm workspace with grouped PRs, release-age gating, and an automerge policy that blocks unreviewed major toolchain bumps (tsup/vite/vitest/Biome/TypeScript).
   4. `loadManifests()` validates that `registry.json` is an array; a wrong-shape `200` emits `dx:error` (source `shell:manifest`) instead of throwing an uncaught `TypeError` in `init()` before `window.__DXKIT__` is exposed (WR-01).
 
-**Plans**: 3/4 plans executed
+**Plans**: 4/4 plans executed
 
 **Wave 1** *(independent — disjoint files)*
 
@@ -170,7 +170,7 @@ storage keys, a stress/edge-case/regression test suite, and a full documentation
 
 **Wave 2** *(blocked on 09-01 — shares `.github/workflows/ci.yml`)*
 
-- [ ] 09-02-PLAN.md — GATE-02: core-only zero-runtime-dep assertion (script + `verify-no-runtime-deps` Makefile target + CI step) + REQUIREMENTS/ROADMAP core-only doc correction (GATE-02)
+- [x] 09-02-PLAN.md — GATE-02: core-only zero-runtime-dep assertion (script + `verify-no-runtime-deps` Makefile target + CI step) + REQUIREMENTS/ROADMAP core-only doc correction (GATE-02)
 
 ## Progress
 
@@ -187,4 +187,4 @@ v1.1 phases execute in numeric order: 6 → 7 → 8 → 9
 | 6. Toolchain Audit & Modernization | v1.1 | 6/6 | Complete    | 2026-07-15 |
 | 7. TypeScript 6 Migration & Standalone Typecheck | v1.1 | 4/4 | Complete    | 2026-07-17 |
 | 8. Forward-Compat Typing | v1.1 | 2/2 | Complete    | 2026-07-17 |
-| 9. Continuous Debt Guardrails & Registry Robustness | v1.1 | 3/4 | In Progress|  |
+| 9. Continuous Debt Guardrails & Registry Robustness | v1.1 | 4/4 | In Progress|  |
