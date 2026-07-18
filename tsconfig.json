@@ -12,6 +12,7 @@
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
     "erasableSyntaxOnly": true,
+    "isolatedDeclarations": true,
     "declaration": true,
     "declarationMap": false,
     "sourceMap": true,
