@@ -46,6 +46,7 @@ export default defineConfig({
 |---|---|
 | `make test` | `make lint` (Biome check), then `make typecheck` (`tsc --noEmit` per package), then `npx vitest run` — the full suite, once, non-interactively. This is what CI runs. |
 | `make test-watch` | `make lint`, then `make typecheck`, then `npx vitest` — full suite in watch mode, re-running on file change. |
+| `make smoke` | Build, then `vitest run --config vitest.smoke.config.ts` against the real `dist/` artifacts — a separate suite from `make test` (see [Build-artifact smoke test](#build-artifact-smoke-test)). |
 | `npm run test` / `pnpm test` | `vitest run` directly (no lint step) — root `package.json` script. |
 | `npm run test:watch` / `pnpm test:watch` | `vitest` in watch mode (no lint step) — root `package.json` script. |
 
@@ -98,6 +99,24 @@ Because there's one root config and no per-package `test` script, `pnpm --filter
 
 No coverage tool (`@vitest/coverage-v8`, `c8`, `nyc`, etc.) is configured in `package.json` `devDependencies`, `vitest.config.ts`, or any `.nycrc`/`c8` config file. There is no coverage threshold enforced locally or in CI.
 
+## Build-artifact smoke test
+
+Separate from the unit suite, `make smoke` exercises the *built* `dist/` artifacts — the deployment surface that neither `tsc` nor `vitest run` (which run against `src/`) touch. It uses its own config, `vitest.smoke.config.ts`, and lives under `smoke/`:
+
+| Path | Purpose |
+|---|---|
+| `smoke/dist-exports.smoke.test.ts` | The smoke suite — asserts export parity against the built artifacts |
+| `smoke/fixtures/expected-exports.ts` | `EXPECTED_EXPORTS`: the expected top-level export-key set per package |
+| `smoke/node-builtins.d.ts` | Ambient declarations for the `node:*` builtins used, keeping the smoke suite `@types/node`-free (same posture as `tests/`) |
+| `vitest.smoke.config.ts` | Dedicated vitest config scoped to `smoke/` |
+
+For each package (core + all 4 plugins) it checks two real consumption paths:
+
+- **CJS `require()` interop** — `require('<pkg>/dist/index.cjs')` returns exactly the expected top-level key set.
+- **IIFE global-attach** — the `dist/index.global.js` bundle is executed via `node:vm`'s `runInContext` against a fresh happy-dom `Window` (never happy-dom's `<script>`-element path, which silently drops top-level `var` globals), and the expected global (`DxKit`, `DxWallet`, `DxAuth`, `DxTheme`, `DxSettings`) attaches with exactly its expected key set. Core is loaded before any plugin, mirroring the real multi-`<script>` deployment shape and confirming globals coexist without collision.
+
+`make smoke` declares `build` as a prerequisite, so the artifacts under test are always freshly built, never stale. It is **not** part of `make test` (which stays fast and source-only) — it runs in `make release`, `make publish`, and CI, always after `make verify-outputs`. `dist/` paths are resolved from the repo root (`process.cwd()`), never from an env var or CLI argument.
+
 ## CI Integration
 
 `.github/workflows/ci.yml` — job `test`, triggered on push to `main` and on pull requests targeting `main`:
@@ -113,7 +132,8 @@ steps:
   - run: pnpm install --frozen-lockfile
   - run: make build
   - run: make verify-outputs
+  - run: make smoke
   - run: make test
 ```
 
-CI builds every package first (`make build`), asserts all three build outputs exist per package (`make verify-outputs`), then runs `make test`, which lints (`biome check .`), type-checks (`make typecheck` — standalone `tsc --noEmit` per package), and runs the full Vitest suite (`vitest run`) — the same commands a contributor runs locally. The matrix runs two Node legs, `['22.12.0', 24]`: the pinned `22.12.0` leg exercises the exact `engines` floor (so a floor regression can't hide behind a rounded-up patch), and `24` is the current stable line. No coverage upload or reporting step is configured.
+CI builds every package first (`make build`), asserts all three build outputs exist per package (`make verify-outputs`), smoke-tests the real built artifacts (`make smoke` — see [Build-artifact smoke test](#build-artifact-smoke-test) below), then runs `make test`, which lints (`biome check .`), type-checks (`make typecheck` — standalone `tsc --noEmit` per package), and runs the full Vitest suite (`vitest run`) — the same commands a contributor runs locally. The matrix runs two Node legs, `['22.12.0', 24]`: the pinned `22.12.0` leg exercises the exact `engines` floor (so a floor regression can't hide behind a rounded-up patch), and `24` is the current stable line. No coverage upload or reporting step is configured.

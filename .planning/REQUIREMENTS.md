@@ -29,10 +29,10 @@ Requirements for this milestone. Each maps to a roadmap phase.
 
 ### Forward-Compat Typing
 
-- [ ] **FCT-01**: `verbatimModuleSyntax` enabled across all packages; build and tests stay green
-- [ ] **FCT-02**: `isolatedDeclarations` enabled across all packages; `.d.ts` emit succeeds for every package
-- [ ] **FCT-03**: `erasableSyntaxOnly` enabled across all packages (no non-erasable TS syntax remains)
-- [ ] **FCT-04**: IIFE global-attach and CJS `require()` interop verified intact on the built `dist/` artifacts after the flags land (smoke test — nothing exercises the built artifacts today)
+- [x] **FCT-01**: `verbatimModuleSyntax` enabled across all packages; build and tests stay green
+- [x] **FCT-02**: `isolatedDeclarations` enabled across all packages; `.d.ts` emit succeeds for every package
+- [x] **FCT-03**: `erasableSyntaxOnly` enabled across all packages (no non-erasable TS syntax remains)
+- [x] **FCT-04**: IIFE global-attach and CJS `require()` interop verified intact on the built `dist/` artifacts after the flags land (smoke test — nothing exercises the built artifacts today)
 
 ### Continuous Debt Guardrails
 
@@ -80,10 +80,10 @@ Which phases cover which requirements. Populated during roadmap creation.
 | TOOL-03 | Phase 6 | Complete |
 | TOOL-04 | Phase 6 | Complete |
 | TOOL-05 | Phase 6 | Complete |
-| FCT-01 | Phase 8 | Pending |
-| FCT-02 | Phase 8 | Pending |
-| FCT-03 | Phase 8 | Pending |
-| FCT-04 | Phase 8 | Pending |
+| FCT-01 | Phase 8 | Complete |
+| FCT-02 | Phase 8 | Complete |
+| FCT-03 | Phase 8 | Complete |
+| FCT-04 | Phase 8 | Complete |
 | GATE-01 | Phase 9 | Pending |
 | GATE-02 | Phase 9 | Pending |
 | GATE-03 | Phase 9 | Pending |

@@ -55,7 +55,7 @@ storage keys, a stress/edge-case/regression test suite, and a full documentation
 
 - [x] **Phase 6: Toolchain Audit & Modernization** - Dev toolchain on current TS6-compatible versions with an enforced Node 22 LTS floor; all three build outputs still emit. (6/6 plans; gap-closure 06-06 tightened the Node floor to `^22.12.0 || >=24.0.0`, pinned the CI floor leg, and wired verify-outputs; re-verification 9/9, UAT + security green) (completed 2026-07-17)
 - [x] **Phase 7: TypeScript 6 Migration & Standalone Typecheck** - A per-package `tsc --noEmit` baseline lands, then core + 4 plugins compile clean on TS6 with zero deprecation shims. (completed 2026-07-17)
-- [ ] **Phase 8: Forward-Compat Typing** - `verbatimModuleSyntax` + `isolatedDeclarations` + `erasableSyntaxOnly` on across all packages, verified against the built IIFE/CJS artifacts.
+- [x] **Phase 8: Forward-Compat Typing** - `verbatimModuleSyntax` + `isolatedDeclarations` + `erasableSyntaxOnly` on across all packages, verified against the built IIFE/CJS artifacts. (completed 2026-07-17)
 - [ ] **Phase 9: Continuous Debt Guardrails & Registry Robustness** - Scoped CI deprecation gate, zero-runtime-dep assertion, Renovate automation, and the WR-01 registry array-shape fix.
 
 ## Phase Details
@@ -136,7 +136,16 @@ storage keys, a stress/edge-case/regression test suite, and a full documentation
   3. `erasableSyntaxOnly` is enabled across all packages, with no non-erasable TS syntax remaining anywhere.
   4. A smoke test loads the built `dist/` artifacts and confirms each IIFE global attaches with its expected top-level keys and CJS `require()` interop returns the expected exports — the artifact path neither `tsc` nor the current vitest suite exercises today.
 
-**Plans**: TBD
+**Plans**: 2/2 plans executed
+
+**Wave 1** *(the flags — one bisectable rollout in the single base tsconfig, D-01/D-06)*
+
+- [x] 08-01-PLAN.md — Enable verbatimModuleSyntax + erasableSyntaxOnly + isolatedDeclarations in root tsconfig.json (at-source fixes only where demanded) + durable flag-presence guard test (FCT-01, FCT-02, FCT-03)
+
+**Wave 2** *(the artifact gate — lands after the flags, D-06 "smoke test last")*
+
+- [x] 08-02-PLAN.md — FCT-04 build-artifact smoke test: `make smoke` (build → vitest against real dist/) asserting IIFE global-attach + CJS require() interop for all 5 packages, wired into release/publish/CI after verify-outputs (FCT-04)
+
 **Breaking change**: `isolatedDeclarations` can require consumers who augment DxKit's public types (module augmentation on `Context` / `window.__DXKIT__`) to add explicit export type annotations. Flag with a `BREAKING CHANGE:` footer + migration note if consumer-visible type behavior changes.
 
 ### Phase 9: Continuous Debt Guardrails & Registry Robustness
@@ -167,5 +176,5 @@ v1.1 phases execute in numeric order: 6 → 7 → 8 → 9
 | 5. Documentation — Truth Pass | v1.0 | 8/8 | Complete | 2026-07-14 |
 | 6. Toolchain Audit & Modernization | v1.1 | 6/6 | Complete    | 2026-07-15 |
 | 7. TypeScript 6 Migration & Standalone Typecheck | v1.1 | 4/4 | Complete    | 2026-07-17 |
-| 8. Forward-Compat Typing | v1.1 | 0/? | Not started | - |
+| 8. Forward-Compat Typing | v1.1 | 2/2 | Complete    | 2026-07-17 |
 | 9. Continuous Debt Guardrails & Registry Robustness | v1.1 | 0/? | Not started | - |

@@ -37,6 +37,6 @@
     }
   },
   "files": {
-    "includes": ["src/**/*.ts", "tests/**/*.ts", "plugins/*/src/**/*.ts", "plugins/*/tests/**/*.ts"]
+    "includes": ["src/**/*.ts", "tests/**/*.ts", "plugins/*/src/**/*.ts", "plugins/*/tests/**/*.ts", "smoke/**/*.ts"]
   }
 }

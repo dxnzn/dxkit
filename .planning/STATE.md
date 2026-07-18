@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: TypeScript 6 Migration & Toolchain Modernization
-current_phase: 8
-current_phase_name: Forward-Compat Typing
-status: "Phase 07 merged to main (PR #7, squash c926c7f) — ready to start Phase 8"
-stopped_at: Completed 07-04-PLAN.md
-last_updated: "2026-07-17T18:51:24.493Z"
+current_phase: 9
+current_phase_name: Continuous Debt Guardrails & Registry Robustness
+status: "Phase 08 shipped — PR #8"
+stopped_at: Completed 08-02-PLAN.md
+last_updated: "2026-07-18T01:06:10.218Z"
 last_activity: 2026-07-17
 progress:
   total_phases: 4
-  completed_phases: 2
-  total_plans: 10
-  completed_plans: 10
-  percent: 50
-last_activity_desc: Phase 07 complete, transitioned to Phase 8
+  completed_phases: 3
+  total_plans: 12
+  completed_plans: 12
+  percent: 75
+last_activity_desc: Phase 08 complete, transitioned to Phase 9
 ---
 
 # Project State
@@ -24,13 +24,13 @@ last_activity_desc: Phase 07 complete, transitioned to Phase 8
 See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** DxKit stays trustworthy for real use — failures are visible (never silent), documented behavior matches actual behavior, and the alpha is stable enough to build on with confidence.
-**Current focus:** Phase 07 — typescript-6-migration-standalone-typecheck
+**Current focus:** Phase 08 — forward-compat-typing
 
 ## Current Position
 
-Phase: 8 — Forward-Compat Typing
+Phase: 9 — Continuous Debt Guardrails & Registry Robustness
 Plan: Not started
-Status: Phase 07 shipped — PR #7
+Status: Phase 08 shipped — PR #8
 Last activity: 2026-07-17
 
 ## Milestone Phase Map (v1.1)
@@ -52,7 +52,7 @@ Phase 7) is a precondition — it must exist before/with the TS6 bump and before
 
 **Velocity:**
 
-- Total plans completed: 33 (v1.0)
+- Total plans completed: 35 (v1.0)
 - Average duration: - min
 - Total execution time: 0 hours
 
@@ -67,6 +67,7 @@ Phase 7) is a precondition — it must exist before/with the TS6 bump and before
 | 05 | 8 | - | - |
 | 06 | 6 | - | - |
 | 07 | 4 | - | - |
+| 08 | 2 | - | - |
 
 **Recent Trend:**
 
@@ -111,6 +112,8 @@ Phase 7) is a precondition — it must exist before/with the TS6 bump and before
 | Phase 07 P02 | 15min | 2 tasks | 8 files |
 | Phase 07 P03 | 6min | 1 tasks | 1 files |
 | Phase 07 P04 | 15min | 2 tasks | 7 files |
+| Phase 08 P01 | 8min | 3 tasks | 2 files |
+| Phase 08 P02 | 6min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -160,6 +163,8 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 07-03]: typecheck kept standalone (not folded into test) so Phase 9's deprecation gate can call make typecheck directly; lint -> typecheck -> vitest ordering wired with no ci.yml edit needed
 - [Phase ?]: typescript devDep range set to caret ^6.0.0 per D-08 (pnpm add wrote back ^6.0.3, manually corrected + resynced lockfile specifier)
 - [Phase ?]: tsup 8.5.1's dts:true bundler unconditionally injects baseUrl (TS5101 under TS6); replaced with a direct tsc --emitDeclarationOnly pass via onSuccess across all 5 packages, zero ignoreDeprecations shims
+- [Phase ?]: Landed verbatimModuleSyntax + erasableSyntaxOnly as one bisectable commit, isolatedDeclarations as its own commit; all three flags required zero source annotations, matching research prediction exactly
+- [Phase ?]: Landed the smoke test infrastructure (Task 1) and Makefile/biome/CI wiring (Task 2) as two bisectable commits; used process.cwd()-relative dist/ path resolution mirroring tests/typecheck-config.test.ts; vm.runInContext against happy-dom Window (never the <script>-element path) verified working for all 5 packages including shared-window coexistence
 
 ### Pending Todos
 
@@ -201,8 +206,8 @@ Items acknowledged and carried forward:
 
 ## Session Continuity
 
-Last session: 2026-07-17T15:36:51.446Z
-Stopped at: Completed 07-04-PLAN.md
+Last session: 2026-07-18T00:10:17.046Z
+Stopped at: Completed 08-02-PLAN.md
 Resume file:
 None
 

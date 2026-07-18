@@ -225,6 +225,49 @@ describe('TypeScript 6 Config Invariants (TS6-02 Guard)', () => {
     });
   });
 
+  describe('Forward-compat flag presence (FCT-01/FCT-02/FCT-03 guard)', () => {
+    // Durable regression guard: a silent removal (or reversion to false) of any of the three
+    // forward-compat flags in the root tsconfig.json must fail make test, not just a one-time
+    // green build. The root is the single source of truth (D-01); the per-package assertion
+    // below guards the other half — `extends` is overridable, so a plugin config setting a flag
+    // to false would silently defeat it for that package while the root assertion stayed green.
+    const forwardCompatFlags = ['verbatimModuleSyntax', 'isolatedDeclarations', 'erasableSyntaxOnly'] as const;
+
+    it('should have verbatimModuleSyntax: true (FCT-01)', () => {
+      const config = readConfigFile('tsconfig.json') as Record<string, unknown>;
+      const compilerOpts = config.compilerOptions as Record<string, unknown>;
+      expect(compilerOpts.verbatimModuleSyntax).toBe(true);
+    });
+
+    it('should have isolatedDeclarations: true (FCT-02)', () => {
+      const config = readConfigFile('tsconfig.json') as Record<string, unknown>;
+      const compilerOpts = config.compilerOptions as Record<string, unknown>;
+      expect(compilerOpts.isolatedDeclarations).toBe(true);
+    });
+
+    it('should have erasableSyntaxOnly: true (FCT-03)', () => {
+      const config = readConfigFile('tsconfig.json') as Record<string, unknown>;
+      const compilerOpts = config.compilerOptions as Record<string, unknown>;
+      expect(compilerOpts.erasableSyntaxOnly).toBe(true);
+    });
+
+    // No non-root config may override a forward-compat flag to a non-true value. Configs inherit
+    // the flags from the root via `extends`; a declared override is only allowed if it re-affirms
+    // `true`. This catches a plugin (or typecheck) config re-adding `verbatimModuleSyntax: false`.
+    const nonRootConfigPaths = tsconfigFilePaths.filter((p) => p !== 'tsconfig.json');
+    for (const filePath of nonRootConfigPaths) {
+      it(`${filePath} should not override any forward-compat flag to a non-true value`, () => {
+        const config = readConfigFile(filePath) as Record<string, unknown>;
+        const compilerOpts = (config.compilerOptions ?? {}) as Record<string, unknown>;
+        for (const flag of forwardCompatFlags) {
+          if (flag in compilerOpts) {
+            expect(compilerOpts[flag], `${filePath} overrides ${flag} — must stay true`).toBe(true);
+          }
+        }
+      });
+    }
+  });
+
   describe('tsup declaration emit (TS6-02: no reintroduced baseUrl via tsup dts)', () => {
     // tsup 8.5's bundled `dts: true` injects a `baseUrl` that TS6 deprecates (TS5101). Declarations
     // are emitted by a direct `tsc --emitDeclarationOnly` pass in `onSuccess` instead. Re-enabling
