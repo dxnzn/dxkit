@@ -4,17 +4,17 @@ milestone: v1.1
 milestone_name: TypeScript 6 Migration & Toolchain Modernization
 current_phase: 9
 current_phase_name: Continuous Debt Guardrails & Registry Robustness
-status: planning
+status: "Phase 08 shipped — PR #8"
 stopped_at: Completed 08-02-PLAN.md
-last_updated: "2026-07-18T00:24:13.956Z"
+last_updated: "2026-07-18T01:06:10.218Z"
 last_activity: 2026-07-17
-last_activity_desc: Phase 08 complete, transitioned to Phase 9
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 12
   completed_plans: 12
   percent: 75
+last_activity_desc: Phase 08 complete, transitioned to Phase 9
 ---
 
 # Project State
@@ -30,8 +30,8 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 
 Phase: 9 — Continuous Debt Guardrails & Registry Robustness
 Plan: Not started
-Status: Ready to plan
-Last activity: 2026-07-17 — Phase 08 complete, transitioned to Phase 9
+Status: Phase 08 shipped — PR #8
+Last activity: 2026-07-17
 
 ## Milestone Phase Map (v1.1)
 
