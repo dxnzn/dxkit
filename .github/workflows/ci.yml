@@ -25,4 +25,6 @@ jobs:
       - run: make smoke
       - name: Typecheck / deprecation gate (GATE-01)
         run: make typecheck
+      - name: Zero-runtime-dependency assertion (GATE-02)
+        run: make verify-no-runtime-deps
       - run: make test
