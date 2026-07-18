@@ -299,4 +299,38 @@ describe('TypeScript 6 Config Invariants (TS6-02 Guard)', () => {
       });
     }
   });
+
+  describe('GATE-01 CI deprecation gate wiring', () => {
+    // GATE-01: `make typecheck` must be its own named, distinct CI step — not buried inside
+    // `make test` (D-05). A regression that folds it back into `make test` (or drops the step
+    // entirely) would make a tsc deprecation/type error invisible as its own red check.
+    const ciWorkflowPath = resolve(process.cwd(), '.github/workflows/ci.yml');
+    const ciWorkflowContent = readFileSync(ciWorkflowPath, 'utf-8');
+
+    it('should have a named step running `make typecheck` that references the GATE-01 gate', () => {
+      // Match a `name:` line referencing the gate (GATE-01 or "deprecation") followed, within a
+      // few lines, by a `run: make typecheck` line — i.e. one step block, not two unrelated hits.
+      const namedTypecheckStep =
+        /name:.*(GATE-01|deprecation).*\n\s*run:\s*make typecheck/i.test(ciWorkflowContent) ||
+        /run:\s*make typecheck/.test(ciWorkflowContent);
+      expect(namedTypecheckStep, 'ci.yml should contain a run: make typecheck line').toBe(true);
+
+      const stepBlockMatch = ciWorkflowContent.match(/-\s*name:\s*(.+)\n\s*run:\s*make typecheck/);
+      expect(stepBlockMatch, 'ci.yml should have a named step directly running `make typecheck`').toBeTruthy();
+      expect(stepBlockMatch![1], 'the named typecheck step should reference GATE-01 or deprecation').toMatch(
+        /GATE-01|deprecation/i,
+      );
+    });
+
+    it('should keep `make typecheck` and `make test` as two distinct run lines (D-05)', () => {
+      const typecheckRunLines = ciWorkflowContent.match(/^\s*-\s*run:\s*make typecheck\s*$/gm) ?? [];
+      const testRunLines = ciWorkflowContent.match(/^\s*-\s*run:\s*make test\s*$/gm) ?? [];
+      expect(typecheckRunLines.length, 'ci.yml should have its own `run: make typecheck` step').toBeGreaterThanOrEqual(
+        1,
+      );
+      expect(testRunLines.length, 'ci.yml should still have a separate `run: make test` step').toBeGreaterThanOrEqual(
+        1,
+      );
+    });
+  });
 });
