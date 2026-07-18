@@ -23,4 +23,6 @@ jobs:
       - run: make build
       - run: make verify-outputs
       - run: make smoke
+      - name: Typecheck / deprecation gate (GATE-01)
+        run: make typecheck
       - run: make test

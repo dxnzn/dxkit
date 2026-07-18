@@ -323,8 +323,10 @@ describe('TypeScript 6 Config Invariants (TS6-02 Guard)', () => {
     });
 
     it('should keep `make typecheck` and `make test` as two distinct run lines (D-05)', () => {
-      const typecheckRunLines = ciWorkflowContent.match(/^\s*-\s*run:\s*make typecheck\s*$/gm) ?? [];
-      const testRunLines = ciWorkflowContent.match(/^\s*-\s*run:\s*make test\s*$/gm) ?? [];
+      // A `run:` line may be a bare step (`- run: make foo`) or the second line of a named step
+      // (`- name: ...` then `run: make foo` on the next line, no leading `-`) — match either shape.
+      const typecheckRunLines = ciWorkflowContent.match(/^\s*(-\s*)?run:\s*make typecheck\s*$/gm) ?? [];
+      const testRunLines = ciWorkflowContent.match(/^\s*(-\s*)?run:\s*make test\s*$/gm) ?? [];
       expect(typecheckRunLines.length, 'ci.yml should have its own `run: make typecheck` step').toBeGreaterThanOrEqual(
         1,
       );
