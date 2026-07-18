@@ -271,7 +271,24 @@ export function createShell(config: ShellConfig = {}): Shell {
         }
         return [];
       }
-      return await res.json();
+      const parsed = await res.json();
+      if (!Array.isArray(parsed)) {
+        // ROB-05 / D-10: unlike the D-15 non-OK/parse-failure emits above, this guard is
+        // deliberately UNGATED (not wrapped in registryUrlExplicit) — a wrong-shape 200 body
+        // on the default silent probe still crosses into normalizeAndValidateManifests()'s
+        // for...of and throws an uncaught TypeError before window.__DXKIT__ is exposed, so it
+        // must always be visible even though the default probe's absence/non-OK case stays quiet.
+        events.emit('dx:error', {
+          source: 'shell:manifest',
+          error: new Error(
+            // `typeof null` is 'object', so disambiguate null explicitly — a null body and an
+            // object-wrapped registry ({ manifests: [...] }) are the two common misconfigurations.
+            `Failed to load registry from ${registryUrl} — expected a JSON array of manifests, got ${parsed === null ? 'null' : typeof parsed}`,
+          ),
+        });
+        return [];
+      }
+      return parsed;
     } catch (err) {
       // D-15: mirrors loadDappManifest()'s unified network/parse-failure message — covers both
       // a fetch throw and a res.json() parse failure indiscriminately.

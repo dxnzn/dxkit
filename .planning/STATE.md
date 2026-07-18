@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: TypeScript 6 Migration & Toolchain Modernization
-current_phase: 9
-current_phase_name: Continuous Debt Guardrails & Registry Robustness
-status: "Phase 08 merged to main via PR #8 — ready for Phase 9"
-stopped_at: Completed 08-02-PLAN.md
-last_updated: "2026-07-18T02:14:37.000Z"
+current_phase: 09
+status: "Phase 09 shipped — PR #9"
+stopped_at: Completed 09-02-PLAN.md
+last_updated: "2026-07-18T06:46:53.669Z"
 last_activity: 2026-07-18
 progress:
   total_phases: 4
-  completed_phases: 3
-  total_plans: 12
-  completed_plans: 12
-  percent: 75
-last_activity_desc: Phase 08 merged to main (PR #8, squash bbedd4b); ready to plan Phase 9
+  completed_phases: 4
+  total_plans: 16
+  completed_plans: 16
+  percent: 100
+current_phase_name: continuous-debt-guardrails-registry-robustness
+last_activity_desc: Phase 09 complete
 ---
 
 # Project State
@@ -24,13 +24,13 @@ last_activity_desc: Phase 08 merged to main (PR #8, squash bbedd4b); ready to pl
 See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** DxKit stays trustworthy for real use — failures are visible (never silent), documented behavior matches actual behavior, and the alpha is stable enough to build on with confidence.
-**Current focus:** Phase 9 — Continuous Debt Guardrails & Registry Robustness (not started)
+**Current focus:** Phase 09 — continuous-debt-guardrails-registry-robustness
 
 ## Current Position
 
-Phase: 9 — Continuous Debt Guardrails & Registry Robustness
+Phase: 09
 Plan: Not started
-Status: Phase 08 merged to main via PR #8 (squash bbedd4b) — ready for Phase 9
+Status: Phase 09 shipped — PR #9
 Last activity: 2026-07-18
 
 ## Milestone Phase Map (v1.1)
@@ -52,7 +52,7 @@ Phase 7) is a precondition — it must exist before/with the TS6 bump and before
 
 **Velocity:**
 
-- Total plans completed: 35 (v1.0)
+- Total plans completed: 39 (v1.0)
 - Average duration: - min
 - Total execution time: 0 hours
 
@@ -68,6 +68,7 @@ Phase 7) is a precondition — it must exist before/with the TS6 bump and before
 | 06 | 6 | - | - |
 | 07 | 4 | - | - |
 | 08 | 2 | - | - |
+| 09 | 4 | - | - |
 
 **Recent Trend:**
 
@@ -114,6 +115,10 @@ Phase 7) is a precondition — it must exist before/with the TS6 bump and before
 | Phase 07 P04 | 15min | 2 tasks | 7 files |
 | Phase 08 P01 | 8min | 3 tasks | 2 files |
 | Phase 08 P02 | 6min | 2 tasks | 7 files |
+| Phase 09 P01 | 8min | 2 tasks | 2 files |
+| Phase 09 P03 | 6min | 2 tasks | 2 files |
+| Phase 09 P04 | 6min | 2 tasks | 2 files |
+| Phase 09 P02 | 8min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -165,6 +170,13 @@ Recent decisions affecting current work:
 - [Phase ?]: tsup 8.5.1's dts:true bundler unconditionally injects baseUrl (TS5101 under TS6); replaced with a direct tsc --emitDeclarationOnly pass via onSuccess across all 5 packages, zero ignoreDeprecations shims
 - [Phase ?]: Landed verbatimModuleSyntax + erasableSyntaxOnly as one bisectable commit, isolatedDeclarations as its own commit; all three flags required zero source annotations, matching research prediction exactly
 - [Phase ?]: Landed the smoke test infrastructure (Task 1) and Makefile/biome/CI wiring (Task 2) as two bisectable commits; used process.cwd()-relative dist/ path resolution mirroring tests/typecheck-config.test.ts; vm.runInContext against happy-dom Window (never the <script>-element path) verified working for all 5 packages including shared-window coexistence
+- [Phase ?]: Named CI step 'Typecheck / deprecation gate (GATE-01)' inserted between make smoke and make test; make test's own typecheck prerequisite (D-05) left untouched — GATE-01 adds CI-level visibility without restructuring local dev wiring
+- [Phase ?]: [Phase 09-03]: Skeleton copied from 09-RESEARCH.md Pattern 3 verbatim after re-fetching the live renovate-schema.json at execution time (Pitfall 3) — zero drift found, matchPackagePatterns confirmed fully removed from the schema
+- [Phase ?]: [Phase 09-03]: renovate-config.test.ts guard mirrors typecheck-config.test.ts's raw-text + parsed-JSON assertion convention, no new devDependency added
+- [Phase ?]: [Phase 09-04]: ROB-05 array guard emit is deliberately ungated by registryUrlExplicit (D-10/P2) — a wrong-shape 200 body is never an expected/benign state, so it must surface even on the default silent /registry.json probe
+- [Phase ?]: [Phase 09-04]: Fix scoped entirely to loadManifests()'s res.json() call site; normalizeAndValidateManifests() left untouched as the single choke point for element-level manifest validation
+- [Phase ?]: [Phase 09-02]: checkNoRuntimeDeps() is deliberately core-only and unconditional per revised D-08 — any dependencies/peerDependencies/optionalDependencies entry is a violation, no workspace-carveout logic needed since root package.json never declares workspace:* links
+- [Phase ?]: [Phase 09-02]: CJS .cjs module loaded via createRequire(import.meta.url) in the new vitest test, reusing smoke/dist-exports.smoke.test.ts's pattern, requiring only a node:module addition to tests/node-builtins.d.ts instead of a new declaration file or @types/node
 
 ### Pending Todos
 
@@ -206,8 +218,8 @@ Items acknowledged and carried forward:
 
 ## Session Continuity
 
-Last session: 2026-07-18T00:10:17.046Z
-Stopped at: Completed 08-02-PLAN.md
+Last session: 2026-07-18T06:20:59.907Z
+Stopped at: Completed 09-02-PLAN.md
 Resume file:
 None
 

@@ -4,7 +4,7 @@ PLUGIN_DIRS := $(dir $(PLUGINS))
 # Build order: plugins with no cross-plugin deps first, then their dependents
 PLUGIN_BUILD_ORDER := plugins/settings/ plugins/wallet/ plugins/auth/ plugins/theme/
 
-.PHONY: setup build test test-watch lint lint-fix format clean superclean audit commit publish release verify-outputs typecheck smoke
+.PHONY: setup build test test-watch lint lint-fix format clean superclean audit commit publish release verify-outputs verify-no-runtime-deps typecheck smoke
 
 setup:
 	pnpm install
@@ -61,14 +61,14 @@ superclean:
 commit:
 	npx cz
 
-release: build verify-outputs smoke test
+release: build verify-outputs verify-no-runtime-deps smoke test
 	npx commit-and-tag-version
 	@echo
 	@echo "Release tagged. Review the changelog, then run:"
 	@echo "  make publish"
 	@echo "  git push --follow-tags"
 
-publish: build verify-outputs smoke test
+publish: build verify-outputs verify-no-runtime-deps smoke test
 	pnpm publish --access public
 	@for dir in $(PLUGIN_BUILD_ORDER); do \
 		(cd $$dir && pnpm publish --access public) || exit 1; \
@@ -93,6 +93,12 @@ verify-outputs:
 	done
 	@echo
 	@echo "All build outputs present (3 formats x 5 packages)."
+
+verify-no-runtime-deps:
+	@echo
+	@echo "VERIFYING ZERO RUNTIME DEPENDENCIES: package.json (GATE-02, core-only)"
+	@echo
+	@node ./scripts/check-no-runtime-deps.cjs package.json
 
 typecheck:
 	@echo

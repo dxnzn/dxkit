@@ -299,4 +299,40 @@ describe('TypeScript 6 Config Invariants (TS6-02 Guard)', () => {
       });
     }
   });
+
+  describe('GATE-01 CI deprecation gate wiring', () => {
+    // GATE-01: `make typecheck` must be its own named, distinct CI step — not buried inside
+    // `make test` (D-05). A regression that folds it back into `make test` (or drops the step
+    // entirely) would make a tsc deprecation/type error invisible as its own red check.
+    const ciWorkflowPath = resolve(process.cwd(), '.github/workflows/ci.yml');
+    const ciWorkflowContent = readFileSync(ciWorkflowPath, 'utf-8');
+
+    it('should have a named step running `make typecheck` that references the GATE-01 gate', () => {
+      // Match a `name:` line referencing the gate (GATE-01 or "deprecation") followed, within a
+      // few lines, by a `run: make typecheck` line — i.e. one step block, not two unrelated hits.
+      // No `|| /run: make typecheck/` fallback: that would let this pass on an unnamed step,
+      // making the assertion vacuous (the whole point of GATE-01 is a *named* distinct step).
+      const namedTypecheckStep = /name:.*(GATE-01|deprecation).*\n\s*run:\s*make typecheck/i.test(ciWorkflowContent);
+      expect(namedTypecheckStep, 'ci.yml should have a named GATE-01 step running `make typecheck`').toBe(true);
+
+      const stepBlockMatch = ciWorkflowContent.match(/-\s*name:\s*(.+)\n\s*run:\s*make typecheck/);
+      expect(stepBlockMatch, 'ci.yml should have a named step directly running `make typecheck`').toBeTruthy();
+      expect(stepBlockMatch![1], 'the named typecheck step should reference GATE-01 or deprecation').toMatch(
+        /GATE-01|deprecation/i,
+      );
+    });
+
+    it('should keep `make typecheck` and `make test` as two distinct run lines (D-05)', () => {
+      // A `run:` line may be a bare step (`- run: make foo`) or the second line of a named step
+      // (`- name: ...` then `run: make foo` on the next line, no leading `-`) — match either shape.
+      const typecheckRunLines = ciWorkflowContent.match(/^\s*(-\s*)?run:\s*make typecheck\s*$/gm) ?? [];
+      const testRunLines = ciWorkflowContent.match(/^\s*(-\s*)?run:\s*make test\s*$/gm) ?? [];
+      expect(typecheckRunLines.length, 'ci.yml should have its own `run: make typecheck` step').toBeGreaterThanOrEqual(
+        1,
+      );
+      expect(testRunLines.length, 'ci.yml should still have a separate `run: make test` step').toBeGreaterThanOrEqual(
+        1,
+      );
+    });
+  });
 });

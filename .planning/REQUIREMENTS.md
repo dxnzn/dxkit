@@ -36,13 +36,13 @@ Requirements for this milestone. Each maps to a roadmap phase.
 
 ### Continuous Debt Guardrails
 
-- [ ] **GATE-01**: CI fails the build on `tsc` typecheck/deprecation errors, scoped to project-owned paths only (never `node_modules/`)
-- [ ] **GATE-02**: CI asserts the zero-runtime-dependency posture, so an automated bump that pulls in a runtime dep is caught
-- [ ] **GATE-03**: Dependency-freshness automation (Renovate) configured for the pnpm workspace — grouped PRs, release-age gating, and an automerge policy that blocks unreviewed major toolchain bumps
+- [x] **GATE-01**: CI fails the build on `tsc` typecheck/deprecation errors, scoped to project-owned paths only (never `node_modules/`)
+- [x] **GATE-02**: CI asserts the zero-runtime-dependency posture of the core `@dnzn/dxkit` package, so an automated bump that pulls a runtime dep into core is caught
+- [x] **GATE-03**: Dependency-freshness automation (Renovate) configured for the pnpm workspace — grouped PRs, release-age gating, and an automerge policy that blocks unreviewed major toolchain bumps
 
 ### Robustness
 
-- [ ] **ROB-05**: `loadManifests()` validates that registry.json is an array; a wrong-shape `200` emits `dx:error` (source `shell:manifest`) instead of throwing an uncaught `TypeError` in `init()` before `window.__DXKIT__` is exposed (WR-01)
+- [x] **ROB-05**: `loadManifests()` validates that registry.json is an array; a wrong-shape `200` emits `dx:error` (source `shell:manifest`) instead of throwing an uncaught `TypeError` in `init()` before `window.__DXKIT__` is exposed (WR-01)
 
 ## v2 Requirements
 
@@ -84,10 +84,10 @@ Which phases cover which requirements. Populated during roadmap creation.
 | FCT-02 | Phase 8 | Complete |
 | FCT-03 | Phase 8 | Complete |
 | FCT-04 | Phase 8 | Complete |
-| GATE-01 | Phase 9 | Pending |
-| GATE-02 | Phase 9 | Pending |
-| GATE-03 | Phase 9 | Pending |
-| ROB-05 | Phase 9 | Pending |
+| GATE-01 | Phase 9 | Complete |
+| GATE-02 | Phase 9 | Complete |
+| GATE-03 | Phase 9 | Complete |
+| ROB-05 | Phase 9 | Complete |
 
 **Coverage:**
 

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "minimumReleaseAge": "3 days",
+  "packageRules": [
+    {
+      "groupName": "toolchain",
+      "matchPackageNames": ["tsup", "vite", "vitest", "happy-dom", "@biomejs/biome", "typescript"],
+      "matchDepTypes": ["devDependencies"],
+      "automerge": false
+    },
+    {
+      "matchPackageNames": ["tsup", "vite", "vitest", "happy-dom", "@biomejs/biome", "typescript"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    },
+    {
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "matchPackageNames": ["!tsup", "!vite", "!vitest", "!happy-dom", "!@biomejs/biome", "!typescript"],
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    }
+  ],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 4am on monday"],
+    "automerge": false
+  }
+}

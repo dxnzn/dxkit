@@ -133,7 +133,11 @@ steps:
   - run: make build
   - run: make verify-outputs
   - run: make smoke
+  - name: Typecheck / deprecation gate (GATE-01)
+    run: make typecheck
+  - name: Zero-runtime-dependency assertion (GATE-02)
+    run: make verify-no-runtime-deps
   - run: make test
 ```
 
-CI builds every package first (`make build`), asserts all three build outputs exist per package (`make verify-outputs`), smoke-tests the real built artifacts (`make smoke` — see [Build-artifact smoke test](#build-artifact-smoke-test) below), then runs `make test`, which lints (`biome check .`), type-checks (`make typecheck` — standalone `tsc --noEmit` per package), and runs the full Vitest suite (`vitest run`) — the same commands a contributor runs locally. The matrix runs two Node legs, `['22.12.0', 24]`: the pinned `22.12.0` leg exercises the exact `engines` floor (so a floor regression can't hide behind a rounded-up patch), and `24` is the current stable line. No coverage upload or reporting step is configured.
+CI builds every package first (`make build`), asserts all three build outputs exist per package (`make verify-outputs`), and smoke-tests the real built artifacts (`make smoke` — see [Build-artifact smoke test](#build-artifact-smoke-test) below). It then runs two named guardrail steps, each surfacing as its own GitHub Check: `Typecheck / deprecation gate (GATE-01)` (`make typecheck` — standalone `tsc --noEmit` per package) so a `tsc`/deprecation error fails distinctly rather than buried inside `make test`, and `Zero-runtime-dependency assertion (GATE-02)` (`make verify-no-runtime-deps`) which fails if the core `@dnzn/dxkit` package declares any runtime dependency. Finally `make test` lints (`biome check .`), type-checks again as part of its own chain, and runs the full Vitest suite (`vitest run`) — the same commands a contributor runs locally. The matrix runs two Node legs, `['22.12.0', 24]`: the pinned `22.12.0` leg exercises the exact `engines` floor (so a floor regression can't hide behind a rounded-up patch), and `24` is the current stable line. No coverage upload or reporting step is configured.
