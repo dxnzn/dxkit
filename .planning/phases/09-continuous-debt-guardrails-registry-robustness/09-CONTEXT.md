@@ -71,16 +71,30 @@ deprecations are gated via `tsc`, not lint); any new routing/feature surface.
   `tests/` in a separate leg (splits the tsconfig Phase 7 just standardized, for no real benefit).
 
 ### GATE-02 — zero-runtime-dep assertion
-- **D-07: package.json field-check, not a pnpm-tree check.** A Makefile target (following the
-  `verify-outputs` loop shape over root + `PLUGIN_BUILD_ORDER`) asserts the invariant directly on
-  each of the 5 `package.json` files. Fast, offline, deterministic, no resolved-install dependency.
-  Rejected: `pnpm list --prod` / `pnpm why` tree check (slower, needs install, brittle output to
-  parse — the posture is *defined by* not declaring deps, so assert that directly).
-- **D-08: Fail on all three runtime-visible fields.** The check fails if **any** package declares a
-  non-empty `dependencies`, `peerDependencies`, **or** `optionalDependencies` — all three install a
-  non-dev package into a consumer's tree. Closes every side-door an automated bump could use to
-  introduce a runtime dep. (Today all 5 packages have none of these fields — the check codifies the
-  status quo as an invariant.)
+- **D-07: package.json field-check, not a pnpm-tree check.** A Makefile target asserts the invariant
+  directly on the **core `@dnzn/dxkit` (root) `package.json`** by reading its dep fields with node's
+  own JSON parsing. Fast, offline, deterministic, no resolved-install dependency. Rejected:
+  `pnpm list --prod` / `pnpm why` tree check (slower, needs install, brittle output to parse — the
+  posture is *defined by* not declaring deps, so assert that directly).
+- **D-08 (REVISED 2026-07-18 — scope corrected to core-only): Assert the core package only.** The
+  check fails if the root `@dnzn/dxkit` `package.json` declares a non-empty `dependencies`,
+  `peerDependencies`, **or** `optionalDependencies`. Root has none today, so the check codifies the
+  status quo as an invariant for the *framework* — which is the actual "zero-runtime-dep
+  microframework" selling point.
+  **Why revised:** the original D-08 premise ("all 5 packages have none of these fields") was
+  factually wrong — 4 of 5 plugins already declare intra-monorepo `workspace:*` `dependencies`
+  (wallet, auth, theme, settings). A blanket 5-package check would (a) fail the build immediately,
+  and (b) box in future plugin work, since **plugins are expected to grow legitimate external runtime
+  deps** (e.g. a wallet plugin needing an EIP-1193/crypto lib). The zero-dep posture that is a
+  genuine selling point is the **core framework's**, not the optional plugins'. Additionally, the
+  original "catch an automated Renovate bump" rationale does not hold for a package.json field check:
+  Renovate bumps *versions* of existing deps and does lockfile maintenance — it never adds a new
+  entry to the `dependencies` field. GATE-02's real value is executable documentation of the
+  core-is-zero-dep claim, scoped where it is load-bearing. Plugins' `package.json` files are **not**
+  checked by GATE-02.
+  **Downstream impact:** the planner MUST update `.planning/REQUIREMENTS.md` (GATE-02 wording) and the
+  Phase 9 ROADMAP success criterion #2 to reflect the core-only scope, so the requirement text no
+  longer implies "any package."
 
 ### ROB-05 — registry array-shape fix
 - **D-09: `Array.isArray()` guard on the parsed 200 body.** After `await res.json()` succeeds in
