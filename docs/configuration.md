@@ -161,6 +161,11 @@ Each package (core + each plugin under `plugins/*/`) has its own `tsup.config.ts
 | `declaration` / `sourceMap` | `true` |
 | `declarationMap` | `false` — the published package ships only `dist` (`files: ["dist"]`), so declaration maps pointing back at `src/` would dead-link for consumers; they are not emitted |
 | `outDir` / `rootDir` | `dist` / `src` |
+| `verbatimModuleSyntax` | `true` — forward-compat: import/export elision is explicit, so type-only imports must be written `import type` |
+| `isolatedDeclarations` | `true` — forward-compat: every exported declaration must be independently typeable, guaranteeing per-file `.d.ts` emit without whole-program inference |
+| `erasableSyntaxOnly` | `true` — forward-compat: bans non-erasable TS-only syntax (`enum`, `namespace`, parameter properties) so the source stays type-strippable |
+
+The three forward-compat flags above are enabled in the base `tsconfig.json` and inherited by every package via `extends`; they ready the codebase for a future TypeScript 7.x jump without a rewrite. A durable guard in `tests/typecheck-config.test.ts` (the *Forward-compat flag presence* block) fails `make test` if any of the three is silently removed. The built artifacts are separately proven intact by `make smoke` (see [Testing › Build-artifact smoke test](testing.md#build-artifact-smoke-test)).
 
 Each package also has a `tsconfig.typecheck.json` that extends its build config with `noEmit: true` and widens `include` to cover `tests/` as well as `src/`. This is the config `make typecheck` runs (`tsc --noEmit -p tsconfig.typecheck.json`) — a standalone type-check over source *and* tests, independent of the build's declaration emit. It sets `paths` (mirroring `vitest.config.ts`'s workspace aliases) but deliberately **no** `baseUrl`, since `baseUrl` is deprecated under TypeScript 6 (`TS5101`).
 

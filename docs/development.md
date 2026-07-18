@@ -85,10 +85,11 @@ All common workflows are wrapped in the root `Makefile`. Run `make <target>` fro
 | `make clean` | Remove `dist/` from the core package and every plugin |
 | `make superclean` | Remove `dist/` and `node_modules/` from the core package and every plugin |
 | `make verify-outputs` | Assert all three build outputs (`dist/index.js`, `dist/index.cjs`, `dist/index.global.js`) exist for the core package and each plugin — 15 checks total; exits non-zero on any missing artifact. Run it after `make build`. |
+| `make smoke` | Build first (declared prerequisite), then run the build-artifact smoke test (`vitest run --config vitest.smoke.config.ts`) against the real `dist/` outputs — asserts each IIFE global attaches with its full expected export-key set and CJS `require()` interop returns the same set, for core + all 4 plugins. Deliberately **not** part of `make test`; runs in release/publish/CI after `verify-outputs`. |
 | `make audit` | Run `pnpm audit` (dependency vulnerabilities), `semgrep --config p/typescript` (SAST) against `src/` and `plugins/`, and `gitleaks detect` (secret scanning) across the whole repo |
 | `make commit` | `npx cz` — open the Commitizen conventional-commit prompt |
-| `make release` | `build`, `verify-outputs`, `test`, then run `commit-and-tag-version` to bump versions and generate the changelog |
-| `make publish` | `build`, `verify-outputs`, `test`, then `pnpm publish --access public` for core and each plugin in build order |
+| `make release` | `build`, `verify-outputs`, `smoke`, `test`, then run `commit-and-tag-version` to bump versions and generate the changelog |
+| `make publish` | `build`, `verify-outputs`, `smoke`, `test`, then `pnpm publish --access public` for core and each plugin in build order |
 
 `make test` and `make test-watch` run in order — `make lint`, then `make typecheck`, then vitest — so a lint failure or a type error blocks the test run before any specs execute.
 
@@ -118,6 +119,8 @@ Each plugin's `tsup.config.ts` sets `noExternal: ['@dnzn/dxkit']` on its IIFE bu
 
 TypeScript compiles to `ES2022` with `strict: true` (`tsconfig.json`); `.d.ts` declarations and source maps are emitted for every ESM/CJS build. Declaration emit runs as a dedicated `tsc --emitDeclarationOnly` pass wired into each package's `tsup` `onSuccess` hook (rather than tsup's built-in `dts` bundler) — tsup 8.5's bundled `dts` injects a `baseUrl` that TypeScript 6 deprecates (`TS5101`), so declarations are emitted by `tsc` directly to keep the build free of deprecation shims.
 
+The base `tsconfig.json` also enables three strict forward-compat flags — `verbatimModuleSyntax`, `isolatedDeclarations`, and `erasableSyntaxOnly` — inherited by every package via `extends`. They keep the source ready for a future TS 7.x jump (import elision made explicit, per-file `.d.ts` emit guaranteed, no non-erasable TS-only syntax); a durable guard in `tests/typecheck-config.test.ts` fails the suite if any of the three is silently removed. See [Configuration › `tsconfig.json`](configuration.md) for the per-flag rationale.
+
 ## Code Style
 
 Linting and formatting are handled by [Biome](https://biomejs.dev/) (`biome.json`) — there is no ESLint or Prettier config in this repo.
@@ -129,7 +132,7 @@ Linting and formatting are handled by [Biome](https://biomejs.dev/) (`biome.json
 - **Linter preset:** `recommended`, with `noExplicitAny` and `noNonNullAssertion` turned off
 - **Import organization:** Biome's `organizeImports` assist runs on save/check
 
-Biome checks `src/**/*.ts`, `tests/**/*.ts`, `plugins/*/src/**/*.ts`, and `plugins/*/tests/**/*.ts` (see `biome.json` `files.includes`).
+Biome checks `src/**/*.ts`, `tests/**/*.ts`, `plugins/*/src/**/*.ts`, `plugins/*/tests/**/*.ts`, and `smoke/**/*.ts` (see `biome.json` `files.includes`).
 
 Run it with:
 
