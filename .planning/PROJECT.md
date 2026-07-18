@@ -96,15 +96,14 @@ to keep this a focused modernization pass.
 - ✓ Core + all 4 plugins compile clean under TypeScript 6.0.3; dts emission switched from tsup's `dts:true` to `tsc --emitDeclarationOnly` to avoid TS6's `TS5101` baseUrl deprecation — validated Phase 7 (TS6-01)
 - ✓ No `ignoreDeprecations` shim in any tsconfig; every TS6 deprecation resolved at source; full vitest suite (321) green under TS6 — validated Phase 7 (TS6-02)
 
+<!-- Validated in Phase 8: Forward-Compat Typing (v1.1) -->
+- ✓ `verbatimModuleSyntax`, `isolatedDeclarations`, and `erasableSyntaxOnly` all enabled in the root base `tsconfig.json`, inherited by all 4 plugin tsconfigs via `extends`; enabled with zero at-source churn (no `src/` or `plugins/*/src/` changes), `.d.ts` emit succeeds for every package, and a durable flag-presence guard test fails the suite on silent flag removal — validated Phase 8 (FCT-01, FCT-02, FCT-03)
+- ✓ `make smoke` build-artifact gate: builds, then runs a separate vitest config against real `dist/` artifacts asserting each IIFE global attaches to a happy-dom Window with its full expected export-key set and CJS `require()` interop returns the same set (all 5 packages); wired into release/publish/CI after `verify-outputs`, never into `make test` — validated Phase 8 (FCT-04)
+
 ### Active
 
 <!-- The v1.1 TS6 + toolchain modernization milestone. Hypotheses until shipped and validated.
      Detailed, REQ-ID'd scope lives in .planning/REQUIREMENTS.md. -->
-
-**Forward-compat typing**
-- [ ] Adopt `isolatedDeclarations` across all packages
-- [ ] Adopt `verbatimModuleSyntax` across all packages
-- [ ] Adopt `erasableSyntaxOnly` across all packages
 
 **Continuous debt guardrails**
 - [ ] CI deprecation gate — fail the build on `tsc`/lint deprecation warnings
@@ -191,4 +190,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-17 after Phase 7 (TypeScript 6 Migration & Standalone Typecheck) complete — TS6-01..03 validated (per-package `tsc --noEmit` baseline wired into `make test`/CI, core + 4 plugins clean under TS 6.0.3, zero `ignoreDeprecations`; dts emission moved off tsup's bundler to sidestep TS6's TS5101). Remaining v1.1: forward-compat typing, CI deprecation gate + dep-freshness automation, WR-01. Aimed at a clean TS 7.1 jump.*
+*Last updated: 2026-07-17 after Phase 8 (Forward-Compat Typing) complete — FCT-01..04 validated (`verbatimModuleSyntax` + `isolatedDeclarations` + `erasableSyntaxOnly` enabled in the root base tsconfig with zero at-source churn, durable flag-presence guard, and a `make smoke` build-artifact gate proving IIFE global-attach + CJS require() interop across all 5 packages, wired into release/publish/CI after `verify-outputs`). Remaining v1.1: CI deprecation gate + dep-freshness automation (Phase 9), WR-01. Aimed at a clean TS 7.1 jump.*
