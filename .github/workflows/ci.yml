@@ -22,4 +22,5 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: make build
       - run: make verify-outputs
+      - run: make smoke
       - run: make test

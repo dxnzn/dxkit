@@ -4,7 +4,7 @@ PLUGIN_DIRS := $(dir $(PLUGINS))
 # Build order: plugins with no cross-plugin deps first, then their dependents
 PLUGIN_BUILD_ORDER := plugins/settings/ plugins/wallet/ plugins/auth/ plugins/theme/
 
-.PHONY: setup build test test-watch lint lint-fix format clean superclean audit commit publish release verify-outputs typecheck
+.PHONY: setup build test test-watch lint lint-fix format clean superclean audit commit publish release verify-outputs typecheck smoke
 
 setup:
 	pnpm install
@@ -61,14 +61,14 @@ superclean:
 commit:
 	npx cz
 
-release: build verify-outputs test
+release: build verify-outputs smoke test
 	npx commit-and-tag-version
 	@echo
 	@echo "Release tagged. Review the changelog, then run:"
 	@echo "  make publish"
 	@echo "  git push --follow-tags"
 
-publish: build verify-outputs test
+publish: build verify-outputs smoke test
 	pnpm publish --access public
 	@for dir in $(PLUGIN_BUILD_ORDER); do \
 		(cd $$dir && pnpm publish --access public) || exit 1; \
@@ -105,6 +105,12 @@ typecheck:
 		echo; \
 		(cd $$dir && npx tsc --noEmit -p tsconfig.typecheck.json) || exit 1; \
 	done
+
+smoke: build
+	@echo
+	@echo "RUNNING BUILD-ARTIFACT SMOKE TEST (FCT-04)"
+	@echo
+	@npx vitest run --config vitest.smoke.config.ts
 
 audit:
 	@echo
