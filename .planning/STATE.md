@@ -5,15 +5,15 @@ milestone_name: TypeScript 6 Migration & Toolchain Modernization
 current_phase: 09
 current_phase_name: continuous-debt-guardrails-registry-robustness
 status: executing
-stopped_at: Completed 09-03-PLAN.md
-last_updated: "2026-07-18T06:08:06.515Z"
+stopped_at: Completed 09-04-PLAN.md
+last_updated: "2026-07-18T06:13:14.438Z"
 last_activity: 2026-07-18
 last_activity_desc: Phase 09 execution started
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 16
-  completed_plans: 14
+  completed_plans: 15
   percent: 75
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 ## Current Position
 
 Phase: 09 (continuous-debt-guardrails-registry-robustness) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-07-18 — Phase 09 execution started
 
@@ -116,6 +116,7 @@ Phase 7) is a precondition — it must exist before/with the TS6 bump and before
 | Phase 08 P02 | 6min | 2 tasks | 7 files |
 | Phase 09 P01 | 8min | 2 tasks | 2 files |
 | Phase 09 P03 | 6min | 2 tasks | 2 files |
+| Phase 09 P04 | 6min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -170,6 +171,8 @@ Recent decisions affecting current work:
 - [Phase ?]: Named CI step 'Typecheck / deprecation gate (GATE-01)' inserted between make smoke and make test; make test's own typecheck prerequisite (D-05) left untouched — GATE-01 adds CI-level visibility without restructuring local dev wiring
 - [Phase ?]: [Phase 09-03]: Skeleton copied from 09-RESEARCH.md Pattern 3 verbatim after re-fetching the live renovate-schema.json at execution time (Pitfall 3) — zero drift found, matchPackagePatterns confirmed fully removed from the schema
 - [Phase ?]: [Phase 09-03]: renovate-config.test.ts guard mirrors typecheck-config.test.ts's raw-text + parsed-JSON assertion convention, no new devDependency added
+- [Phase ?]: [Phase 09-04]: ROB-05 array guard emit is deliberately ungated by registryUrlExplicit (D-10/P2) — a wrong-shape 200 body is never an expected/benign state, so it must surface even on the default silent /registry.json probe
+- [Phase ?]: [Phase 09-04]: Fix scoped entirely to loadManifests()'s res.json() call site; normalizeAndValidateManifests() left untouched as the single choke point for element-level manifest validation
 
 ### Pending Todos
 
@@ -211,8 +214,8 @@ Items acknowledged and carried forward:
 
 ## Session Continuity
 
-Last session: 2026-07-18T06:08:06.508Z
-Stopped at: Completed 09-03-PLAN.md
+Last session: 2026-07-18T06:13:14.428Z
+Stopped at: Completed 09-04-PLAN.md
 Resume file:
 None
 

@@ -42,7 +42,7 @@ Requirements for this milestone. Each maps to a roadmap phase.
 
 ### Robustness
 
-- [ ] **ROB-05**: `loadManifests()` validates that registry.json is an array; a wrong-shape `200` emits `dx:error` (source `shell:manifest`) instead of throwing an uncaught `TypeError` in `init()` before `window.__DXKIT__` is exposed (WR-01)
+- [x] **ROB-05**: `loadManifests()` validates that registry.json is an array; a wrong-shape `200` emits `dx:error` (source `shell:manifest`) instead of throwing an uncaught `TypeError` in `init()` before `window.__DXKIT__` is exposed (WR-01)
 
 ## v2 Requirements
 
@@ -87,7 +87,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | GATE-01 | Phase 9 | Complete |
 | GATE-02 | Phase 9 | Pending |
 | GATE-03 | Phase 9 | Complete |
-| ROB-05 | Phase 9 | Pending |
+| ROB-05 | Phase 9 | Complete |
 
 **Coverage:**
 
