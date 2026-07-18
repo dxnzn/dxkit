@@ -1,7 +1,7 @@
 ---
 phase: 09
 status: current
-verified_against: 61cf32f87379e60672810b258c04ec0ad13873f5
+verified_against: undefined
 updated: 2026-07-18
 ---
 
@@ -40,3 +40,14 @@ only genuinely drifted claims were edited — no mass regeneration.
   system-internals, plugins/*) — no phase-09 surface touched.
 
 No stale `dependabot` references found (Renovate is the chosen tool). Secret scan clean.
+
+## Re-verification (post-self-review, PR #9)
+
+Self-review fixes (commit `a5d0ee7`) were checked for doc impact and found **doc-neutral**:
+- `renovate.json` `excludePackageNames` → negated `matchPackageNames`: docs describe the policy
+  (toolchain majors blocked, 3-day release age), not the field encoding — no drift.
+- GATE-01 test assertion tightened; internal test change — no doc surface.
+- `src/shell.ts` registry `dx:error` message now disambiguates `null` from `object`:
+  events-reference.md documents the *trigger* (non-array 200 body), not the exact message
+  string — no drift.
+`verified_against` bumped to `a5d0ee7` accordingly.
