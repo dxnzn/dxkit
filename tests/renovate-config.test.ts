@@ -43,10 +43,13 @@ describe('renovate.json invariants (GATE-03 guard)', () => {
     expect(lfm.enabled).toBe(true);
   });
 
-  it('should not contain deprecated config:base or matchPackagePatterns tokens (P5)', () => {
+  it('should not contain deprecated config:base, matchPackagePatterns, or excludePackageNames tokens (P5)', () => {
     const raw = readRenovateConfigRaw();
     expect(raw).not.toMatch(/config:base/);
     expect(raw).not.toMatch(/matchPackagePatterns/);
+    // excludePackageNames was migrated into negated matchPackageNames ("!pkg"); the config
+    // validator flags the old field. Lock it out so a future edit can't reintroduce it.
+    expect(raw).not.toMatch(/excludePackageNames/);
   });
 
   it('should not encode lockFileMaintenance as a boolean literal (P5)', () => {
@@ -120,10 +123,14 @@ describe('renovate.json invariants (GATE-03 guard)', () => {
     });
 
     expect(nonMajorRule, 'a packageRules entry must automerge non-major devDep bumps').toBeTruthy();
-    const excluded = nonMajorRule?.excludePackageNames as string[] | undefined;
-    expect(Array.isArray(excluded)).toBe(true);
+    // Toolchain packages are excluded via negated matchPackageNames ("!tsup", …) — the modern
+    // form. The deprecated `excludePackageNames` field is prohibited by the P5 guard below.
+    const names = nonMajorRule?.matchPackageNames as string[] | undefined;
+    expect(Array.isArray(names)).toBe(true);
     for (const pkg of TOOLCHAIN_PACKAGES) {
-      expect(excluded, `non-major automerge rule must exclude toolchain package ${pkg}`).toContain(pkg);
+      expect(names, `non-major automerge rule must exclude toolchain package ${pkg} via "!${pkg}"`).toContain(
+        `!${pkg}`,
+      );
     }
   });
 });

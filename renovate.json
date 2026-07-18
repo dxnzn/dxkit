@@ -17,7 +17,7 @@
     {
       "matchDepTypes": ["devDependencies"],
       "matchUpdateTypes": ["patch", "minor"],
-      "excludePackageNames": ["tsup", "vite", "vitest", "happy-dom", "@biomejs/biome", "typescript"],
+      "matchPackageNames": ["!tsup", "!vite", "!vitest", "!happy-dom", "!@biomejs/biome", "!typescript"],
       "automerge": true,
       "automergeType": "pr"
     },

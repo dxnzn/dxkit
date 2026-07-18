@@ -310,10 +310,10 @@ describe('TypeScript 6 Config Invariants (TS6-02 Guard)', () => {
     it('should have a named step running `make typecheck` that references the GATE-01 gate', () => {
       // Match a `name:` line referencing the gate (GATE-01 or "deprecation") followed, within a
       // few lines, by a `run: make typecheck` line — i.e. one step block, not two unrelated hits.
-      const namedTypecheckStep =
-        /name:.*(GATE-01|deprecation).*\n\s*run:\s*make typecheck/i.test(ciWorkflowContent) ||
-        /run:\s*make typecheck/.test(ciWorkflowContent);
-      expect(namedTypecheckStep, 'ci.yml should contain a run: make typecheck line').toBe(true);
+      // No `|| /run: make typecheck/` fallback: that would let this pass on an unnamed step,
+      // making the assertion vacuous (the whole point of GATE-01 is a *named* distinct step).
+      const namedTypecheckStep = /name:.*(GATE-01|deprecation).*\n\s*run:\s*make typecheck/i.test(ciWorkflowContent);
+      expect(namedTypecheckStep, 'ci.yml should have a named GATE-01 step running `make typecheck`').toBe(true);
 
       const stepBlockMatch = ciWorkflowContent.match(/-\s*name:\s*(.+)\n\s*run:\s*make typecheck/);
       expect(stepBlockMatch, 'ci.yml should have a named step directly running `make typecheck`').toBeTruthy();

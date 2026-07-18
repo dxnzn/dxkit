@@ -281,7 +281,9 @@ export function createShell(config: ShellConfig = {}): Shell {
         events.emit('dx:error', {
           source: 'shell:manifest',
           error: new Error(
-            `Failed to load registry from ${registryUrl} — expected a JSON array of manifests, got ${typeof parsed}`,
+            // `typeof null` is 'object', so disambiguate null explicitly — a null body and an
+            // object-wrapped registry ({ manifests: [...] }) are the two common misconfigurations.
+            `Failed to load registry from ${registryUrl} — expected a JSON array of manifests, got ${parsed === null ? 'null' : typeof parsed}`,
           ),
         });
         return [];
