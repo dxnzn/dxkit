@@ -156,7 +156,7 @@ storage keys, a stress/edge-case/regression test suite, and a full documentation
 **Success Criteria** (what must be TRUE):
 
   1. CI fails the build on `tsc` typecheck/deprecation errors scoped to project-owned paths only (`src/`, `plugins/*/src/`) — a diagnostic under `node_modules/` never turns the build red.
-  2. CI asserts the zero-runtime-dependency posture (e.g. a `pnpm why`-style check), so an automated bump that pulls a non-dev dependency into any package is caught and fails the build.
+  2. CI asserts the zero-runtime-dependency posture of the core `@dnzn/dxkit` package (a package.json field check — `verify-no-runtime-deps`), so an automated bump that pulls a non-dev dependency into core is caught and fails the build.
   3. Renovate is configured for the pnpm workspace with grouped PRs, release-age gating, and an automerge policy that blocks unreviewed major toolchain bumps (tsup/vite/vitest/Biome/TypeScript).
   4. `loadManifests()` validates that `registry.json` is an array; a wrong-shape `200` emits `dx:error` (source `shell:manifest`) instead of throwing an uncaught `TypeError` in `init()` before `window.__DXKIT__` is exposed (WR-01).
 

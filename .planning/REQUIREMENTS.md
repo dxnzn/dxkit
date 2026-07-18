@@ -37,7 +37,7 @@ Requirements for this milestone. Each maps to a roadmap phase.
 ### Continuous Debt Guardrails
 
 - [x] **GATE-01**: CI fails the build on `tsc` typecheck/deprecation errors, scoped to project-owned paths only (never `node_modules/`)
-- [ ] **GATE-02**: CI asserts the zero-runtime-dependency posture, so an automated bump that pulls in a runtime dep is caught
+- [ ] **GATE-02**: CI asserts the zero-runtime-dependency posture of the core `@dnzn/dxkit` package, so an automated bump that pulls a runtime dep into core is caught
 - [x] **GATE-03**: Dependency-freshness automation (Renovate) configured for the pnpm workspace — grouped PRs, release-age gating, and an automerge policy that blocks unreviewed major toolchain bumps
 
 ### Robustness
