@@ -69,6 +69,7 @@ npm install @dnzn/dxkit-theme
 make setup          # Install dependencies and initialize development environment
 make build          # Build dxkit + all plugins -> dist/ + plugins/*/dist/
 make verify-outputs # Assert all 3 build outputs (ESM/CJS/IIFE) exist per package
+make verify-no-runtime-deps # Assert the core @dnzn/dxkit package declares zero runtime dependencies (GATE-02)
 make smoke          # Build, then smoke-test the real dist/ artifacts (IIFE global-attach + CJS require() exports)
 make typecheck      # Standalone `tsc --noEmit` per package (core + all 4 plugins)
 make test           # Lint + typecheck + run all tests (vitest + happy-dom)

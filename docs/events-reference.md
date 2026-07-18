@@ -184,6 +184,7 @@ dx.events.on('dx:error', ({ source, error }) => {
 | `shell:manifest` | Any manifest (any tier) fails validation during startup normalization |
 | `shell:manifest` | Two manifests declare the same route — first-registered wins, the collision is still surfaced |
 | `shell:manifest` | `registryUrl` fetch returns non-OK, throws, or fails to parse — only when `registryUrl` was explicitly configured (the default `/registry.json` probe stays silent, since its absence is expected for `dapps`/`manifests`-only consumers) |
+| `shell:manifest` | `registryUrl` returns a `200` whose parsed body is **not a JSON array** — fires **ungated**, i.e. even on the default `/registry.json` probe (unlike the non-OK/parse cases above). A wrong-shape body fail-closes to an empty manifest list instead of throwing an uncaught `TypeError` before `window.__DXKIT__` is exposed |
 | `shell:route` | A manifest's route is empty or whitespace-only after trim — the manifest is discarded |
 | `shell:mount` | `#dx-mount` container not found in the DOM |
 | `` `plugin:${name}` `` | A plugin's `init()` throws — the shell continues, that plugin stays unavailable |

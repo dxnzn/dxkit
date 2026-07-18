@@ -18,7 +18,9 @@ If you're building a *dapp* that runs inside DxKit, see [Dapp Development](dapp-
 - **pnpm 10.32.1** — pinned via the `packageManager` field in `package.json`; use [corepack](https://nodejs.org/api/corepack.html) or install this exact version to avoid lockfile drift
 - **make** — all common workflows are wrapped in the root `Makefile`
 
-CI (`.github/workflows/ci.yml`) runs the build + test suite against a Node matrix of `['22.12.0', 24]` on `ubuntu-latest`, triggered on pushes and pull requests to `main`. The pinned `22.12.0` leg exercises the exact declared floor (rather than letting `actions/setup-node` round `22` up to the latest patch), so the `engines` contract is a tested one.
+CI (`.github/workflows/ci.yml`) runs the build + test suite against a Node matrix of `['22.12.0', 24]` on `ubuntu-latest`, triggered on pushes and pull requests to `main`. The pinned `22.12.0` leg exercises the exact declared floor (rather than letting `actions/setup-node` round `22` up to the latest patch), so the `engines` contract is a tested one. Two named guardrail steps run between `make smoke` and `make test`, each failing its own dedicated GitHub Check: `Typecheck / deprecation gate (GATE-01)` (`make typecheck`) surfaces a `tsc`/deprecation regression on its own instead of buried inside `make test`, and `Zero-runtime-dependency assertion (GATE-02)` (`make verify-no-runtime-deps`) fails the build if the core package ever declares a runtime dependency.
+
+Dependency freshness is automated by [Renovate](https://docs.renovatebot.com/) via a committed `renovate.json` (pnpm workspace): it opens grouped update PRs with a 3-day `minimumReleaseAge` (filtering yanked/compromised fresh releases) and always requires human review for major bumps of the toolchain group (tsup, vite, vitest, happy-dom, Biome, TypeScript). Automation only goes live once the Mend Renovate GitHub App is installed on the repo — committing `renovate.json` alone does not activate it.
 
 ## Local Setup
 
@@ -85,11 +87,12 @@ All common workflows are wrapped in the root `Makefile`. Run `make <target>` fro
 | `make clean` | Remove `dist/` from the core package and every plugin |
 | `make superclean` | Remove `dist/` and `node_modules/` from the core package and every plugin |
 | `make verify-outputs` | Assert all three build outputs (`dist/index.js`, `dist/index.cjs`, `dist/index.global.js`) exist for the core package and each plugin — 15 checks total; exits non-zero on any missing artifact. Run it after `make build`. |
+| `make verify-no-runtime-deps` | Run `scripts/check-no-runtime-deps.cjs` against the core `@dnzn/dxkit` root `package.json` — fails (non-zero) if it declares any external `dependencies`, `peerDependencies`, or `optionalDependencies`, machine-enforcing the zero-runtime-dependency posture (GATE-02). Zero-dep itself (only `node:` builtins); wired into `make release`/`make publish` and CI. |
 | `make smoke` | Build first (declared prerequisite), then run the build-artifact smoke test (`vitest run --config vitest.smoke.config.ts`) against the real `dist/` outputs — asserts each IIFE global attaches with its full expected export-key set and CJS `require()` interop returns the same set, for core + all 4 plugins. Deliberately **not** part of `make test`; runs in release/publish/CI after `verify-outputs`. |
 | `make audit` | Run `pnpm audit` (dependency vulnerabilities), `semgrep --config p/typescript` (SAST) against `src/` and `plugins/`, and `gitleaks detect` (secret scanning) across the whole repo |
 | `make commit` | `npx cz` — open the Commitizen conventional-commit prompt |
-| `make release` | `build`, `verify-outputs`, `smoke`, `test`, then run `commit-and-tag-version` to bump versions and generate the changelog |
-| `make publish` | `build`, `verify-outputs`, `smoke`, `test`, then `pnpm publish --access public` for core and each plugin in build order |
+| `make release` | `build`, `verify-outputs`, `verify-no-runtime-deps`, `smoke`, `test`, then run `commit-and-tag-version` to bump versions and generate the changelog |
+| `make publish` | `build`, `verify-outputs`, `verify-no-runtime-deps`, `smoke`, `test`, then `pnpm publish --access public` for core and each plugin in build order |
 
 `make test` and `make test-watch` run in order — `make lint`, then `make typecheck`, then vitest — so a lint failure or a type error blocks the test run before any specs execute.
 
