@@ -115,3 +115,11 @@ None beyond the guard-test regex fix documented above.
 ---
 *Phase: 09-continuous-debt-guardrails-registry-robustness*
 *Completed: 2026-07-18*
+
+## Self-Check: PASSED
+
+- FOUND: .github/workflows/ci.yml
+- FOUND: tests/typecheck-config.test.ts
+- FOUND: .planning/phases/09-continuous-debt-guardrails-registry-robustness/09-01-SUMMARY.md
+- FOUND commit: e136e40
+- FOUND commit: 9ca85dd

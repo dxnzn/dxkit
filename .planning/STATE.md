@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: TypeScript 6 Migration & Toolchain Modernization
-current_phase: 9
-current_phase_name: Continuous Debt Guardrails & Registry Robustness
-status: "Phase 08 merged to main via PR #8 — ready for Phase 9"
-stopped_at: Phase 9 context gathered
-last_updated: "2026-07-18T05:36:42.187Z"
+current_phase: 09
+current_phase_name: continuous-debt-guardrails-registry-robustness
+status: executing
+stopped_at: Completed 09-01-PLAN.md
+last_updated: "2026-07-18T06:04:12.811Z"
 last_activity: 2026-07-18
-last_activity_desc: Phase 09 planning complete
+last_activity_desc: Phase 09 execution started
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 16
+  completed_plans: 13
   percent: 75
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** DxKit stays trustworthy for real use — failures are visible (never silent), documented behavior matches actual behavior, and the alpha is stable enough to build on with confidence.
-**Current focus:** Phase 9 — Continuous Debt Guardrails & Registry Robustness (not started)
+**Current focus:** Phase 09 — continuous-debt-guardrails-registry-robustness
 
 ## Current Position
 
-Phase: 9 — Continuous Debt Guardrails & Registry Robustness
-Plan: Not started
-Status: Phase 08 merged to main via PR #8 (squash bbedd4b) — ready for Phase 9
-Last activity: 2026-07-18 — Phase 09 planning complete
+Phase: 09 (continuous-debt-guardrails-registry-robustness) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-07-18 — Phase 09 execution started
 
 ## Milestone Phase Map (v1.1)
 
@@ -114,6 +114,7 @@ Phase 7) is a precondition — it must exist before/with the TS6 bump and before
 | Phase 07 P04 | 15min | 2 tasks | 7 files |
 | Phase 08 P01 | 8min | 3 tasks | 2 files |
 | Phase 08 P02 | 6min | 2 tasks | 7 files |
+| Phase 09 P01 | 8min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -165,6 +166,7 @@ Recent decisions affecting current work:
 - [Phase ?]: tsup 8.5.1's dts:true bundler unconditionally injects baseUrl (TS5101 under TS6); replaced with a direct tsc --emitDeclarationOnly pass via onSuccess across all 5 packages, zero ignoreDeprecations shims
 - [Phase ?]: Landed verbatimModuleSyntax + erasableSyntaxOnly as one bisectable commit, isolatedDeclarations as its own commit; all three flags required zero source annotations, matching research prediction exactly
 - [Phase ?]: Landed the smoke test infrastructure (Task 1) and Makefile/biome/CI wiring (Task 2) as two bisectable commits; used process.cwd()-relative dist/ path resolution mirroring tests/typecheck-config.test.ts; vm.runInContext against happy-dom Window (never the <script>-element path) verified working for all 5 packages including shared-window coexistence
+- [Phase ?]: Named CI step 'Typecheck / deprecation gate (GATE-01)' inserted between make smoke and make test; make test's own typecheck prerequisite (D-05) left untouched — GATE-01 adds CI-level visibility without restructuring local dev wiring
 
 ### Pending Todos
 
@@ -206,10 +208,10 @@ Items acknowledged and carried forward:
 
 ## Session Continuity
 
-Last session: 2026-07-18T03:23:39.912Z
-Stopped at: Phase 9 context gathered
+Last session: 2026-07-18T06:04:12.805Z
+Stopped at: Completed 09-01-PLAN.md
 Resume file:
-.planning/phases/09-continuous-debt-guardrails-registry-robustness/09-CONTEXT.md
+None
 
 ## Operator Next Steps
 
