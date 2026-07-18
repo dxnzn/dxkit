@@ -160,7 +160,17 @@ storage keys, a stress/edge-case/regression test suite, and a full documentation
   3. Renovate is configured for the pnpm workspace with grouped PRs, release-age gating, and an automerge policy that blocks unreviewed major toolchain bumps (tsup/vite/vitest/Biome/TypeScript).
   4. `loadManifests()` validates that `registry.json` is an array; a wrong-shape `200` emits `dx:error` (source `shell:manifest`) instead of throwing an uncaught `TypeError` in `init()` before `window.__DXKIT__` is exposed (WR-01).
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+**Wave 1** *(independent — disjoint files)*
+
+- [ ] 09-01-PLAN.md — GATE-01: named CI typecheck/deprecation gate step + wiring guard (GATE-01)
+- [ ] 09-03-PLAN.md — GATE-03: Renovate config for the pnpm workspace (grouped PRs, 3-day release-age, blocked toolchain-major automerge) + guard test (GATE-03)
+- [ ] 09-04-PLAN.md — ROB-05: `Array.isArray()` registry-shape guard in `loadManifests()` + regression tests (ROB-05)
+
+**Wave 2** *(blocked on 09-01 — shares `.github/workflows/ci.yml`)*
+
+- [ ] 09-02-PLAN.md — GATE-02: core-only zero-runtime-dep assertion (script + `verify-no-runtime-deps` Makefile target + CI step) + REQUIREMENTS/ROADMAP core-only doc correction (GATE-02)
 
 ## Progress
 
