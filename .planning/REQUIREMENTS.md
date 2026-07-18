@@ -38,7 +38,7 @@ Requirements for this milestone. Each maps to a roadmap phase.
 
 - [x] **GATE-01**: CI fails the build on `tsc` typecheck/deprecation errors, scoped to project-owned paths only (never `node_modules/`)
 - [ ] **GATE-02**: CI asserts the zero-runtime-dependency posture, so an automated bump that pulls in a runtime dep is caught
-- [ ] **GATE-03**: Dependency-freshness automation (Renovate) configured for the pnpm workspace — grouped PRs, release-age gating, and an automerge policy that blocks unreviewed major toolchain bumps
+- [x] **GATE-03**: Dependency-freshness automation (Renovate) configured for the pnpm workspace — grouped PRs, release-age gating, and an automerge policy that blocks unreviewed major toolchain bumps
 
 ### Robustness
 
@@ -86,7 +86,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | FCT-04 | Phase 8 | Complete |
 | GATE-01 | Phase 9 | Complete |
 | GATE-02 | Phase 9 | Pending |
-| GATE-03 | Phase 9 | Pending |
+| GATE-03 | Phase 9 | Complete |
 | ROB-05 | Phase 9 | Pending |
 
 **Coverage:**

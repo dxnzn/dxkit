@@ -160,12 +160,12 @@ storage keys, a stress/edge-case/regression test suite, and a full documentation
   3. Renovate is configured for the pnpm workspace with grouped PRs, release-age gating, and an automerge policy that blocks unreviewed major toolchain bumps (tsup/vite/vitest/Biome/TypeScript).
   4. `loadManifests()` validates that `registry.json` is an array; a wrong-shape `200` emits `dx:error` (source `shell:manifest`) instead of throwing an uncaught `TypeError` in `init()` before `window.__DXKIT__` is exposed (WR-01).
 
-**Plans**: 1/4 plans executed
+**Plans**: 2/4 plans executed
 
 **Wave 1** *(independent — disjoint files)*
 
 - [x] 09-01-PLAN.md — GATE-01: named CI typecheck/deprecation gate step + wiring guard (GATE-01)
-- [ ] 09-03-PLAN.md — GATE-03: Renovate config for the pnpm workspace (grouped PRs, 3-day release-age, blocked toolchain-major automerge) + guard test (GATE-03)
+- [x] 09-03-PLAN.md — GATE-03: Renovate config for the pnpm workspace (grouped PRs, 3-day release-age, blocked toolchain-major automerge) + guard test (GATE-03)
 - [ ] 09-04-PLAN.md — ROB-05: `Array.isArray()` registry-shape guard in `loadManifests()` + regression tests (ROB-05)
 
 **Wave 2** *(blocked on 09-01 — shares `.github/workflows/ci.yml`)*
@@ -187,4 +187,4 @@ v1.1 phases execute in numeric order: 6 → 7 → 8 → 9
 | 6. Toolchain Audit & Modernization | v1.1 | 6/6 | Complete    | 2026-07-15 |
 | 7. TypeScript 6 Migration & Standalone Typecheck | v1.1 | 4/4 | Complete    | 2026-07-17 |
 | 8. Forward-Compat Typing | v1.1 | 2/2 | Complete    | 2026-07-17 |
-| 9. Continuous Debt Guardrails & Registry Robustness | v1.1 | 1/4 | In Progress|  |
+| 9. Continuous Debt Guardrails & Registry Robustness | v1.1 | 2/4 | In Progress|  |
