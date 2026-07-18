@@ -4,17 +4,17 @@ milestone: v1.1
 milestone_name: TypeScript 6 Migration & Toolchain Modernization
 current_phase: 9
 current_phase_name: Continuous Debt Guardrails & Registry Robustness
-status: "Phase 08 shipped — PR #8"
+status: "Phase 08 merged to main via PR #8 — ready for Phase 9"
 stopped_at: Completed 08-02-PLAN.md
-last_updated: "2026-07-18T01:06:10.218Z"
-last_activity: 2026-07-17
+last_updated: "2026-07-18T02:14:37.000Z"
+last_activity: 2026-07-18
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 12
   completed_plans: 12
   percent: 75
-last_activity_desc: Phase 08 complete, transitioned to Phase 9
+last_activity_desc: Phase 08 merged to main (PR #8, squash bbedd4b); ready to plan Phase 9
 ---
 
 # Project State
@@ -24,14 +24,14 @@ last_activity_desc: Phase 08 complete, transitioned to Phase 9
 See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** DxKit stays trustworthy for real use — failures are visible (never silent), documented behavior matches actual behavior, and the alpha is stable enough to build on with confidence.
-**Current focus:** Phase 08 — forward-compat-typing
+**Current focus:** Phase 9 — Continuous Debt Guardrails & Registry Robustness (not started)
 
 ## Current Position
 
 Phase: 9 — Continuous Debt Guardrails & Registry Robustness
 Plan: Not started
-Status: Phase 08 shipped — PR #8
-Last activity: 2026-07-17
+Status: Phase 08 merged to main via PR #8 (squash bbedd4b) — ready for Phase 9
+Last activity: 2026-07-18
 
 ## Milestone Phase Map (v1.1)
 
