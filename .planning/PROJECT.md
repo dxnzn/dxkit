@@ -100,17 +100,21 @@ to keep this a focused modernization pass.
 - ✓ `verbatimModuleSyntax`, `isolatedDeclarations`, and `erasableSyntaxOnly` all enabled in the root base `tsconfig.json`, inherited by all 4 plugin tsconfigs via `extends`; enabled with zero at-source churn (no `src/` or `plugins/*/src/` changes), `.d.ts` emit succeeds for every package, and a durable flag-presence guard test fails the suite on silent flag removal — validated Phase 8 (FCT-01, FCT-02, FCT-03)
 - ✓ `make smoke` build-artifact gate: builds, then runs a separate vitest config against real `dist/` artifacts asserting each IIFE global attaches to a happy-dom Window with its full expected export-key set and CJS `require()` interop returns the same set (all 5 packages); wired into release/publish/CI after `verify-outputs`, never into `make test` — validated Phase 8 (FCT-04)
 
+<!-- Validated in Phase 9: Continuous Debt Guardrails & Registry Robustness (v1.1) -->
+- ✓ Named, distinct, blocking CI `Typecheck / deprecation gate (GATE-01)` step running `make typecheck` (scoped to `src`/`tests` via `tsconfig.typecheck.json`), separated from `make test` so a `tsc` deprecation/type error fails its own dedicated GitHub Check — validated Phase 9 (GATE-01)
+- ✓ Machine-enforced zero-runtime-dependency posture for the core `@dnzn/dxkit` package: `scripts/check-no-runtime-deps.cjs` (zero-dep, `node:fs` only) + `make verify-no-runtime-deps` + named CI step + release/publish prerequisites; guard test locks the wiring — validated Phase 9 (GATE-02)
+- ✓ Renovate automation for the pnpm workspace via committed `renovate.json` — `config:recommended`, `minimumReleaseAge: "3 days"`, toolchain group always blocking major automerge, weekly `lockFileMaintenance`; invariant guard test — validated Phase 9 (GATE-03)
+- ✓ WR-01/ROB-05 — `loadManifests()` `Array.isArray()`-guards the `registry.json` 200 body, fail-closing to `[]` with an ungated `dx:error` instead of an uncaught `TypeError` before `window.__DXKIT__` is exposed — validated Phase 9 (ROB-05)
+
 ### Active
 
-<!-- The v1.1 TS6 + toolchain modernization milestone. Hypotheses until shipped and validated.
-     Detailed, REQ-ID'd scope lives in .planning/REQUIREMENTS.md. -->
+<!-- v1.1 TS6 + toolchain modernization milestone complete (Phases 6–9). No open active requirements;
+     next milestone (v2) will populate this section. Follow-up noted below. -->
 
-**Continuous debt guardrails**
-- [ ] CI deprecation gate — fail the build on `tsc`/lint deprecation warnings
-- [ ] Dependency-freshness automation (Renovate/Dependabot-style)
+_(none — v1.1 milestone complete)_
 
-**Robustness carryover**
-- [ ] WR-01 — validate `registry.json` is an array (no uncaught `TypeError` before `window.__DXKIT__`)
+**Follow-ups (not yet scheduled)**
+- CR-01 (from 09-REVIEW.md): extend the registry array-guard to the inline/`dapps` tiers of `loadManifests()` via a shared `coerceManifestArray()` helper, so untyped IIFE consumers can't crash `shell.init()` silently.
 
 ### Out of Scope
 
@@ -190,4 +194,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-17 after Phase 8 (Forward-Compat Typing) complete — FCT-01..04 validated (`verbatimModuleSyntax` + `isolatedDeclarations` + `erasableSyntaxOnly` enabled in the root base tsconfig with zero at-source churn, durable flag-presence guard, and a `make smoke` build-artifact gate proving IIFE global-attach + CJS require() interop across all 5 packages, wired into release/publish/CI after `verify-outputs`). Remaining v1.1: CI deprecation gate + dep-freshness automation (Phase 9), WR-01. Aimed at a clean TS 7.1 jump.*
+*Last updated: 2026-07-18 after Phase 9 (Continuous Debt Guardrails & Registry Robustness) complete — GATE-01/02/03 + ROB-05 validated (named blocking typecheck CI gate, machine-enforced zero-runtime-dep assertion for core, Renovate automation, and the WR-01 registry array-shape fix). This closes the v1.1 TypeScript 6 Migration & Toolchain Modernization milestone (Phases 6–9). Open follow-up: CR-01 — extend the registry array-guard to the inline/`dapps` manifest tiers. Aimed at a clean TS 7.1 jump.*
