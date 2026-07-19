@@ -264,7 +264,9 @@ export function createShell(config: ShellConfig = {}): Shell {
 
   // Three-tier fallback: dapp entries → inline manifests → registry.json
   async function loadManifests(): Promise<DappManifest[]> {
-    if (dappEntries !== undefined) {
+    // Nullish (null/undefined) means "tier not configured" — fall through, preserving pre-ROB-06
+    // behavior; only a present, non-array value is a wrong-shape error worth failing closed on.
+    if (dappEntries != null) {
       const coerced = coerceManifestArray<DappEntry>(dappEntries, 'Invalid dapps config');
       // ROB-06: wrong shape fails closed — do not fall through to manifests/registryUrl.
       if (coerced === null) return [];
@@ -275,7 +277,8 @@ export function createShell(config: ShellConfig = {}): Shell {
       // dapps: [] (valid, genuinely empty) — existing behavior: fall through to next tier.
     }
 
-    if (inlineManifests !== undefined) {
+    // Nullish means "tier not configured" — fall through to the registry probe (pre-ROB-06 behavior).
+    if (inlineManifests != null) {
       const coerced = coerceManifestArray<DappManifest>(inlineManifests, 'Invalid manifests config');
       // ROB-06: wrong shape fails closed — do not fall through to probe registryUrl.
       if (coerced === null) return [];

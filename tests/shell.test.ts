@@ -682,6 +682,54 @@ describe('createShell', () => {
     expect(shell.getManifests()[0].id).toBe('hello');
   });
 
+  it('ROB-06: dapps: null is treated as unset (nullish) — falls through, no dx:error', async () => {
+    // Nullish (null/undefined) means "tier not configured", not "wrong shape". `dapps: cond ? [...] : null`
+    // is a plausible untyped-consumer idiom that must keep its pre-ROB-06 fall-through, NOT fail closed.
+    const errors: { source: string; error: Error }[] = [];
+    onDxError(((e: CustomEvent) => {
+      errors.push(e.detail);
+    }) as EventListener);
+
+    shell = createShell({
+      ...testLoaders,
+      dapps: null as any,
+      manifests: [
+        {
+          id: 'hello',
+          name: 'Hello',
+          version: '0.0.1',
+          route: '/hello',
+          entry: '/dapps/hello/app.js',
+          nav: { label: 'Hello' },
+        },
+      ],
+    });
+    await shell.init();
+
+    expect(errors.filter((e) => e.source === 'shell:manifest')).toHaveLength(0);
+    expect(shell.getManifests()).toHaveLength(1);
+    expect(shell.getManifests()[0].id).toBe('hello');
+  });
+
+  it('ROB-06: manifests: null is treated as unset (nullish) — falls through to probe registryUrl, no dx:error', async () => {
+    const errors: { source: string; error: Error }[] = [];
+    onDxError(((e: CustomEvent) => {
+      errors.push(e.detail);
+    }) as EventListener);
+
+    const originalFetch = window.fetch;
+    const fetchSpy = vi.fn(async () => ({ ok: true, json: async () => [] }) as unknown as Response);
+    window.fetch = fetchSpy as any;
+
+    shell = createShell({ ...testLoaders, manifests: null as any });
+    await shell.init();
+
+    expect(fetchSpy).toHaveBeenCalled();
+    expect(errors.filter((e) => e.source === 'shell:manifest')).toHaveLength(0);
+
+    window.fetch = originalFetch;
+  });
+
   it('emits dx:error (source shell:mount) when #dx-mount is absent, without throwing', async () => {
     // No <div id="dx-mount"> in the DOM at all — exercises lazy getMountContainer() returning null.
     container.remove();
