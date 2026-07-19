@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 Beta Hardening** — Phases 1–5 (shipped 2026-07-15, released as 0.2.0)
-- 🚧 **v1.1 TypeScript 6 Migration & Toolchain Modernization** — Phases 6–9 (active)
+- 🚧 **v1.1 TypeScript 6 Migration & Toolchain Modernization** — Phases 6–10 (active)
 
 v1.0 detail archived in [`milestones/v1.0-ROADMAP.md`](milestones/v1.0-ROADMAP.md).
 
@@ -51,12 +51,13 @@ storage keys, a stress/edge-case/regression test suite, and a full documentation
 
 </details>
 
-**🚧 v1.1 TypeScript 6 Migration & Toolchain Modernization (Phases 6–9)**
+**🚧 v1.1 TypeScript 6 Migration & Toolchain Modernization (Phases 6–10)**
 
 - [x] **Phase 6: Toolchain Audit & Modernization** - Dev toolchain on current TS6-compatible versions with an enforced Node 22 LTS floor; all three build outputs still emit. (6/6 plans; gap-closure 06-06 tightened the Node floor to `^22.12.0 || >=24.0.0`, pinned the CI floor leg, and wired verify-outputs; re-verification 9/9, UAT + security green) (completed 2026-07-17)
 - [x] **Phase 7: TypeScript 6 Migration & Standalone Typecheck** - A per-package `tsc --noEmit` baseline lands, then core + 4 plugins compile clean on TS6 with zero deprecation shims. (completed 2026-07-17)
 - [x] **Phase 8: Forward-Compat Typing** - `verbatimModuleSyntax` + `isolatedDeclarations` + `erasableSyntaxOnly` on across all packages, verified against the built IIFE/CJS artifacts. (completed 2026-07-17)
 - [x] **Phase 9: Continuous Debt Guardrails & Registry Robustness** - Scoped CI deprecation gate, zero-runtime-dep assertion, Renovate automation, and the WR-01 registry array-shape fix. (completed 2026-07-18)
+- [ ] **Phase 10: Close gap: CR-01 — guard dapps/inline manifests tiers** - Extend ROB-05's array-shape guard from the registry-fetch tier to the `dapps` and inline `manifests` tiers via a shared `coerceManifestArray()` helper, so untyped IIFE/static-HTML consumers never hit an uncaught `TypeError` before `window.__DXKIT__` is exposed. (from v1.1 milestone audit; not planned yet)
 
 ## Phase Details
 
@@ -175,7 +176,7 @@ storage keys, a stress/edge-case/regression test suite, and a full documentation
 ## Progress
 
 **Execution Order:**
-v1.1 phases execute in numeric order: 6 → 7 → 8 → 9
+v1.1 phases execute in numeric order: 6 → 7 → 8 → 9 → 10
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -188,3 +189,22 @@ v1.1 phases execute in numeric order: 6 → 7 → 8 → 9
 | 7. TypeScript 6 Migration & Standalone Typecheck | v1.1 | 4/4 | Complete    | 2026-07-17 |
 | 8. Forward-Compat Typing | v1.1 | 2/2 | Complete    | 2026-07-17 |
 | 9. Continuous Debt Guardrails & Registry Robustness | v1.1 | 4/4 | Complete    | 2026-07-18 |
+
+### Phase 10: Close gap: CR-01 — guard dapps/inline manifests tiers
+
+**Goal:** Extend ROB-05's array-shape guard from the registry-fetch tier to the `dapps` and inline `manifests` tiers via a shared closure-local `coerceManifestArray()` helper, so an untyped IIFE/static-HTML consumer that passes a wrong-shape `dapps`/`manifests` config gets a visible `dx:error` (source `shell:manifest`) and a safe empty manifest list instead of an uncaught `TypeError` that prevents `window.__DXKIT__` from ever being exposed.
+**Requirements**: ROB-06
+**Depends on:** Phase 9 (extends the ROB-05 guard shipped in 09-04; `normalizeAndValidateManifests()` single-choke-point decision must stay untouched)
+**Success Criteria** (what must be TRUE):
+
+  1. A closure-local `coerceManifestArray<T>(value, tierLabel): T[] | null` helper exists in `createShell()` and is the single emission point for the wrong-top-level-shape `dx:error`; all three `loadManifests()` tiers route through it, and ROB-05's old inline `Array.isArray(parsed)` block is removed.
+  2. A wrong-shape `dapps` or `manifests` value (string, plain object, number) emits `dx:error` (source `shell:manifest`), `init()` resolves without throwing, and `window.__DXKIT__` is still exposed with an empty manifest list.
+  3. A malformed non-terminal tier fails closed (branch on `coerced === null`, not `.length`): a bad `dapps` config returns `[]` immediately and does NOT silently fall through to `manifests`/`registryUrl`.
+  4. Tier-asymmetric fallthrough is preserved unchanged: `dapps: []` (valid, empty) still falls through to the next tier; `manifests: []` (valid, empty) still stops there and does NOT `fetch()` `registryUrl`.
+  5. The 3 existing ROB-05 registry tests keep passing (the registry tier's `/custom-registry.json` message substring is preserved), and `make test` is green.
+
+**Plans**: 1 plan
+
+**Wave 1**
+
+- [ ] 10-01-PLAN.md — `coerceManifestArray()` helper + `loadManifests()` three-tier restructure + regression tests for both new tiers, fail-closed semantics, and the `manifests: []` no-fetch coverage gap (ROB-06)

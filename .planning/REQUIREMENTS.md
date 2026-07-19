@@ -43,6 +43,7 @@ Requirements for this milestone. Each maps to a roadmap phase.
 ### Robustness
 
 - [x] **ROB-05**: `loadManifests()` validates that registry.json is an array; a wrong-shape `200` emits `dx:error` (source `shell:manifest`) instead of throwing an uncaught `TypeError` in `init()` before `window.__DXKIT__` is exposed (WR-01)
+- [ ] **ROB-06**: `loadManifests()`'s `dapps` and inline `manifests` tiers validate array shape via a shared `coerceManifestArray()` helper; a wrong-shape value emits `dx:error` (source `shell:manifest`) instead of throwing before `window.__DXKIT__` is exposed (closes v1.1 milestone-audit CR-01 — the untrusted-input parity gap ROB-05 left in the two non-registry tiers)
 
 ## v2 Requirements
 
@@ -88,11 +89,12 @@ Which phases cover which requirements. Populated during roadmap creation.
 | GATE-02 | Phase 9 | Complete |
 | GATE-03 | Phase 9 | Complete |
 | ROB-05 | Phase 9 | Complete |
+| ROB-06 | Phase 10 | Planned |
 
 **Coverage:**
 
-- v1 requirements: 16 total
-- Mapped to phases: 16 ✓
+- v1 requirements: 17 total
+- Mapped to phases: 17 ✓
 - Unmapped: 0 ✓
 
 **Per-phase distribution:**
@@ -101,7 +103,8 @@ Which phases cover which requirements. Populated during roadmap creation.
 - Phase 7 — TypeScript 6 Migration & Standalone Typecheck: TS6-01, TS6-02, TS6-03 (3)
 - Phase 8 — Forward-Compat Typing: FCT-01, FCT-02, FCT-03, FCT-04 (4)
 - Phase 9 — Continuous Debt Guardrails & Registry Robustness: GATE-01, GATE-02, GATE-03, ROB-05 (4)
+- Phase 10 — Close gap: CR-01 — guard dapps/inline manifests tiers: ROB-06 (1)
 
 ---
 *Requirements defined: 2026-07-15*
-*Last updated: 2026-07-15 after roadmap creation — all 16 v1 requirements mapped to Phases 6–9*
+*Last updated: 2026-07-19 — added ROB-06 (Phase 10) closing v1.1 milestone-audit CR-01, extending ROB-05's array-shape guard to the `dapps` and inline `manifests` tiers*
