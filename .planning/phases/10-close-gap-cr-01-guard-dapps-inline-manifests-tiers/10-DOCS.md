@@ -1,7 +1,7 @@
 ---
 phase: 10
 status: current
-verified_against: 9dd22d12650f3e82c1394371a63fdb39756505fb
+verified_against: c94a99d64ec15616915d2d459598307586df3d83
 updated: 2026-07-19
 ---
 
@@ -27,6 +27,13 @@ canonical-doc workflow was deliberately not run.
   documenting that `dapps`, `manifests`, and a fetched `registryUrl` body must each be an array,
   and that a wrong-shape value emits a `dx:error` (source `shell:manifest`) and fail-closes to an
   empty manifest list rather than throwing (same untyped-consumer rationale as the loader guard).
+
+## Self-review refinement (PR #11)
+
+Both notes above were tightened after a cross-agent self-review flagged that nullish
+(`null`/`undefined`) `dapps`/`manifests` now fall through as "unset" (they don't fail closed) —
+only a *present* non-array value emits. `events-reference.md` and `configuration.md` now state
+the nullish-vs-present distinction explicitly.
 
 ## Docs verified as already accurate (no drift)
 
