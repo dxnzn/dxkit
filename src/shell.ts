@@ -191,6 +191,21 @@ export function createShell(config: ShellConfig = {}): Shell {
     isDappEnabled,
   };
 
+  // ROB-06: single emission point for "wrong top-level shape" across all three loadManifests()
+  // tiers — callers branch on `=== null` (fail closed, don't fall through), never on `.length`
+  // (which would conflate this failure with a valid empty array).
+  function coerceManifestArray<T>(value: unknown, tierLabel: string): T[] | null {
+    if (Array.isArray(value)) return value;
+    events.emit('dx:error', {
+      source: 'shell:manifest',
+      error: new Error(
+        // typeof null is 'object' — disambiguate explicitly, mirrors ROB-05's existing check.
+        `Invalid ${tierLabel} config — expected an array, got ${value === null ? 'null' : typeof value}`,
+      ),
+    });
+    return null;
+  }
+
   /** Rejects manifests missing fields that would cause silent downstream failures. */
   function isValidManifest(m: any): m is DappManifest {
     return (
@@ -247,13 +262,23 @@ export function createShell(config: ShellConfig = {}): Shell {
 
   // Three-tier fallback: dapp entries → inline manifests → registry.json
   async function loadManifests(): Promise<DappManifest[]> {
-    if (dappEntries?.length) {
-      const results = await Promise.all(dappEntries.map(loadDappManifest));
-      return results.filter((m): m is DappManifest => m !== null);
+    if (dappEntries !== undefined) {
+      const coerced = coerceManifestArray<DappEntry>(dappEntries, 'dapps');
+      // ROB-06: wrong shape fails closed — do not fall through to manifests/registryUrl.
+      if (coerced === null) return [];
+      if (coerced.length) {
+        const results = await Promise.all(coerced.map(loadDappManifest));
+        return results.filter((m): m is DappManifest => m !== null);
+      }
+      // dapps: [] (valid, genuinely empty) — existing behavior: fall through to next tier.
     }
 
-    if (inlineManifests) {
-      return inlineManifests;
+    if (inlineManifests !== undefined) {
+      const coerced = coerceManifestArray<DappManifest>(inlineManifests, 'manifests');
+      // ROB-06: wrong shape fails closed — do not fall through to probe registryUrl.
+      if (coerced === null) return [];
+      // manifests: [] (valid, even empty) stops here — existing behavior preserved.
+      return coerced;
     }
 
     try {
@@ -272,23 +297,16 @@ export function createShell(config: ShellConfig = {}): Shell {
         return [];
       }
       const parsed = await res.json();
-      if (!Array.isArray(parsed)) {
-        // ROB-05 / D-10: unlike the D-15 non-OK/parse-failure emits above, this guard is
-        // deliberately UNGATED (not wrapped in registryUrlExplicit) — a wrong-shape 200 body
-        // on the default silent probe still crosses into normalizeAndValidateManifests()'s
-        // for...of and throws an uncaught TypeError before window.__DXKIT__ is exposed, so it
-        // must always be visible even though the default probe's absence/non-OK case stays quiet.
-        events.emit('dx:error', {
-          source: 'shell:manifest',
-          error: new Error(
-            // `typeof null` is 'object', so disambiguate null explicitly — a null body and an
-            // object-wrapped registry ({ manifests: [...] }) are the two common misconfigurations.
-            `Failed to load registry from ${registryUrl} — expected a JSON array of manifests, got ${parsed === null ? 'null' : typeof parsed}`,
-          ),
-        });
-        return [];
-      }
-      return parsed;
+      // ROB-05 / D-10: unlike the D-15 non-OK/parse-failure emits above, this guard is
+      // deliberately UNGATED (not wrapped in registryUrlExplicit) — a wrong-shape 200 body
+      // on the default silent probe still crosses into normalizeAndValidateManifests()'s
+      // for...of and throws an uncaught TypeError before window.__DXKIT__ is exposed, so it
+      // must always be visible even though the default probe's absence/non-OK case stays quiet.
+      // ROB-06: routed through the shared helper — pass the fully-formed description (not a bare
+      // 'registry' label) so the existing /custom-registry.json substring assertions still pass.
+      const coerced = coerceManifestArray<DappManifest>(parsed, `Failed to load registry from ${registryUrl}`);
+      if (coerced === null) return [];
+      return coerced;
     } catch (err) {
       // D-15: mirrors loadDappManifest()'s unified network/parse-failure message — covers both
       // a fetch throw and a res.json() parse failure indiscriminately.
