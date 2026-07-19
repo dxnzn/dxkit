@@ -57,7 +57,7 @@ storage keys, a stress/edge-case/regression test suite, and a full documentation
 - [x] **Phase 7: TypeScript 6 Migration & Standalone Typecheck** - A per-package `tsc --noEmit` baseline lands, then core + 4 plugins compile clean on TS6 with zero deprecation shims. (completed 2026-07-17)
 - [x] **Phase 8: Forward-Compat Typing** - `verbatimModuleSyntax` + `isolatedDeclarations` + `erasableSyntaxOnly` on across all packages, verified against the built IIFE/CJS artifacts. (completed 2026-07-17)
 - [x] **Phase 9: Continuous Debt Guardrails & Registry Robustness** - Scoped CI deprecation gate, zero-runtime-dep assertion, Renovate automation, and the WR-01 registry array-shape fix. (completed 2026-07-18)
-- [ ] **Phase 10: Close gap: CR-01 — guard dapps/inline manifests tiers** - Extend ROB-05's array-shape guard from the registry-fetch tier to the `dapps` and inline `manifests` tiers via a shared `coerceManifestArray()` helper, so untyped IIFE/static-HTML consumers never hit an uncaught `TypeError` before `window.__DXKIT__` is exposed. (from v1.1 milestone audit; not planned yet)
+- [x] **Phase 10: Close gap: CR-01 — guard dapps/inline manifests tiers** - Extend ROB-05's array-shape guard from the registry-fetch tier to the `dapps` and inline `manifests` tiers via a shared `coerceManifestArray()` helper, so untyped IIFE/static-HTML consumers never hit an uncaught `TypeError` before `window.__DXKIT__` is exposed. (from v1.1 milestone audit; not planned yet) (completed 2026-07-19)
 
 ## Phase Details
 
