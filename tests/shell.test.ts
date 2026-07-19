@@ -659,6 +659,29 @@ describe('createShell', () => {
     window.fetch = originalFetch;
   });
 
+  it('ROB-06: dapps: [] (valid, empty) falls through to the next tier (loads inline manifests)', async () => {
+    // Asymmetry counterpart to the manifests: [] test above — a genuinely empty dapps array is
+    // NOT a wrong-shape failure, so it must fall through to the manifests tier rather than stop.
+    shell = createShell({
+      ...testLoaders,
+      dapps: [],
+      manifests: [
+        {
+          id: 'hello',
+          name: 'Hello',
+          version: '0.0.1',
+          route: '/hello',
+          entry: '/dapps/hello/app.js',
+          nav: { label: 'Hello' },
+        },
+      ],
+    });
+    await shell.init();
+
+    expect(shell.getManifests()).toHaveLength(1);
+    expect(shell.getManifests()[0].id).toBe('hello');
+  });
+
   it('emits dx:error (source shell:mount) when #dx-mount is absent, without throwing', async () => {
     // No <div id="dx-mount"> in the DOM at all — exercises lazy getMountContainer() returning null.
     container.remove();

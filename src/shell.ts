@@ -193,14 +193,16 @@ export function createShell(config: ShellConfig = {}): Shell {
 
   // ROB-06: single emission point for "wrong top-level shape" across all three loadManifests()
   // tiers — callers branch on `=== null` (fail closed, don't fall through), never on `.length`
-  // (which would conflate this failure with a valid empty array).
-  function coerceManifestArray<T>(value: unknown, tierLabel: string): T[] | null {
+  // (which would conflate this failure with a valid empty array). `messagePrefix` is the full
+  // leading clause of the error (e.g. 'Invalid dapps config'), not a bare noun, so each tier —
+  // including registry, whose prefix carries the URL — reads as a coherent sentence.
+  function coerceManifestArray<T>(value: unknown, messagePrefix: string): T[] | null {
     if (Array.isArray(value)) return value;
     events.emit('dx:error', {
       source: 'shell:manifest',
       error: new Error(
         // typeof null is 'object' — disambiguate explicitly, mirrors ROB-05's existing check.
-        `Invalid ${tierLabel} config — expected an array, got ${value === null ? 'null' : typeof value}`,
+        `${messagePrefix} — expected an array, got ${value === null ? 'null' : typeof value}`,
       ),
     });
     return null;
@@ -263,7 +265,7 @@ export function createShell(config: ShellConfig = {}): Shell {
   // Three-tier fallback: dapp entries → inline manifests → registry.json
   async function loadManifests(): Promise<DappManifest[]> {
     if (dappEntries !== undefined) {
-      const coerced = coerceManifestArray<DappEntry>(dappEntries, 'dapps');
+      const coerced = coerceManifestArray<DappEntry>(dappEntries, 'Invalid dapps config');
       // ROB-06: wrong shape fails closed — do not fall through to manifests/registryUrl.
       if (coerced === null) return [];
       if (coerced.length) {
@@ -274,7 +276,7 @@ export function createShell(config: ShellConfig = {}): Shell {
     }
 
     if (inlineManifests !== undefined) {
-      const coerced = coerceManifestArray<DappManifest>(inlineManifests, 'manifests');
+      const coerced = coerceManifestArray<DappManifest>(inlineManifests, 'Invalid manifests config');
       // ROB-06: wrong shape fails closed — do not fall through to probe registryUrl.
       if (coerced === null) return [];
       // manifests: [] (valid, even empty) stops here — existing behavior preserved.
@@ -302,8 +304,9 @@ export function createShell(config: ShellConfig = {}): Shell {
       // on the default silent probe still crosses into normalizeAndValidateManifests()'s
       // for...of and throws an uncaught TypeError before window.__DXKIT__ is exposed, so it
       // must always be visible even though the default probe's absence/non-OK case stays quiet.
-      // ROB-06: routed through the shared helper — pass the fully-formed description (not a bare
-      // 'registry' label) so the existing /custom-registry.json substring assertions still pass.
+      // ROB-06: routed through the shared helper — the prefix carries the registryUrl inline so the
+      // full message reads coherently ("Failed to load registry from <url> — expected an array…") and
+      // the existing /custom-registry.json substring assertions still pass.
       const coerced = coerceManifestArray<DappManifest>(parsed, `Failed to load registry from ${registryUrl}`);
       if (coerced === null) return [];
       return coerced;
