@@ -203,8 +203,8 @@ v1.1 phases execute in numeric order: 6 → 7 → 8 → 9 → 10
   4. Tier-asymmetric fallthrough is preserved unchanged: `dapps: []` (valid, empty) still falls through to the next tier; `manifests: []` (valid, empty) still stops there and does NOT `fetch()` `registryUrl`.
   5. The 3 existing ROB-05 registry tests keep passing (the registry tier's `/custom-registry.json` message substring is preserved), and `make test` is green.
 
-**Plans**: 1 plan
+**Plans**: 1/1 plans executed
 
 **Wave 1**
 
-- [ ] 10-01-PLAN.md — `coerceManifestArray()` helper + `loadManifests()` three-tier restructure + regression tests for both new tiers, fail-closed semantics, and the `manifests: []` no-fetch coverage gap (ROB-06)
+- [x] 10-01-PLAN.md — `coerceManifestArray()` helper + `loadManifests()` three-tier restructure + regression tests for both new tiers, fail-closed semantics, and the `manifests: []` no-fetch coverage gap (ROB-06)

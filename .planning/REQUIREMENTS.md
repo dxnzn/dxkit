@@ -43,7 +43,7 @@ Requirements for this milestone. Each maps to a roadmap phase.
 ### Robustness
 
 - [x] **ROB-05**: `loadManifests()` validates that registry.json is an array; a wrong-shape `200` emits `dx:error` (source `shell:manifest`) instead of throwing an uncaught `TypeError` in `init()` before `window.__DXKIT__` is exposed (WR-01)
-- [ ] **ROB-06**: `loadManifests()`'s `dapps` and inline `manifests` tiers validate array shape via a shared `coerceManifestArray()` helper; a wrong-shape value emits `dx:error` (source `shell:manifest`) instead of throwing before `window.__DXKIT__` is exposed (closes v1.1 milestone-audit CR-01 — the untrusted-input parity gap ROB-05 left in the two non-registry tiers)
+- [x] **ROB-06**: `loadManifests()`'s `dapps` and inline `manifests` tiers validate array shape via a shared `coerceManifestArray()` helper; a wrong-shape value emits `dx:error` (source `shell:manifest`) instead of throwing before `window.__DXKIT__` is exposed (closes v1.1 milestone-audit CR-01 — the untrusted-input parity gap ROB-05 left in the two non-registry tiers)
 
 ## v2 Requirements
 
@@ -89,7 +89,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | GATE-02 | Phase 9 | Complete |
 | GATE-03 | Phase 9 | Complete |
 | ROB-05 | Phase 9 | Complete |
-| ROB-06 | Phase 10 | Planned |
+| ROB-06 | Phase 10 | Complete |
 
 **Coverage:**
 

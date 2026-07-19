@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: TypeScript 6 Migration & Toolchain Modernization
 current_phase: 10
-status: "Phase 10 planned — 10-01-PLAN.md ready to execute"
-stopped_at: Planned Phase 10 (1 plan, verification passed)
-last_updated: "2026-07-19T16:30:00.000Z"
+current_phase_name: close-gap-cr-01-guard-dapps-inline-manifests-tiers
+status: verifying
+stopped_at: Completed 10-01-PLAN.md
+last_updated: "2026-07-19T16:07:12.692Z"
 last_activity: 2026-07-19
+last_activity_desc: Phase 10 execution started
 progress:
   total_phases: 5
-  completed_phases: 4
-  total_plans: 16
-  completed_plans: 16
-  percent: 80
-current_phase_name: continuous-debt-guardrails-registry-robustness
-last_activity_desc: Phase 09 complete
+  completed_phases: 5
+  total_plans: 17
+  completed_plans: 17
+  percent: 100
 ---
 
 # Project State
@@ -24,14 +24,14 @@ last_activity_desc: Phase 09 complete
 See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** DxKit stays trustworthy for real use — failures are visible (never silent), documented behavior matches actual behavior, and the alpha is stable enough to build on with confidence.
-**Current focus:** Phase 09 — continuous-debt-guardrails-registry-robustness
+**Current focus:** Phase 10 — close-gap-cr-01-guard-dapps-inline-manifests-tiers
 
 ## Current Position
 
-Phase: 10
-Plan: 10-01-PLAN.md (planned, not started)
-Status: Phase 10 planned — verification passed, ready for /gsd-execute-phase 10
-Last activity: 2026-07-19
+Phase: 10 (close-gap-cr-01-guard-dapps-inline-manifests-tiers) — EXECUTING
+Plan: 1 of 1
+Status: Phase complete — ready for verification
+Last activity: 2026-07-19 — Phase 10 execution started
 
 ## Milestone Phase Map (v1.1)
 
@@ -119,6 +119,7 @@ Phase 7) is a precondition — it must exist before/with the TS6 bump and before
 | Phase 09 P03 | 6min | 2 tasks | 2 files |
 | Phase 09 P04 | 6min | 2 tasks | 2 files |
 | Phase 09 P02 | 8min | 3 tasks | 7 files |
+| Phase 10 P01 | 2min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -177,6 +178,8 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 09-04]: Fix scoped entirely to loadManifests()'s res.json() call site; normalizeAndValidateManifests() left untouched as the single choke point for element-level manifest validation
 - [Phase ?]: [Phase 09-02]: checkNoRuntimeDeps() is deliberately core-only and unconditional per revised D-08 — any dependencies/peerDependencies/optionalDependencies entry is a violation, no workspace-carveout logic needed since root package.json never declares workspace:* links
 - [Phase ?]: [Phase 09-02]: CJS .cjs module loaded via createRequire(import.meta.url) in the new vitest test, reusing smoke/dist-exports.smoke.test.ts's pattern, requiring only a node:module addition to tests/node-builtins.d.ts instead of a new declaration file or @types/node
+- [Phase ?]: [Phase 10-01]: coerceManifestArray() extends ROB-05's Array.isArray guard to dapps/manifests tiers - fail-closed on coerced === null (never .length), registry tierLabel is the fully-formed description string to preserve existing /custom-registry.json substring assertions
+- [Phase ?]: [Phase 10-01]: Tier-asymmetric fallthrough preserved deliberately - dapps: [] falls through to next tier, manifests: [] stops without probing registryUrl; only the Array.isArray shape check is shared, emptiness semantics per-tier are untouched
 
 ### Pending Todos
 
@@ -222,8 +225,8 @@ Items acknowledged and carried forward:
 
 ## Session Continuity
 
-Last session: 2026-07-18T06:20:59.907Z
-Stopped at: Completed 09-02-PLAN.md
+Last session: 2026-07-19T16:07:12.684Z
+Stopped at: Completed 10-01-PLAN.md
 Resume file:
 None
 
