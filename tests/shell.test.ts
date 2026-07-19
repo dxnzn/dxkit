@@ -578,6 +578,158 @@ describe('createShell', () => {
     window.removeEventListener('dx:error', handler);
   });
 
+  it('ROB-06: dapps as a truthy-length non-array (string) emits exactly one shell:manifest dx:error and does not throw', async () => {
+    const errors: { source: string; error: Error }[] = [];
+    onDxError(((e: CustomEvent) => {
+      errors.push(e.detail);
+    }) as EventListener);
+
+    shell = createShell({ ...testLoaders, dapps: 'a-string' as any });
+    await expect(shell.init()).resolves.not.toThrow();
+
+    expect(errors.filter((e) => e.source === 'shell:manifest')).toHaveLength(1);
+    expect(shell.getManifests()).toHaveLength(0);
+  });
+
+  it('ROB-06: dapps as a falsy-length non-array (plain object) fails closed — emits dx:error and never probes the registry', async () => {
+    const errors: { source: string; error: Error }[] = [];
+    onDxError(((e: CustomEvent) => {
+      errors.push(e.detail);
+    }) as EventListener);
+
+    const originalFetch = window.fetch;
+    const fetchSpy = vi.fn(async () => ({ ok: true, json: async () => [] }) as unknown as Response);
+    window.fetch = fetchSpy as any;
+
+    shell = createShell({ ...testLoaders, dapps: { not: 'array' } as any });
+    await expect(shell.init()).resolves.not.toThrow();
+
+    expect(errors.some((e) => e.source === 'shell:manifest')).toBe(true);
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(shell.getManifests()).toHaveLength(0);
+
+    window.fetch = originalFetch;
+  });
+
+  it('ROB-06: manifests as a non-iterable non-array (plain object) emits a shell:manifest dx:error and does not throw', async () => {
+    const errors: { source: string; error: Error }[] = [];
+    onDxError(((e: CustomEvent) => {
+      errors.push(e.detail);
+    }) as EventListener);
+
+    shell = createShell({ ...testLoaders, manifests: { not: 'array' } as any });
+    await expect(shell.init()).resolves.not.toThrow();
+
+    expect(errors.some((e) => e.source === 'shell:manifest')).toBe(true);
+    expect(shell.getManifests()).toHaveLength(0);
+  });
+
+  it('ROB-06: manifests as an iterable-but-wrong-shape value (string) emits exactly ONE shell:manifest dx:error, not one per character', async () => {
+    const errors: { source: string; error: Error }[] = [];
+    onDxError(((e: CustomEvent) => {
+      errors.push(e.detail);
+    }) as EventListener);
+
+    shell = createShell({ ...testLoaders, manifests: 'a-string' as any });
+    await expect(shell.init()).resolves.not.toThrow();
+
+    expect(errors.filter((e) => e.source === 'shell:manifest')).toHaveLength(1);
+    expect(shell.getManifests()).toHaveLength(0);
+  });
+
+  it('ROB-06: still exposes window.__DXKIT__ after init() for a wrong-shape dapps config (pre-exposure ordering)', async () => {
+    shell = createShell({ ...testLoaders, dapps: 'x' as any });
+    await shell.init();
+
+    expect(window.__DXKIT__).toBeDefined();
+    expect(window.__DXKIT__?.getManifests()).toHaveLength(0);
+  });
+
+  it('ROB-06: manifests: [] (valid, empty) stops at that tier and does not probe registryUrl', async () => {
+    const originalFetch = window.fetch;
+    const fetchSpy = vi.fn(async () => ({ ok: true, json: async () => [] }) as unknown as Response);
+    window.fetch = fetchSpy as any;
+
+    shell = createShell({ ...testLoaders, manifests: [] });
+    await shell.init();
+
+    expect(shell.getManifests()).toEqual([]);
+    expect(fetchSpy).not.toHaveBeenCalled();
+
+    window.fetch = originalFetch;
+  });
+
+  it('ROB-06: dapps: [] (valid, empty) falls through to the next tier (loads inline manifests)', async () => {
+    // Asymmetry counterpart to the manifests: [] test above — a genuinely empty dapps array is
+    // NOT a wrong-shape failure, so it must fall through to the manifests tier rather than stop.
+    shell = createShell({
+      ...testLoaders,
+      dapps: [],
+      manifests: [
+        {
+          id: 'hello',
+          name: 'Hello',
+          version: '0.0.1',
+          route: '/hello',
+          entry: '/dapps/hello/app.js',
+          nav: { label: 'Hello' },
+        },
+      ],
+    });
+    await shell.init();
+
+    expect(shell.getManifests()).toHaveLength(1);
+    expect(shell.getManifests()[0].id).toBe('hello');
+  });
+
+  it('ROB-06: dapps: null is treated as unset (nullish) — falls through, no dx:error', async () => {
+    // Nullish (null/undefined) means "tier not configured", not "wrong shape". `dapps: cond ? [...] : null`
+    // is a plausible untyped-consumer idiom that must keep its pre-ROB-06 fall-through, NOT fail closed.
+    const errors: { source: string; error: Error }[] = [];
+    onDxError(((e: CustomEvent) => {
+      errors.push(e.detail);
+    }) as EventListener);
+
+    shell = createShell({
+      ...testLoaders,
+      dapps: null as any,
+      manifests: [
+        {
+          id: 'hello',
+          name: 'Hello',
+          version: '0.0.1',
+          route: '/hello',
+          entry: '/dapps/hello/app.js',
+          nav: { label: 'Hello' },
+        },
+      ],
+    });
+    await shell.init();
+
+    expect(errors.filter((e) => e.source === 'shell:manifest')).toHaveLength(0);
+    expect(shell.getManifests()).toHaveLength(1);
+    expect(shell.getManifests()[0].id).toBe('hello');
+  });
+
+  it('ROB-06: manifests: null is treated as unset (nullish) — falls through to probe registryUrl, no dx:error', async () => {
+    const errors: { source: string; error: Error }[] = [];
+    onDxError(((e: CustomEvent) => {
+      errors.push(e.detail);
+    }) as EventListener);
+
+    const originalFetch = window.fetch;
+    const fetchSpy = vi.fn(async () => ({ ok: true, json: async () => [] }) as unknown as Response);
+    window.fetch = fetchSpy as any;
+
+    shell = createShell({ ...testLoaders, manifests: null as any });
+    await shell.init();
+
+    expect(fetchSpy).toHaveBeenCalled();
+    expect(errors.filter((e) => e.source === 'shell:manifest')).toHaveLength(0);
+
+    window.fetch = originalFetch;
+  });
+
   it('emits dx:error (source shell:mount) when #dx-mount is absent, without throwing', async () => {
     // No <div id="dx-mount"> in the DOM at all — exercises lazy getMountContainer() returning null.
     container.remove();

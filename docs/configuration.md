@@ -40,6 +40,8 @@ See [Getting Started > Configuration](getting-started.md#configuration) for the 
 
 > **Note:** Passing `scriptLoader`, `styleLoader`, or `templateLoader` directly on `ShellConfig` — instead of nested under `lifecycle` — throws an `Error` at `createShell()` time, naming the offending key(s) (`src/shell.ts`). This guard exists because untyped IIFE/JS consumers get no compile-time error for the wrong shape. Upgrading from 0.1.5? See [Migrating to 0.2.0](getting-started.md#migrating-to-020).
 
+> **Note:** For the same untyped-consumer reason, a **present** `dapps`/`manifests` value (and a fetched `registryUrl` body) must be an **array**. A present wrong-shape value (object, string, number, boolean) does not throw — `loadManifests()`'s shared `coerceManifestArray()` guard emits a `dx:error` (source `shell:manifest`) and fail-closes that tier to an empty manifest list, so `window.__DXKIT__` is still exposed. A **nullish** `dapps`/`manifests` (`null` or `undefined`) is treated as "not configured" and falls through to the next tier — so `dapps: cond ? [...] : null` keeps working. Listen on `dx:error` to catch a malformed manifest config.
+
 ## Lifecycle Manager Options
 
 The `lifecycle` group configures how the [Lifecycle Manager](system-internals.md) loads and mounts dapp assets (`src/lifecycle.ts`):

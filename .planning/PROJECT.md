@@ -106,6 +106,9 @@ to keep this a focused modernization pass.
 - ✓ Renovate automation for the pnpm workspace via committed `renovate.json` — `config:recommended`, `minimumReleaseAge: "3 days"`, toolchain group always blocking major automerge, weekly `lockFileMaintenance`; invariant guard test — validated Phase 9 (GATE-03)
 - ✓ WR-01/ROB-05 — `loadManifests()` `Array.isArray()`-guards the `registry.json` 200 body, fail-closing to `[]` with an ungated `dx:error` instead of an uncaught `TypeError` before `window.__DXKIT__` is exposed — validated Phase 9 (ROB-05)
 
+<!-- Validated in Phase 10: Close gap CR-01 — guard dapps/inline manifests tiers (v1.1) -->
+- ✓ CR-01/ROB-06 — a shared closure-local `coerceManifestArray()` helper extends ROB-05's array-shape guard to the `dapps` and inline `manifests` tiers of `loadManifests()`; all three tiers fail closed on a wrong-shape value (`coerced === null` → `[]`) with a single coherent `dx:error` (source `shell:manifest`) instead of an uncaught `TypeError`, while preserving each tier's asymmetric empty-array fallthrough — validated Phase 10 (ROB-06)
+
 ### Active
 
 <!-- v1.1 TS6 + toolchain modernization milestone complete (Phases 6–9). No open active requirements;
@@ -194,4 +197,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-18 after Phase 9 (Continuous Debt Guardrails & Registry Robustness) complete — GATE-01/02/03 + ROB-05 validated (named blocking typecheck CI gate, machine-enforced zero-runtime-dep assertion for core, Renovate automation, and the WR-01 registry array-shape fix). This closes the v1.1 TypeScript 6 Migration & Toolchain Modernization milestone (Phases 6–9). Open follow-up: CR-01 — extend the registry array-guard to the inline/`dapps` manifest tiers. Aimed at a clean TS 7.1 jump.*
+*Last updated: 2026-07-19 after Phase 10 (Close gap: CR-01 — guard dapps/inline manifests tiers) complete — ROB-06 validated: the `coerceManifestArray()` helper extends ROB-05's registry array-guard to the `dapps` and inline `manifests` tiers, closing the CR-01 follow-up flagged at Phase 9. All 5 v1.1 phases (6–10) are now complete; the milestone is ready to close. Prior: Phase 9 landed GATE-01/02/03 + ROB-05 (named blocking typecheck CI gate, machine-enforced zero-runtime-dep assertion for core, Renovate automation, registry array-shape fix). Aimed at a clean TS 7.1 jump.*

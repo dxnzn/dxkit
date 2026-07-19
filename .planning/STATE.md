@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: TypeScript 6 Migration & Toolchain Modernization
-current_phase: 09
-status: "Phase 09 merged to main via PR #9"
-stopped_at: Completed 09-02-PLAN.md
-last_updated: "2026-07-18T07:02:45.917Z"
-last_activity: 2026-07-18
+current_phase: 10
+status: "Phase 10 shipped — PR #11"
+stopped_at: Completed 10-01-PLAN.md
+last_updated: "2026-07-19T22:49:02.026Z"
+last_activity: 2026-07-19
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 16
-  completed_plans: 16
+  total_phases: 5
+  completed_phases: 5
+  total_plans: 17
+  completed_plans: 17
   percent: 100
-current_phase_name: continuous-debt-guardrails-registry-robustness
-last_activity_desc: Phase 09 complete
+current_phase_name: close-gap-cr-01-guard-dapps-inline-manifests-tiers
+last_activity_desc: Phase 10 complete
 ---
 
 # Project State
@@ -24,14 +24,14 @@ last_activity_desc: Phase 09 complete
 See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** DxKit stays trustworthy for real use — failures are visible (never silent), documented behavior matches actual behavior, and the alpha is stable enough to build on with confidence.
-**Current focus:** Phase 09 — continuous-debt-guardrails-registry-robustness
+**Current focus:** Phase 10 — close-gap-cr-01-guard-dapps-inline-manifests-tiers
 
 ## Current Position
 
-Phase: 09
+Phase: 10
 Plan: Not started
-Status: Phase 09 merged to main via PR #9
-Last activity: 2026-07-18
+Status: Phase 10 shipped — PR #11
+Last activity: 2026-07-19
 
 ## Milestone Phase Map (v1.1)
 
@@ -52,7 +52,7 @@ Phase 7) is a precondition — it must exist before/with the TS6 bump and before
 
 **Velocity:**
 
-- Total plans completed: 39 (v1.0)
+- Total plans completed: 40 (v1.0)
 - Average duration: - min
 - Total execution time: 0 hours
 
@@ -69,6 +69,7 @@ Phase 7) is a precondition — it must exist before/with the TS6 bump and before
 | 07 | 4 | - | - |
 | 08 | 2 | - | - |
 | 09 | 4 | - | - |
+| 10 | 1 | - | - |
 
 **Recent Trend:**
 
@@ -119,6 +120,7 @@ Phase 7) is a precondition — it must exist before/with the TS6 bump and before
 | Phase 09 P03 | 6min | 2 tasks | 2 files |
 | Phase 09 P04 | 6min | 2 tasks | 2 files |
 | Phase 09 P02 | 8min | 3 tasks | 7 files |
+| Phase 10 P01 | 2min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -177,6 +179,8 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 09-04]: Fix scoped entirely to loadManifests()'s res.json() call site; normalizeAndValidateManifests() left untouched as the single choke point for element-level manifest validation
 - [Phase ?]: [Phase 09-02]: checkNoRuntimeDeps() is deliberately core-only and unconditional per revised D-08 — any dependencies/peerDependencies/optionalDependencies entry is a violation, no workspace-carveout logic needed since root package.json never declares workspace:* links
 - [Phase ?]: [Phase 09-02]: CJS .cjs module loaded via createRequire(import.meta.url) in the new vitest test, reusing smoke/dist-exports.smoke.test.ts's pattern, requiring only a node:module addition to tests/node-builtins.d.ts instead of a new declaration file or @types/node
+- [Phase ?]: [Phase 10-01]: coerceManifestArray() extends ROB-05's Array.isArray guard to dapps/manifests tiers - fail-closed on coerced === null (never .length), registry tierLabel is the fully-formed description string to preserve existing /custom-registry.json substring assertions
+- [Phase ?]: [Phase 10-01]: Tier-asymmetric fallthrough preserved deliberately - dapps: [] falls through to next tier, manifests: [] stops without probing registryUrl; only the Array.isArray shape check is shared, emptiness semantics per-tier are untouched
 
 ### Pending Todos
 
@@ -205,6 +209,10 @@ were resolved in v1.0 Phase 3 (SEC-02):
 | 260712-wcu | Implement PR #3 self-review findings: hasPlugin guard, sanitizer timeout, wallet contract-violation error, cause preservation, hasOwn guard | 2026-07-13 | d349ca9 | [260712-wcu-implement-pr3-self-review-findings-haspl](./quick/260712-wcu-implement-pr3-self-review-findings-haspl/) |
 | 260714-1lz | Fix stale mountDapp epilogue (subpath swallow/duplicate) and normalizeRoute trim from PR #4 review | 2026-07-14 | 17e863d | [260714-1lz-fix-stale-mountdapp-epilogue-subpath-swa](./quick/260714-1lz-fix-stale-mountdapp-epilogue-subpath-swa/) |
 
+### Roadmap Evolution
+
+- Phase 10 added: Close gap: CR-01 — guard dapps/inline manifests tiers (from v1.1 milestone audit)
+
 ## Deferred Items
 
 Items acknowledged and carried forward:
@@ -218,8 +226,8 @@ Items acknowledged and carried forward:
 
 ## Session Continuity
 
-Last session: 2026-07-18T06:20:59.907Z
-Stopped at: Completed 09-02-PLAN.md
+Last session: 2026-07-19T16:07:12.684Z
+Stopped at: Completed 10-01-PLAN.md
 Resume file:
 None
 
