@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: TypeScript 6 Migration & Toolchain Modernization
-current_phase: 09
-status: "Phase 09 merged to main via PR #9"
-stopped_at: Completed 09-02-PLAN.md
-last_updated: "2026-07-18T07:02:45.917Z"
-last_activity: 2026-07-18
+current_phase: 10
+status: "Phase 10 planned — 10-01-PLAN.md ready to execute"
+stopped_at: Planned Phase 10 (1 plan, verification passed)
+last_updated: "2026-07-19T16:30:00.000Z"
+last_activity: 2026-07-19
 progress:
-  total_phases: 4
+  total_phases: 5
   completed_phases: 4
   total_plans: 16
   completed_plans: 16
-  percent: 100
+  percent: 80
 current_phase_name: continuous-debt-guardrails-registry-robustness
 last_activity_desc: Phase 09 complete
 ---
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 
 ## Current Position
 
-Phase: 09
-Plan: Not started
-Status: Phase 09 merged to main via PR #9
-Last activity: 2026-07-18
+Phase: 10
+Plan: 10-01-PLAN.md (planned, not started)
+Status: Phase 10 planned — verification passed, ready for /gsd-execute-phase 10
+Last activity: 2026-07-19
 
 ## Milestone Phase Map (v1.1)
 
@@ -204,6 +204,10 @@ were resolved in v1.0 Phase 3 (SEC-02):
 |---|-------------|------|--------|-----------|
 | 260712-wcu | Implement PR #3 self-review findings: hasPlugin guard, sanitizer timeout, wallet contract-violation error, cause preservation, hasOwn guard | 2026-07-13 | d349ca9 | [260712-wcu-implement-pr3-self-review-findings-haspl](./quick/260712-wcu-implement-pr3-self-review-findings-haspl/) |
 | 260714-1lz | Fix stale mountDapp epilogue (subpath swallow/duplicate) and normalizeRoute trim from PR #4 review | 2026-07-14 | 17e863d | [260714-1lz-fix-stale-mountdapp-epilogue-subpath-swa](./quick/260714-1lz-fix-stale-mountdapp-epilogue-subpath-swa/) |
+
+### Roadmap Evolution
+
+- Phase 10 added: Close gap: CR-01 — guard dapps/inline manifests tiers (from v1.1 milestone audit)
 
 ## Deferred Items
 
