@@ -1,20 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: TypeScript 6 Migration & Toolchain Modernization
-status: Awaiting next milestone
-stopped_at: Completed 10-01-PLAN.md
-last_updated: "2026-08-17T03:23:47.617Z"
+milestone: v1.2
+milestone_name: On-Chain Deployment (ERC-8244)
+status: planning
+last_updated: "2026-08-17T03:55:34.322Z"
 last_activity: 2026-08-16
-last_activity_desc: Milestone v1.1 completed and archived
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 17
-  completed_plans: 17
-  percent: 100
-current_phase: 10
-current_phase_name: close-gap-cr-01-guard-dapps-inline-manifests-tiers
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -24,16 +20,21 @@ current_phase_name: close-gap-cr-01-guard-dapps-inline-manifests-tiers
 See: .planning/PROJECT.md (updated 2026-08-16)
 
 **Core value:** DxKit stays trustworthy for real use — failures are visible (never silent), documented behavior matches actual behavior, and the alpha is stable enough to build on with confidence.
-**Current focus:** Planning next milestone — leading candidate: on-chain / ERC-8244 deployment (DxKit dapps loadable from contract `html()`, DxKit core+plugins published as versioned on-chain artifacts). See PROJECT.md → Next Milestone Goals.
+**Current focus:** v1.2 On-Chain Deployment (ERC-8244) — defining requirements. Three co-equal deployment targets (bundler/webserver, IIFE/IPFS, on-chain); Foundry/Anvil local loop; Sepolia → mainnet as the final two phases.
 
 ## Current Position
 
-Phase: Milestone v1.1 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone (v1.1 shipped as 0.3.0, tag `v0.3.0`; `make publish` + `git push --follow-tags` pending operator)
-Last activity: 2026-08-16 — Milestone v1.1 completed and archived
+Status: Defining requirements
+Last activity: 2026-08-16 — Milestone v1.2 started
 
-## Milestone Phase Map (v1.1)
+## Milestone Phase Map (v1.2)
+
+_(populated by the roadmap — continues numbering from v1.1, which ended at Phase 10)_
+
+<details>
+<summary>v1.1 phase map (archived)</summary>
 
 Continues numbering from v1.0 (which ended at Phase 5).
 
@@ -47,6 +48,8 @@ Continues numbering from v1.0 (which ended at Phase 5).
 Key sequencing constraint (all 4 researchers converged): the standalone `tsc --noEmit` step (TS6-03,
 Phase 7) is a precondition — it must exist before/with the TS6 bump and before the CI deprecation gate
 (GATE-01, Phase 9) can attach to anything.
+
+</details>
 
 ## Performance Metrics
 
@@ -196,6 +199,7 @@ None open. (WR-01 → ROB-05 Phase 9; CR-01 → ROB-06 Phase 10; WR-02/03 → Ph
 None carried from v1.1 (Phase 8/9 risks were retired by FCT-04 smoke test and the scoped GATE-01).
 
 Open questions for the next milestone (on-chain / ERC-8244 candidate) — to resolve in a spike before tooling investment:
+
 - Does Freedom browser (read-only preview) inject an EIP-1193 provider into `html()`-loaded pages? ERC-8244 forbids network URL fetches, so without `window.ethereum` there is no chain-load path.
 - Iframe sandbox posture (`allow-same-origin` or opaque origin) — determines storage availability and whether `pushState` works (hash mode is the safe default).
 - Full-document `html()` vs DxKit's fragment-into-`#dx-mount` model — fragment extraction + inline-`<script>` re-execution vs `srcdoc` iframe.
@@ -232,4 +236,4 @@ None
 ## Operator Next Steps
 
 - `make publish` then `git push --follow-tags origin main` to release 0.3.0 (tag `v0.3.0` exists locally)
-- Start the next milestone with `/gsd-new-milestone` (candidate: on-chain / ERC-8244 deployment)
+- v1.2 milestone started — continue with requirements → roadmap, then `/gsd-discuss-phase 11`

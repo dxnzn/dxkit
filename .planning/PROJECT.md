@@ -27,9 +27,41 @@ DxKit stays trustworthy for real use: failures are visible (never silent), the d
 behavior matches the actual behavior, and the alpha is stable enough to build on with
 confidence.
 
-## Current Milestone
+## Current Milestone: v1.2 On-Chain Deployment (ERC-8244)
 
-_(none — v1.1 shipped 2026-08-16 as 0.3.0; next milestone to be defined via `/gsd-new-milestone`. See **Next Milestone Goals** below.)_
+**Goal:** A DxKit dapp can live entirely on Ethereum L1 — the dapp's ERC-8244 `html()` chain-loads a
+versioned on-chain DxKit plus its own dapp assets — backed by a complete local dev loop
+(Foundry/Anvil) and a working demo dapp, and finished by real deploys of DxKit 0.4.0 + the demo to
+Sepolia and then Ethereum mainnet. On-chain becomes the third co-equal first-class deployment target
+alongside bundler/webserver and IIFE/static/IPFS — none is privileged, none regresses.
+
+**Target features:**
+- **Local on-chain dev loop** — Foundry/Anvil in-monorepo (`contracts/`): build → gzip/chunk → deploy
+  DxKit + a dapp to a local Anvil node → load in a browser; `make` targets wrap the loop; forge tests.
+- **DxKit-on-chain publish tooling** — SSTORE2-style data contracts + a versioned, immutable facade
+  contract per package/version exposing ERC-8244 `html()` and a raw `source()`; keccak-pinned;
+  chain-agnostic deploy scripts (Anvil → Sepolia → mainnet).
+- **`web3://` resolver loaders** (new package, e.g. `@dnzn/dxkit-web3`) — `templateLoader` /
+  `scriptLoader` / `styleLoader` resolving ERC-6860-style `web3://addr:chainId/html` URLs via
+  `eth_call` (`window.ethereum` or configured RPC), ABI-decode, native `DecompressionStream` gunzip,
+  pin verification — manifests keep their schema and simply carry `web3://` strings.
+- **Core sandbox hardening (additive)** — inline `<style>` / script-text injection, full-document
+  `html()` → fragment + inline `<script>` re-execution, `entry` optional when the template is on-chain,
+  hash-mode guidance under `srcdoc`/opaque origins, graceful no-fetch / no-storage degradation.
+- **Bootstrap snippet + demo dapp** — the ~1 KB `html()` bootstrap dapp authors paste in; a real demo
+  dapp on DxKit (wallet + theme at minimum) deployed as its own contract(s), loading DxKit from the
+  DxKit contract.
+- **Docs** — cookbook recipe "Deploying a DxKit dapp fully on-chain", resolver reference, contract
+  interface reference; existing IIFE/IPFS and bundler docs untouched in stature.
+- **Final two phases** — deploy DxKit 0.4.0 + demo to **Sepolia**, then **Ethereum mainnet** (~$1 at
+  current gas; ≈15 KB gzipped fits one data contract).
+
+**Key context:**
+- ERC-8244 forbids network URL fetches (only `data:`/`blob:`) — chain-loading is `eth_call` through
+  an injected EIP-1193 provider; whether Freedom's read-only preview injects one is a spike question,
+  not a blocker for the Anvil loop.
+- Contracts are immutable → version-per-contract; ENS names for discovery are optional sugar.
+- Zero runtime deps preserved (Foundry is dev-only tooling); all core changes additive; npm target 0.4.0.
 
 <details>
 <summary>Shipped: v1.1 TypeScript 6 Migration & Toolchain Modernization (0.3.0)</summary>
@@ -127,7 +159,14 @@ to keep this a focused modernization pass.
 <!-- v1.1 shipped (0.3.0). CR-01 follow-up closed by Phase 10 (ROB-06). The next milestone
      (on-chain / ERC-8244 deployment — see Next Milestone Goals) will populate this section. -->
 
-_(none — v1.1 milestone shipped; next milestone not yet defined)_
+<!-- v1.2 requirements are defined in REQUIREMENTS.md with REQ-IDs; summarized here at the feature level. -->
+- [ ] Local Foundry/Anvil dev loop: build → publish DxKit + dapp to Anvil → load in browser (make targets, forge tests)
+- [ ] On-chain publish tooling: data contracts + versioned facade with ERC-8244 `html()` / `source()`, keccak-pinned, chain-agnostic deploy
+- [ ] `web3://` resolver loader package (template/script/style) with gunzip + pin verification
+- [ ] Core sandbox hardening for ERC-8244 pages (inline styles/scripts, full-document templates, optional `entry`, no-fetch/no-storage degradation)
+- [ ] Bootstrap `html()` snippet + demo dapp deployed on-chain loading DxKit from the DxKit contract
+- [ ] Docs: on-chain cookbook recipe, resolver + contract references
+- [ ] Deploy DxKit 0.4.0 + demo to Sepolia, then Ethereum mainnet
 
 ### Out of Scope
 
@@ -167,30 +206,14 @@ _(none — v1.1 milestone shipped; next milestone not yet defined)_
 
 ## Next Milestone Goals
 
-Candidate scope for the milestone after v1.1 (not yet committed — to be defined via `/gsd-new-milestone`):
+Candidates for the milestone after v1.2 (not committed):
 
-- **On-chain / ERC-8244 deployment (leading candidate).** Make DxKit dapps loadable from contract
-  `html()` (ERC-8244) as first-class alongside IPFS/static, and publish DxKit core + plugins themselves
-  as versioned, immutable on-chain artifacts that a dapp's `html()` chain-loads — the target being
-  ENS-addressed dapps in browsers like Freedom that resolve `name.eth` → `html()`.
-  - *Resolver layer* (near-zero core change): a `web3://`-style (ERC-6860) URL resolver providing
-    `templateLoader`/`scriptLoader`/`styleLoader` that `eth_call` the target, ABI-decode `string`,
-    optionally gunzip (native `DecompressionStream`), and verify a keccak pin — DxKit's loaders are
-    already opaque `(src: string) => Promise` seams, so manifests keep their schema and just carry
-    `web3://` strings in `entry`/`template`/`styles`.
-  - *Sandbox hardening in core* (small, additive): inline `<style>` instead of `<link href>`, script
-    text injection via `blob:`/`textContent`, full-document `html()` → fragment extraction with
-    inline-`<script>` re-execution, `entry` optional when `template` is on-chain, hash-mode default
-    under `srcdoc`/opaque origins, storage-unavailable degradation for settings.
-  - *Publish tooling*: gzip + chunk (≤24 KB) + SSTORE2-style data contracts + a versioned facade
-    contract per package exposing `html()`/`source()`; foundry deploy scripts (dev-only — zero
-    runtime deps preserved); a ~1 KB bootstrap snippet dapp authors paste into their own `html()`.
-  - *Hard external dependencies to verify first*: ERC-8244 forbids any network URL fetch (only
-    `data:`/`blob:`), so chain-loading is `eth_call` via `window.ethereum` — Freedom's current
-    read-only preview may not inject a provider; a spike must confirm before tooling investment.
-- **TypeScript 7.1 migration** — waiting on a stable TS7 point release; the forward-compat flags are already on.
-- **Storage encryption** for persisted settings/wallet state — larger design effort, deferred twice.
+- **TypeScript 7.1 migration** — waiting on a stable TS7 point release; forward-compat flags already on. Pair with tsup → tsdown.
+- **On-chain follow-ons** (if v1.2 lands): L2 deploys (Base et al.), ENS-name discovery for DxKit versions, `web3://` gateway (ERC-4804/5219) resolution mode for the facade, Freedom-browser-specific integration once its provider story is public.
+- **Storage encryption** for persisted settings/wallet state — larger design effort, deferred three times.
 - Possible new routing features (wildcard / `:param`) if consumer demand appears.
+
+*(On-chain / ERC-8244 deployment moved into the committed v1.2 milestone above.)*
 
 ## Constraints
 
@@ -200,9 +223,13 @@ Candidate scope for the milestone after v1.1 (not yet committed — to be define
   additive (new events / optional config) wherever it's equivalent.
 - **Zero runtime deps**: Hardening must not introduce runtime dependencies — the zero-dep
   posture is a selling point.
-- **Deployment**: IIFE / static / IPFS remains a first-class target; changes must not assume a bundler.
-  On-chain (ERC-8244) hosting is the candidate next target — it additionally forbids any network URL
-  fetch at runtime, so new loader work must not assume `fetch()`/`<script src>` reachability.
+- **Deployment — three co-equal first-class targets**: (1) bundler / webserver / JS tooling,
+  (2) IIFE / static / IPFS, (3) on-chain via ERC-8244 `html()`. None is privileged; no milestone may
+  regress another. On-chain additionally forbids any network URL fetch at runtime, so on-chain loader
+  work must not assume `fetch()`/`<script src>` reachability — and web/IPFS paths must not be forced
+  through `eth_call`.
+- **Local-first chain tooling**: Foundry/Anvil is the local L1 dev loop; Sepolia and mainnet deploys are
+  the milestone's final phases, not its development environment. Contract tooling is dev-only.
 
 ## Key Decisions
 
@@ -241,4 +268,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-08-16 after v1.1 milestone (TypeScript 6 Migration & Toolchain Modernization) shipped as 0.3.0 — 5 phases (6–10), 17 plans, 16/16 requirements + CR-01 gap closure validated. Next milestone candidate: on-chain / ERC-8244 deployment (see Next Milestone Goals).*
+*Last updated: 2026-08-16 — v1.2 On-Chain Deployment (ERC-8244) milestone started (Foundry/Anvil dev loop, on-chain publish tooling, `web3://` resolver, sandbox hardening, demo dapp, Sepolia → mainnet deploys). Previous: v1.1 shipped as 0.3.0.*
