@@ -2,36 +2,36 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: TypeScript 6 Migration & Toolchain Modernization
-current_phase: 10
-status: "Phase 10 merged to main via PR #11 — v1.1 milestone complete (5/5 phases)"
-stopped_at: Completed 10-01-PLAN.md (merged via PR #11)
-last_updated: "2026-07-19T18:02:00.000Z"
-last_activity: 2026-07-19
+status: Awaiting next milestone
+stopped_at: Completed 10-01-PLAN.md
+last_updated: "2026-08-17T03:23:47.617Z"
+last_activity: 2026-08-16
+last_activity_desc: Milestone v1.1 completed and archived
 progress:
   total_phases: 5
   completed_phases: 5
   total_plans: 17
   completed_plans: 17
   percent: 100
+current_phase: 10
 current_phase_name: close-gap-cr-01-guard-dapps-inline-manifests-tiers
-last_activity_desc: Phase 10 merged to main via PR #11; v1.1 milestone complete
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-15)
+See: .planning/PROJECT.md (updated 2026-08-16)
 
 **Core value:** DxKit stays trustworthy for real use — failures are visible (never silent), documented behavior matches actual behavior, and the alpha is stable enough to build on with confidence.
-**Current focus:** Phase 10 — close-gap-cr-01-guard-dapps-inline-manifests-tiers
+**Current focus:** Planning next milestone — leading candidate: on-chain / ERC-8244 deployment (DxKit dapps loadable from contract `html()`, DxKit core+plugins published as versioned on-chain artifacts). See PROJECT.md → Next Milestone Goals.
 
 ## Current Position
 
-Phase: 10 (close-gap-cr-01-guard-dapps-inline-manifests-tiers) — COMPLETE, merged to main via PR #11
-Plan: 1 of 1 complete
-Status: v1.1 milestone complete (Phases 6–10, 17/17 plans) — ready for /gsd-complete-milestone
-Last activity: 2026-07-19
+Phase: Milestone v1.1 complete
+Plan: —
+Status: Awaiting next milestone (v1.1 shipped as 0.3.0, tag `v0.3.0`; `make publish` + `git push --follow-tags` pending operator)
+Last activity: 2026-08-16 — Milestone v1.1 completed and archived
 
 ## Milestone Phase Map (v1.1)
 
@@ -126,8 +126,11 @@ Phase 7) is a precondition — it must exist before/with the TS6 bump and before
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
+Decisions are logged in PROJECT.md Key Decisions table (v1.0 and v1.1 rows are current there).
+No active-milestone decisions yet — next milestone not defined.
+
+<details>
+<summary>v1.1 phase-level decisions (archived context)</summary>
 
 - v1.1 roadmap: 4-phase structure (Toolchain → TS6 Migration → Forward-Compat Typing → Guardrails), continuing phase numbering at 6 — matches the strong cross-research convergence and keeps the milestone a lean modernization pass.
 - v1.1 sequencing: standalone `tsc --noEmit` (TS6-03) lands inside Phase 7 *before* the TS6 version bump, so the migration has a baseline and GATE-01 (Phase 9) has something to gate on.
@@ -182,25 +185,20 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 10-01]: coerceManifestArray() extends ROB-05's Array.isArray guard to dapps/manifests tiers - fail-closed on coerced === null (never .length), registry tierLabel is the fully-formed description string to preserve existing /custom-registry.json substring assertions
 - [Phase ?]: [Phase 10-01]: Tier-asymmetric fallthrough preserved deliberately - dapps: [] falls through to next tier, manifests: [] stops without probing registryUrl; only the Array.isArray shape check is shared, emptiness semantics per-tier are untouched
 
+</details>
+
 ### Pending Todos
 
-WR-01 is now scheduled as ROB-05 in Phase 9 (v1.1). The remaining Phase-1 code-review todos below
-were resolved in v1.0 Phase 3 (SEC-02):
-
-- ~~WR-01 — surface `loadDappManifest` fetch/parse failures~~ → scheduled as **ROB-05 / Phase 9**
-- ~~WR-02 — wallet connect empty-accounts yields `undefined` address~~ → resolved Phase 3 (SEC-02)
-- ~~WR-03 — surface wallet auto-reconnect failure on init~~ → resolved Phase 3 (SEC-02)
+None open. (WR-01 → ROB-05 Phase 9; CR-01 → ROB-06 Phase 10; WR-02/03 → Phase 3 — all resolved.)
 
 ### Blockers/Concerns
 
-- Phase 8 (Forward-Compat Typing): the IIFE/CJS build boundary is the real risk surface for
-  `verbatimModuleSyntax` / `isolatedDeclarations`, and it is the one output format neither `tsc` nor
-  the current vitest suite exercises. FCT-04's artifact smoke test must be treated as a required gate,
-  not optional (research Pitfalls 4 & 7).
+None carried from v1.1 (Phase 8/9 risks were retired by FCT-04 smoke test and the scoped GATE-01).
 
-- Phase 9 (Guardrails): the CI deprecation gate must be scoped to `src/`/`plugins/*/src/` only — a gate
-  that also fails on transitive `node_modules/` deprecation noise is unfixable-red and gets disabled
-  (research Pitfall 6). Renovate must ship with scope rules (no automerge on tool majors) from day one.
+Open questions for the next milestone (on-chain / ERC-8244 candidate) — to resolve in a spike before tooling investment:
+- Does Freedom browser (read-only preview) inject an EIP-1193 provider into `html()`-loaded pages? ERC-8244 forbids network URL fetches, so without `window.ethereum` there is no chain-load path.
+- Iframe sandbox posture (`allow-same-origin` or opaque origin) — determines storage availability and whether `pushState` works (hash mode is the safe default).
+- Full-document `html()` vs DxKit's fragment-into-`#dx-mount` model — fragment extraction + inline-`<script>` re-execution vs `srcdoc` iframe.
 
 ### Quick Tasks Completed
 
@@ -219,20 +217,19 @@ Items acknowledged and carried forward:
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
-| Modernization | TS7.1 migration (TS7-01) | Deferred to v2 | v1.1 scoping |
-| Build | tsup → tsdown migration (BUILD-01) | Deferred to v2 | v1.1 scoping |
+| Modernization | TS7.1 migration (TS7-01) | Deferred — awaiting stable TS 7.1 | v1.1 scoping (re-affirmed v1.1 close) |
+| Build | tsup → tsdown migration (BUILD-01) | Deferred — pair with TS7 jump | v1.1 scoping (re-affirmed v1.1 close) |
 | Security | Storage encryption for persisted state | Deferred | v1.0 close |
 | Feature | New routing (wildcard / `:param`) | Deferred | v1.0 close |
 
 ## Session Continuity
 
-Last session: 2026-07-19T16:07:12.684Z
-Stopped at: Completed 10-01-PLAN.md
+Last session: 2026-08-16T22:30:00.000Z
+Stopped at: v1.1 milestone closed and archived; 0.3.0 tagged (publish/push pending)
 Resume file:
 None
 
 ## Operator Next Steps
 
-- Plan Phase 6 (Toolchain Audit & Modernization) with `/gsd-plan-phase 6`.
-- Phases execute in order 6 → 7 → 8 → 9. Do not start flag work (Phase 8) or the deprecation gate
-  (Phase 9) before the `tsc --noEmit` baseline lands in Phase 7.
+- `make publish` then `git push --follow-tags origin main` to release 0.3.0 (tag `v0.3.0` exists locally)
+- Start the next milestone with `/gsd-new-milestone` (candidate: on-chain / ERC-8244 deployment)

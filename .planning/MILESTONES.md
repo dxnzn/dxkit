@@ -1,5 +1,32 @@
 # Milestones
 
+## v1.1 TypeScript 6 Migration & Toolchain Modernization (Shipped: 2026-08-16)
+
+**Phases completed:** 5 phases, 17 plans, 32 tasks
+**Released as:** 0.3.0 (tag `v0.3.0`, all five packages in lockstep; Node ≥22.12 floor shipped as `BREAKING CHANGE`)
+**Audit:** passed — 16/16 requirements, 4/4 flows, Nyquist compliant (Phases 6–9); Phase 10 closed audit gap CR-01
+
+**Key accomplishments:**
+
+- Raised the Node floor to >=22 across all five package.json (root + auth/wallet/theme/settings) with a new root .npmrc engine-strict=true as the load-bearing enforcement mechanism, shipped as a single breaking-change commit.
+- CI matrix moved from EOL Node 20 to `[22, 24]`, matching the Node 22 LTS floor set in Phase 06-01.
+- Bumped tsup 8.4.0->8.5.1, vite 7.3.6->8.1.4 (Rolldown-based major, isolated commit), and vitest 4.1.9->4.1.10, each its own bisectable `chore(deps):` commit, with happy-dom confirmed already at latest (20.10.6, no-op) — full 321-spec suite green throughout.
+- Biome bumped 2.5.1->2.5.4 with a bisectable version-bump commit plus a separate one-file style: reformat commit, and the unmaintained cz-conventional-changelog adapter swapped for cz-git 1.13.1 at 1:1 conventional-commit parity.
+- Added a `make verify-outputs` target that asserts all three build formats (ESM/CJS/IIFE) exist for the root package and all four plugins, reusing the existing `PLUGIN_BUILD_ORDER` list; ran the full phase gate on the final bumped toolchain and confirmed all 15 expected output files present with 321/321 tests green.
+- Tightened Node engines to the toolchain's real floor (`^22.12.0 || >=24.0.0`), pinned an exact-floor CI matrix leg, and wired `verify-outputs` into release/publish/CI
+- Root `tsconfig.typecheck.json` (extends the build tsconfig, adds `tests/`) plus a `DeepPartial<T>` test helper and root test-only type fixes gave a green standalone typecheck baseline before the TS6 bump; the four plugin `tsconfig.typecheck.json` files followed with their own test-only fixes.
+- Added a standalone `make typecheck` target (tsc --noEmit across root + 4 plugins) and wired it as a `make test`/`test-watch` prerequisite ahead of vitest, giving CI the TS6-03 baseline check with zero ci.yml edits.
+- Bumped the root `typescript` devDependency to `^6.0.0` (resolving 6.0.3), then discovered and fixed a real TS6-caused build break in tsup's internal dts bundler at source — zero `ignoreDeprecations` shims anywhere, full vitest suite (321/321) green.
+- All three TS7-forward-compat compiler flags landed in the root tsconfig.json as a pure config flip — zero source-code churn across core + all 4 plugins — plus a durable flag-presence regression guard.
+- A self-building `make smoke` target asserts exhaustive IIFE global-attach (via node:vm, not happy-dom's broken `<script>`-element path) and CJS `require()` export-key sets against the real built `dist/` artifacts for all 5 packages, wired into release/publish/CI after `verify-outputs`.
+- Named `Typecheck / deprecation gate (GATE-01)` CI step running `make typecheck` standalone in ci.yml, locked in by a regex guard test in tests/typecheck-config.test.ts.
+- Machine-enforced core-only zero-runtime-dep gate: a Node-built-in-only field-check script wired into `make verify-no-runtime-deps`, a named CI step, and release/publish prerequisites — scoped to the root `@dnzn/dxkit` package.json only, never the plugins.
+- Committed `renovate.json` (config:recommended, 3-day minimumReleaseAge, toolchain-group always-blocked-major automerge, weekly object-shaped lockFileMaintenance) plus a durable invariant guard test, re-verified against the live Renovate schema at execution time.
+- `loadManifests()` now `Array.isArray()`-guards the parsed registry.json 200 body, fail-closing to `[]` with an ungated `dx:error` instead of letting a wrong-shape body throw an uncaught `TypeError` out of `normalizeAndValidateManifests()` before `window.__DXKIT__` is exposed.
+- Extended ROB-05's registry-tier `Array.isArray()` guard to `loadManifests()`'s `dapps` and inline `manifests` tiers via a shared closure-local `coerceManifestArray()` helper — closes v1.1 milestone-audit CR-01.
+
+---
+
 ## v1.0 Beta Hardening (Shipped: 2026-07-15)
 
 **Phases completed:** 5 phases, 23 plans, 51 tasks

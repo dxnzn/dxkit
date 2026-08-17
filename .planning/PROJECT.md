@@ -15,13 +15,24 @@ template sanitizer and configurable storage keys close the two concrete security
 suite proves last-navigation-wins, and every doc is verified against the final code. Still
 alpha-track by version, but meaningfully more robust and fully documentation-truthful.
 
+The v1.1 "TypeScript 6 Migration & Toolchain Modernization" milestone shipped as 0.3.0: a
+runtime-invisible modernization pass — Node 22 LTS floor (breaking for contributors, not
+consumers), TypeScript 6 with a standalone `tsc --noEmit` gate and zero deprecation shims, TS7
+forward-compat flags on, a build-artifact smoke test, a machine-enforced zero-runtime-dep gate,
+Renovate, and fail-closed manifest-shape guards across all three `loadManifests()` tiers.
+
 ## Core Value
 
 DxKit stays trustworthy for real use: failures are visible (never silent), the documented
 behavior matches the actual behavior, and the alpha is stable enough to build on with
 confidence.
 
-## Current Milestone: v1.1 TypeScript 6 Migration & Toolchain Modernization
+## Current Milestone
+
+_(none — v1.1 shipped 2026-08-16 as 0.3.0; next milestone to be defined via `/gsd-new-milestone`. See **Next Milestone Goals** below.)_
+
+<details>
+<summary>Shipped: v1.1 TypeScript 6 Migration & Toolchain Modernization (0.3.0)</summary>
 
 **Goal:** Migrate core + all plugins to TypeScript 6, audit and modernize the full toolchain,
 and put continuous forward-compat guardrails in place so the eventual jump to TS 7.1 is clean.
@@ -42,6 +53,8 @@ and put continuous forward-compat guardrails in place so the eventual jump to TS
 milestone treats it as a stepping stone — every measure is chosen to de-risk the TS 7.1 jump later (waiting
 on a TS7 point release for stable ABI/API). Storage encryption and new routing features are deferred again
 to keep this a focused modernization pass.
+
+</details>
 
 ## Requirements
 
@@ -111,19 +124,17 @@ to keep this a focused modernization pass.
 
 ### Active
 
-<!-- v1.1 TS6 + toolchain modernization milestone complete (Phases 6–9). No open active requirements;
-     next milestone (v2) will populate this section. Follow-up noted below. -->
+<!-- v1.1 shipped (0.3.0). CR-01 follow-up closed by Phase 10 (ROB-06). The next milestone
+     (on-chain / ERC-8244 deployment — see Next Milestone Goals) will populate this section. -->
 
-_(none — v1.1 milestone complete)_
-
-**Follow-ups (not yet scheduled)**
-- CR-01 (from 09-REVIEW.md): extend the registry array-guard to the inline/`dapps` tiers of `loadManifests()` via a shared `coerceManifestArray()` helper, so untyped IIFE consumers can't crash `shell.init()` silently.
+_(none — v1.1 milestone shipped; next milestone not yet defined)_
 
 ### Out of Scope
 
 <!-- Deferred, not dropped — each is a candidate for a later milestone. -->
 
-- TypeScript 6 migration — separate milestone; already tracked in docs/plans TODO, distinct from hardening
+- TypeScript 7.x migration — the payoff of v1.1's forward-compat groundwork; waiting on a stable TS 7.1 point release (ABI/API)
+- tsup → tsdown swap — needs Node ≥22.18; deferred until the TS7 jump makes the build-tool churn worth it
 - New routing features (wildcard / regex / `:param` routes) — a feature, not hardening
 - Storage encryption for persisted settings/wallet state — larger design effort; defer
 - Built-in cross-dapp state sharing — conflicts with the headless, event-only design; reject/defer
@@ -141,31 +152,57 @@ _(none — v1.1 milestone complete)_
 - **Plugin lockstep versioning.** Core + all plugins release at the same version (enforced by
   `.versionrc.json`) — a 0.2.0 bump moves everything together.
 - **Shipped state (v1.0 / 0.2.0).** ~2,986 LOC TypeScript source (core + 4 plugins), ~5,932 LOC
-  tests across 321 passing vitest specs. Zero runtime dependencies maintained. 15/15 milestone
-  requirements validated across 5 phases (DIAG, ROB, SEC, TEST, DOC). Three breaking changes
-  shipped with migration notes (nested `ShellConfig.lifecycle`, load-timeout defaults, sanitizer hook).
+  tests across 321 passing vitest specs. 15/15 milestone requirements validated across 5 phases
+  (DIAG, ROB, SEC, TEST, DOC). Three breaking changes shipped with migration notes (nested
+  `ShellConfig.lifecycle`, load-timeout defaults, sanitizer hook).
+- **Shipped state (v1.1 / 0.3.0).** ~2,957 LOC TypeScript source, ~6,790 LOC tests across 413 passing
+  vitest specs + an 11-spec `make smoke` artifact suite. TypeScript 6.0.x, Node `^22.12.0 || >=24.0.0`
+  (engine-strict), vite 8 / vitest 4.1 / tsup 8.5 / Biome 2.5, `verbatimModuleSyntax` +
+  `isolatedDeclarations` + `erasableSyntaxOnly` on. Zero runtime deps now machine-enforced for core
+  (`make verify-no-runtime-deps`). 16/16 milestone requirements + CR-01 gap closure validated. One
+  breaking change (Node floor) — contributor-facing only; the runtime API surface is unchanged from 0.2.1.
+- **Deployment reality check (Aug 2026).** Built IIFEs are small: core ≈7.0 KB gzipped, plugins 1.1–2.6 KB
+  each (~15 KB total) — comfortably under the 24,576-byte EIP-170 contract-code limit, which makes
+  fully on-chain hosting (ERC-8244 `html()`) a realistic next target rather than a stretch.
 
 ## Next Milestone Goals
 
-Candidate scope for the milestone *after* v1.1 (not yet committed):
+Candidate scope for the milestone after v1.1 (not yet committed — to be defined via `/gsd-new-milestone`):
 
-- **TypeScript 7.1 migration** — the payoff of v1.1's forward-compat groundwork; waiting on a TS7 point
-  release for stable ABI/API before committing.
-- **Storage encryption** for persisted settings/wallet state (STOR-01 territory) — larger design effort;
-  deferred again out of v1.1 to keep it a focused modernization pass.
-- Possible new routing features (wildcard / `:param`) if consumer demand appears — a feature, not modernization.
-
-*(TS6 migration and the WR-01 robustness fix moved into the committed v1.1 milestone above.)*
+- **On-chain / ERC-8244 deployment (leading candidate).** Make DxKit dapps loadable from contract
+  `html()` (ERC-8244) as first-class alongside IPFS/static, and publish DxKit core + plugins themselves
+  as versioned, immutable on-chain artifacts that a dapp's `html()` chain-loads — the target being
+  ENS-addressed dapps in browsers like Freedom that resolve `name.eth` → `html()`.
+  - *Resolver layer* (near-zero core change): a `web3://`-style (ERC-6860) URL resolver providing
+    `templateLoader`/`scriptLoader`/`styleLoader` that `eth_call` the target, ABI-decode `string`,
+    optionally gunzip (native `DecompressionStream`), and verify a keccak pin — DxKit's loaders are
+    already opaque `(src: string) => Promise` seams, so manifests keep their schema and just carry
+    `web3://` strings in `entry`/`template`/`styles`.
+  - *Sandbox hardening in core* (small, additive): inline `<style>` instead of `<link href>`, script
+    text injection via `blob:`/`textContent`, full-document `html()` → fragment extraction with
+    inline-`<script>` re-execution, `entry` optional when `template` is on-chain, hash-mode default
+    under `srcdoc`/opaque origins, storage-unavailable degradation for settings.
+  - *Publish tooling*: gzip + chunk (≤24 KB) + SSTORE2-style data contracts + a versioned facade
+    contract per package exposing `html()`/`source()`; foundry deploy scripts (dev-only — zero
+    runtime deps preserved); a ~1 KB bootstrap snippet dapp authors paste into their own `html()`.
+  - *Hard external dependencies to verify first*: ERC-8244 forbids any network URL fetch (only
+    `data:`/`blob:`), so chain-loading is `eth_call` via `window.ethereum` — Freedom's current
+    read-only preview may not inject a provider; a spike must confirm before tooling investment.
+- **TypeScript 7.1 migration** — waiting on a stable TS7 point release; the forward-compat flags are already on.
+- **Storage encryption** for persisted settings/wallet state — larger design effort, deferred twice.
+- Possible new routing features (wildcard / `:param`) if consumer demand appears.
 
 ## Constraints
 
-- **Tech stack**: TypeScript 5.8.3, Node 18+ / ES2022, pnpm 10.32.1, tsup, vitest + happy-dom, Biome — established; stay on TS 5.x this milestone (TS6 deferred).
+- **Tech stack**: TypeScript 6.0.x, Node `^22.12.0 || >=24.0.0` (engine-strict) / ES2022, pnpm 10.32.1, tsup 8.5, vite 8, vitest 4.1 + happy-dom, Biome 2.5 — established as of v1.1; TS7/tsdown deferred until a stable TS 7.1.
 - **Compatibility**: Breaking changes are acceptable (still alpha) *only where they clearly
   improve the API*; each must carry a `BREAKING CHANGE:` footer and migration notes. Prefer
   additive (new events / optional config) wherever it's equivalent.
 - **Zero runtime deps**: Hardening must not introduce runtime dependencies — the zero-dep
   posture is a selling point.
 - **Deployment**: IIFE / static / IPFS remains a first-class target; changes must not assume a bundler.
+  On-chain (ERC-8244) hosting is the candidate next target — it additionally forbids any network URL
+  fetch at runtime, so new loader work must not assume `fetch()`/`<script src>` reachability.
 
 ## Key Decisions
 
@@ -177,7 +214,14 @@ Candidate scope for the milestone *after* v1.1 (not yet committed):
 | Breaking changes allowed but justified + migration-documented | Still alpha, but consumers exist; churn must earn its keep | ✓ Good — nested `ShellConfig.lifecycle` (D-04/05) shipped with migration section |
 | `ShellConfig.lifecycle` nested group replaces flat loader passthrough | Only way to reach the sanitizer/timeout/cache config from `createShell()` | ✓ Good — runtime throw guards untyped consumers |
 | Defer TS6, new routing, encryption, cross-dapp state | Each is a feature/large effort orthogonal to hardening; keep the milestone focused | ✓ Good — kept the milestone focused; carried to next-milestone candidates |
-| Tighten Node floor to `^22.12.0 \|\| >=24.0.0` (not literal `>=22`) | Gap closure found `>=22` admitted Node 22.0–22.11/23.x that the pinned vite/vitest engines reject under engine-strict — the declared floor must equal the *enforceable* floor | ✓ Good (Phase 6) — declared floor now internally consistent; shipped as BREAKING CHANGE; ROADMAP/docs wording still says `>=22` and must follow in the docs pass |
+| Tighten Node floor to `^22.12.0 \|\| >=24.0.0` (not literal `>=22`) | Gap closure found `>=22` admitted Node 22.0–22.11/23.x that the pinned vite/vitest engines reject under engine-strict — the declared floor must equal the *enforceable* floor | ✓ Good (Phase 6) — declared floor now internally consistent; shipped as BREAKING CHANGE; docs aligned in the Phase 6 docs pass; released in 0.3.0 |
+| Land the standalone `tsc --noEmit` step *before* the TS6 bump (TS6-03 → TS6-01) | Type checking only existed as a side effect of tsup's dts emit; a deprecation gate needs a real baseline to attach to | ✓ Good (Phase 7) — the bump surfaced a real tsup dts-bundler break that the standalone gate isolated; zero `ignoreDeprecations` shims |
+| Switch dts emission from tsup `dts:true` to `tsc --emitDeclarationOnly` | tsup's bundler tripped TS6's `TS5101` baseUrl deprecation; fixing at source rather than shimming | ✓ Good (Phase 7) — clean under TS6, and positions the build for tsdown later |
+| Turn on all three TS7 forward-compat flags as a pure config flip | Research predicted zero source churn; a flag-presence guard test prevents silent regression | ✓ Good (Phase 8) — zero `src/` changes across 5 packages |
+| Artifact smoke test via `node:vm`, not happy-dom `<script>` | happy-dom's script-element path is broken for IIFE global-attach; the point is to exercise the real `dist/` outputs | ✓ Good (Phase 8) — 11-spec `make smoke` gate wired into release/publish/CI |
+| Zero-runtime-dep gate scoped to core only | Plugins depend on `@dnzn/dxkit` types (workspace); the selling point is the core package | ✓ Good (Phase 9) — GATE-02 enforces exactly the promise the README makes |
+| Fail-closed array-shape guard at every `loadManifests()` tier via one helper | Untyped IIFE consumers get no compile-time protection; an uncaught `TypeError` before `window.__DXKIT__` is the worst silent failure | ✓ Good (Phase 9/10) — ROB-05 + ROB-06, single `dx:error` source `shell:manifest` |
+| Release v1.1 as **0.3.0** (minor, not patch) | Node-floor bump is a `BREAKING CHANGE` for the dev toolchain even though the runtime API is unchanged from 0.2.1 | ✓ Good — tagged `v0.3.0` 2026-08-16 |
 
 ## Evolution
 
@@ -197,4 +241,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-19 after Phase 10 (Close gap: CR-01 — guard dapps/inline manifests tiers) complete — ROB-06 validated: the `coerceManifestArray()` helper extends ROB-05's registry array-guard to the `dapps` and inline `manifests` tiers, closing the CR-01 follow-up flagged at Phase 9. All 5 v1.1 phases (6–10) are now complete; the milestone is ready to close. Prior: Phase 9 landed GATE-01/02/03 + ROB-05 (named blocking typecheck CI gate, machine-enforced zero-runtime-dep assertion for core, Renovate automation, registry array-shape fix). Aimed at a clean TS 7.1 jump.*
+*Last updated: 2026-08-16 after v1.1 milestone (TypeScript 6 Migration & Toolchain Modernization) shipped as 0.3.0 — 5 phases (6–10), 17 plans, 16/16 requirements + CR-01 gap closure validated. Next milestone candidate: on-chain / ERC-8244 deployment (see Next Milestone Goals).*
