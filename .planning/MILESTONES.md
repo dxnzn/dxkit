@@ -1,6 +1,6 @@
 # Milestones
 
-## v1.1 TypeScript 6 Migration & Toolchain Modernization (Shipped: 2026-08-16)
+## v0.3 TypeScript 6 Migration & Toolchain Modernization (Shipped: 2026-08-16)
 
 **Phases completed:** 5 phases, 17 plans, 32 tasks
 **Released as:** 0.3.0 (tag `v0.3.0`, all five packages in lockstep; Node ≥22.12 floor shipped as `BREAKING CHANGE`)
@@ -23,11 +23,11 @@
 - Machine-enforced core-only zero-runtime-dep gate: a Node-built-in-only field-check script wired into `make verify-no-runtime-deps`, a named CI step, and release/publish prerequisites — scoped to the root `@dnzn/dxkit` package.json only, never the plugins.
 - Committed `renovate.json` (config:recommended, 3-day minimumReleaseAge, toolchain-group always-blocked-major automerge, weekly object-shaped lockFileMaintenance) plus a durable invariant guard test, re-verified against the live Renovate schema at execution time.
 - `loadManifests()` now `Array.isArray()`-guards the parsed registry.json 200 body, fail-closing to `[]` with an ungated `dx:error` instead of letting a wrong-shape body throw an uncaught `TypeError` out of `normalizeAndValidateManifests()` before `window.__DXKIT__` is exposed.
-- Extended ROB-05's registry-tier `Array.isArray()` guard to `loadManifests()`'s `dapps` and inline `manifests` tiers via a shared closure-local `coerceManifestArray()` helper — closes v1.1 milestone-audit CR-01.
+- Extended ROB-05's registry-tier `Array.isArray()` guard to `loadManifests()`'s `dapps` and inline `manifests` tiers via a shared closure-local `coerceManifestArray()` helper — closes v0.3 milestone-audit CR-01.
 
 ---
 
-## v1.0 Beta Hardening (Shipped: 2026-07-15)
+## v0.2 Beta Hardening (Shipped: 2026-07-15)
 
 **Phases completed:** 5 phases, 23 plans, 51 tasks
 

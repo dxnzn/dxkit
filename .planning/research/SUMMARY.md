@@ -1,4 +1,4 @@
-# Research Summary: DxKit v1.2 On-Chain Deployment (ERC-8244)
+# Research Summary: DxKit v0.4 On-Chain Deployment (ERC-8244)
 
 **Project:** DxKit (headless dapp microframework)  
 **Domain:** Ethereum L1 on-chain deployment + `web3://` asset resolution  
@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-DxKit v1.2 adds a third co-equal deployment target: fully on-chain dapps that chain-load a versioned DxKit framework contract and render via an ERC-8244 `html()` call. Unlike existing single-purpose on-chain dapps (zFi/zSwap), DxKit's architecture decouples the reusable framework from per-dapp contracts, reducing on-chain footprint and enabling true third-party dapp development on-chain.
+DxKit v0.4 adds a third co-equal deployment target: fully on-chain dapps that chain-load a versioned DxKit framework contract and render via an ERC-8244 `html()` call. Unlike existing single-purpose on-chain dapps (zFi/zSwap), DxKit's architecture decouples the reusable framework from per-dapp contracts, reducing on-chain footprint and enabling true third-party dapp development on-chain.
 
 The recommended approach mirrors real working precedent (zFi/zSwap via SSTORE2 data contracts): build locally with Foundry/Anvil, gzip and chunk the IIFE builds into ≤24,576-byte contracts via `SSTORE2.write()`, deploy a minimal versioned facade contract per DxKit release, and provide loaders that resolve `web3://` URLs via `eth_call` + native browser `DecompressionStream` gunzip. The bootstrap snippet (≈1 KB) hardcodes a keccak pin to verify chain-loaded code before execution — this is the single most critical security gate.
 
@@ -49,7 +49,7 @@ The recommended approach mirrors real working precedent (zFi/zSwap via SSTORE2 d
 - Local preview/dev-server proxy for on-chain dapps in a normal browser
 - ENS-name version discovery (optional sugar; no precedent uses it)
 - Freedom browser integration (blocked on open question: does its read-only preview inject EIP-1193?)
-- L2 deploys (Base, etc.) — sequencing candidate only after v1.2 lands
+- L2 deploys (Base, etc.) — sequencing candidate only after v0.4 lands
 
 ### Architecture Approach
 
@@ -145,7 +145,7 @@ Research suggests 10 sequenced build-order phases, with core changes (highest ri
 
 2. **`srcdoc` / opaque-origin / hash routing** — No precedent for routable on-chain dapp in sandboxed iframe. *Mitigation:* Spike during Phase 7; verify hash-mode works with `data:` URLs.
 
-3. **Freedom browser EIP-1193 injection** — Unconfirmed. *Mitigation:* Documented as spike; not a v1.2 blocker (RPC fallback exists).
+3. **Freedom browser EIP-1193 injection** — Unconfirmed. *Mitigation:* Documented as spike; not a v0.4 blocker (RPC fallback exists).
 
 4. **Etherscan data-contract verification** — Raw bytecode has no Solidity source. *Mitigation:* Verify facade only; likely acceptable.
 

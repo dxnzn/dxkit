@@ -73,7 +73,7 @@ forge install Vectorized/solady --no-commit
 | A gzip **polyfill** or Node's `zlib` bundled for the browser | `DecompressionStream('gzip')` has been Baseline-widely-available since March 2023 (Safari 16.4 was the last holdout) — bundling `pako` or similar for browsers already assumed to support ES2022 + EIP-1193 is dead weight. | Native `DecompressionStream`. (Node's `zlib.gzipSync` is fine and expected on the *write* side — inside Foundry-adjacent Node/CI scripts or a small `contracts/script/prepare-chunks.mjs` helper that gzips the built IIFE before chunking — that script is dev tooling, not the runtime resolver package, so it's unconstrained by the zero-dep rule.) |
 | `0xsequence/sstore2`'s Solidity library over solady's, without a specific reason | Both work; solady is the more actively maintained, more widely audited choice for a contract that will hold real mainnet funds/gas spend by the end of this milestone. | solady `SSTORE2`, pinned to a specific commit/tag. |
 | Foundry `nightly` channel for this milestone | Nightly is a rolling, unstable build stream intended for testing upcoming Foundry features, not for a milestone that ends in a real mainnet deploy. | Foundry `stable` channel, version-pinned (`v1.7.1` at time of writing — re-verify at implementation time via `foundryup --install stable` output or the GitHub tags API). |
-| ENS resolution for the facade contract's discovery, in this milestone | Explicitly out of scope — `PROJECT.md` lists "ENS-name discovery for DxKit versions" as a *Next Milestone* candidate, not a v1.2 requirement. Adding it now expands the on-chain publish tooling's surface (ENS registry calls, `nsProviderSuffix` resolution per ERC-4804) beyond what's needed to ship. | Hardcode/pin the deployed contract address per version; defer ENS to a follow-on milestone. |
+| ENS resolution for the facade contract's discovery, in this milestone | Explicitly out of scope — `PROJECT.md` lists "ENS-name discovery for DxKit versions" as a *Next Milestone* candidate, not a v0.4 requirement. Adding it now expands the on-chain publish tooling's surface (ENS registry calls, `nsProviderSuffix` resolution per ERC-4804) beyond what's needed to ship. | Hardcode/pin the deployed contract address per version; defer ENS to a follow-on milestone. |
 
 ## Stack Patterns by Variant
 
@@ -87,7 +87,7 @@ forge install Vectorized/solady --no-commit
 
 **If a target contract predates ERC-8244 and cannot implement `html()` directly (already deployed, immutable):**
 - ERC-8244 itself defines an optional `IContractHostedAppRegistry.html(address target)` fallback interface for exactly this case.
-- Out of scope for v1.2 (DxKit deploys its own conforming contracts from scratch) — but worth flagging as a natural v1.3+ extension point for the resolver package if consumers ask to point DxKit at pre-existing on-chain apps.
+- Out of scope for v0.4 (DxKit deploys its own conforming contracts from scratch) — but worth flagging as a natural v0.5+ extension point for the resolver package if consumers ask to point DxKit at pre-existing on-chain apps.
 
 ## Version Compatibility
 
@@ -118,5 +118,5 @@ forge install Vectorized/solady --no-commit
 - `src/lifecycle.ts` (this repo) — existing `ScriptLoader`/`StyleLoader`/`TemplateLoader` seam signatures the new resolver package must match — read directly.
 
 ---
-*Stack research for: On-chain (ERC-8244) deployment — v1.2 milestone*
+*Stack research for: On-chain (ERC-8244) deployment — v0.4 milestone*
 *Researched: 2026-08-16*

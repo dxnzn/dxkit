@@ -2,16 +2,16 @@
 
 ## Milestones
 
-- ✅ **v1.0 Beta Hardening** — Phases 1–5 (shipped 2026-07-15, released as 0.2.0)
-- ✅ **v1.1 TypeScript 6 Migration & Toolchain Modernization** — Phases 6–10 (shipped 2026-08-16, released as 0.3.0)
-- 🚧 **v1.2 On-Chain Deployment (ERC-8244)** — Phases 11–18 (active)
+- ✅ **v0.2 Beta Hardening** — Phases 1–5 (shipped 2026-07-15, released as 0.2.0)
+- ✅ **v0.3 TypeScript 6 Migration & Toolchain Modernization** — Phases 6–10 (shipped 2026-08-16, released as 0.3.0)
+- 🚧 **v0.4 On-Chain Deployment (ERC-8244)** — Phases 11–18 (active)
 
-Detail archived in [`milestones/v1.0-ROADMAP.md`](milestones/v1.0-ROADMAP.md) and
-[`milestones/v1.1-ROADMAP.md`](milestones/v1.1-ROADMAP.md).
+Detail archived in [`milestones/v0.2-ROADMAP.md`](milestones/v0.2-ROADMAP.md) and
+[`milestones/v0.3-ROADMAP.md`](milestones/v0.3-ROADMAP.md).
 
-## Overview (v1.2)
+## Overview (v0.4)
 
-v1.2 makes on-chain a third co-equal deployment target. The entire milestone is developed and
+v0.4 makes on-chain a third co-equal deployment target. The entire milestone is developed and
 proven on a local Foundry/Anvil loop; only the final two phases touch a public network, and both
 are deploy-and-verify, not development.
 
@@ -23,7 +23,7 @@ which puts the publish pipeline (Phase 12) ahead of the `@dnzn/dxkit-web3` packa
 
 Phases 11–13 add nothing to `src/`. The Foundry workspace, the publish pipeline, and the resolver
 package are all new surface that reaches core only through the `ShellConfig.lifecycle` loader seam
-v1.0 Phase 3 built for exactly this purpose. Phase 13 ends on the milestone's first real proof: a
+v0.2 Phase 3 built for exactly this purpose. Phase 13 ends on the milestone's first real proof: a
 script-only dapp mounting from Anvil through **unmodified** core.
 
 Phase 14 is the milestone's highest-regression-risk phase and the **only** one that touches shared
@@ -46,10 +46,10 @@ manifests, ENS version discovery, and L2 deploys.
 
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
-- Each milestone continues numbering from the previous one (v1.0 ended at Phase 5, v1.1 at Phase 10)
+- Each milestone continues numbering from the previous one (v0.2 ended at Phase 5, v0.3 at Phase 10)
 
 <details>
-<summary>✅ v1.0 Beta Hardening (Phases 1–5) — SHIPPED 2026-07-15</summary>
+<summary>✅ v0.2 Beta Hardening (Phases 1–5) — SHIPPED 2026-07-15</summary>
 
 Hardened DxKit 0.1.5 → 0.2.0 without expanding the feature surface: silent failures made
 visible via `dx:error`, load/hang/leak guards, an optional template sanitizer + configurable
@@ -64,7 +64,7 @@ storage keys, a stress/edge-case/regression test suite, and a full documentation
 </details>
 
 <details>
-<summary>✅ v1.1 TypeScript 6 Migration & Toolchain Modernization (Phases 6–10) — SHIPPED 2026-08-16</summary>
+<summary>✅ v0.3 TypeScript 6 Migration & Toolchain Modernization (Phases 6–10) — SHIPPED 2026-08-16</summary>
 
 Modernized the dev toolchain 0.2.1 → 0.3.0 without touching the runtime surface: Node 22 LTS floor
 (`^22.12.0 || >=24.0.0`, engine-strict, breaking), TypeScript 6 with a standalone per-package
@@ -79,7 +79,7 @@ test, machine-enforced zero-runtime-dep assertion, Renovate, and the ROB-05/06 m
 
 </details>
 
-**🚧 v1.2 On-Chain Deployment (ERC-8244) (Phases 11–18)**
+**🚧 v0.4 On-Chain Deployment (ERC-8244) (Phases 11–18)**
 
 - [ ] **Phase 11: Foundry/Anvil Dev Loop & Spec Pin** - Local chain, `contracts/` workspace, dual-mode preview gateway, secrets hygiene, and the pinned ERC-8244 draft text.
 - [ ] **Phase 12: On-Chain Publish Tooling & Facade Contracts** - Reproducible gzip → chunked SSTORE2 data contracts → immutable versioned ERC-8244 facade, deployed by one chain-agnostic command.
@@ -95,7 +95,7 @@ test, machine-enforced zero-runtime-dep assertion, Renovate, and the ROB-05/06 m
 ### Phase 11: Foundry/Anvil Dev Loop & Spec Pin
 
 **Goal**: A developer can start a local chain, deploy an ERC-8244 contract to it, and see that contract's `html()` render in an ordinary browser — with the exact spec text those contracts implement pinned in-repo before a single immutable byte is written.
-**Depends on**: Nothing new (first phase of v1.2; v1.1 shipped as 0.3.0)
+**Depends on**: Nothing new (first phase of v0.4; v0.3 shipped as 0.3.0)
 **Requirements**: DEV-01, DEV-03, DEV-04, DEV-06, PUB-07
 **Success Criteria** (what must be TRUE):
 
@@ -152,7 +152,7 @@ test, machine-enforced zero-runtime-dep assertion, Renovate, and the ROB-05/06 m
 
   1. `DappManifest.entry` is optional and `isValidManifest()` fails closed requiring at least one of `entry` or `template`; the existing 413-spec suite stays green with **no existing spec modified** (only added).
   2. With opt-in `LifecycleManagerOptions.executeInlineScripts: true`, a full ERC-8244 `html()` document mounted into `#dx-mount` yields a usable fragment (`<body>` + `<style>` + inline `<script>`) and its inline scripts actually run; with the flag unset (default `false`), template injection is byte-for-byte 0.3.0 behavior and fragment templates are unaffected.
-  3. Wallet, theme, and settings plugins still complete `init()` in an opaque-origin sandbox where `localStorage`/`sessionStorage` *property access itself* throws — degrading to in-memory state and surfacing `dx:error` per the v1.0 storage-error contract.
+  3. Wallet, theme, and settings plugins still complete `init()` in an opaque-origin sandbox where `localStorage`/`sessionStorage` *property access itself* throws — degrading to in-memory state and surfacing `dx:error` per the v0.2 storage-error contract.
   4. Configuring history-mode routing under a `srcdoc`/opaque origin where `pushState` is unusable surfaces a `dx:error`/warning event instead of an uncaught `SecurityError`, with hash mode documented as the on-chain default.
   5. Non-regression for the other two targets is proven, not asserted: defaults unchanged, no new runtime dependency (GATE-02 green), and `make smoke` green against the real IIFE/CJS `dist/` artifacts.
 
@@ -223,16 +223,16 @@ test, machine-enforced zero-runtime-dep assertion, Renovate, and the ROB-05/06 m
 ## Progress
 
 **Execution Order:**
-v1.2 phases execute in numeric order: 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18.
-Phases 1–10 (v1.0, v1.1) are complete — detail in `milestones/v1.0-ROADMAP.md` and `milestones/v1.1-ROADMAP.md`.
+v0.4 phases execute in numeric order: 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18.
+Phases 1–10 (v0.2, v0.3) are complete — detail in `milestones/v0.2-ROADMAP.md` and `milestones/v0.3-ROADMAP.md`.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 11. Foundry/Anvil Dev Loop & Spec Pin | v1.2 | 0/TBD | Not started | - |
-| 12. On-Chain Publish Tooling & Facade Contracts | v1.2 | 0/TBD | Not started | - |
-| 13. `web3://` Resolver & Loader Integration | v1.2 | 0/TBD | Not started | - |
-| 14. Core Sandbox Hardening (additive) | v1.2 | 0/TBD | Not started | - |
-| 15. Bootstrap Snippet & On-Chain Demo Dapp | v1.2 | 0/TBD | Not started | - |
-| 16. Documentation — On-Chain Target | v1.2 | 0/TBD | Not started | - |
-| 17. Sepolia Deploy | v1.2 | 0/TBD | Not started | - |
-| 18. Ethereum Mainnet Deploy | v1.2 | 0/TBD | Not started | - |
+| 11. Foundry/Anvil Dev Loop & Spec Pin | v0.4 | 0/TBD | Not started | - |
+| 12. On-Chain Publish Tooling & Facade Contracts | v0.4 | 0/TBD | Not started | - |
+| 13. `web3://` Resolver & Loader Integration | v0.4 | 0/TBD | Not started | - |
+| 14. Core Sandbox Hardening (additive) | v0.4 | 0/TBD | Not started | - |
+| 15. Bootstrap Snippet & On-Chain Demo Dapp | v0.4 | 0/TBD | Not started | - |
+| 16. Documentation — On-Chain Target | v0.4 | 0/TBD | Not started | - |
+| 17. Sepolia Deploy | v0.4 | 0/TBD | Not started | - |
+| 18. Ethereum Mainnet Deploy | v0.4 | 0/TBD | Not started | - |

@@ -145,5 +145,5 @@ Recommended sequencing for the modernization work itself:
 - Repo-grounded (read directly, HIGH confidence): `tsconfig.json`, `tsup.config.ts` (root + 4 plugins), `package.json` (root + 4 plugins), `Makefile`, `.github/workflows/ci.yml`, `vitest.config.ts`, `pnpm-workspace.yaml`, `.planning/PROJECT.md`, `.planning/codebase/ARCHITECTURE.md`, `.planning/codebase/STRUCTURE.md`
 
 ---
-*Architecture research for: TS6 migration + forward-compat typing integration (DxKit v1.1)*
+*Architecture research for: TS6 migration + forward-compat typing integration (DxKit v0.3)*
 *Researched: 2026-07-15*

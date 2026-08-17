@@ -262,7 +262,7 @@ Foundry/Anvil local dev-loop phase (first phase touching `contracts/`) — confi
 ### Pitfall 12: Privileging the on-chain path and silently regressing IIFE/IPFS or bundler paths
 
 **What goes wrong:**
-In the rush to make `entry` optional (for template-only on-chain pages) or to add sandbox-degradation branches, a change to core (`src/lifecycle.ts`, `src/router.ts`, manifest validation) accidentally changes default behavior for the *other two* deployment targets — e.g., making `entry` genuinely optional in the manifest type without gating that optionality behind an on-chain-specific flag means a malformed IIFE/web manifest that's missing `entry` by mistake now fails validation silently instead of loudly, undoing hardening work from the v1.0/v1.1 milestones (`ROB-05`/`ROB-06`, sanitizer fail-closed behavior, etc.).
+In the rush to make `entry` optional (for template-only on-chain pages) or to add sandbox-degradation branches, a change to core (`src/lifecycle.ts`, `src/router.ts`, manifest validation) accidentally changes default behavior for the *other two* deployment targets — e.g., making `entry` genuinely optional in the manifest type without gating that optionality behind an on-chain-specific flag means a malformed IIFE/web manifest that's missing `entry` by mistake now fails validation silently instead of loudly, undoing hardening work from the v0.2/v0.3 milestones (`ROB-05`/`ROB-06`, sanitizer fail-closed behavior, etc.).
 
 **Why it happens:**
 The three target types share the same core code path (`mount()` in `lifecycle.ts`); it's easy to reason about "make X optional for the on-chain case" without re-deriving what X's absence should mean for the other two cases, especially under time pressure near a milestone deadline.
@@ -385,5 +385,5 @@ Core sandbox hardening phase — this is the single highest architectural risk p
 - Internal: `/Users/derks/Development/Denizen/dxkit/.planning/PROJECT.md` (milestone constraints, deployment-target parity requirement), `/Users/derks/Development/Denizen/dxkit/src/lifecycle.ts` (existing loader/sanitizer/timeout/cache contracts to preserve), `/Users/derks/Development/Denizen/dxkit/docs/security.md` (existing CSP/sanitizer/storage limitations to extend, not duplicate), `/Users/derks/Development/Denizen/dxkit/Makefile` (existing `make audit`/`make test`/`make lint` gates that `contracts/` must not silently evade or pollute)
 
 ---
-*Pitfalls research for: DxKit v1.2 On-Chain Deployment (ERC-8244) milestone*
+*Pitfalls research for: DxKit v0.4 On-Chain Deployment (ERC-8244) milestone*
 *Researched: 2026-08-16*

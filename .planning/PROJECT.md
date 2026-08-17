@@ -9,13 +9,13 @@ and targets static/IPFS deployment via IIFE builds alongside ESM/CJS for bundler
 for developers assembling small, decoupled dapps (mounted one at a time into `#dx-mount`)
 that talk to the shell only through `window.__DXKIT__`.
 
-The v1.0 "Beta Hardening" milestone shipped as 0.2.0: previously silent failures are now
+The v0.2 "Beta Hardening" milestone shipped as 0.2.0: previously silent failures are now
 visible via `dx:error`, the shell can't hang or leak state across disabled dapps, an optional
 template sanitizer and configurable storage keys close the two concrete security risks, a stress
 suite proves last-navigation-wins, and every doc is verified against the final code. Still
 alpha-track by version, but meaningfully more robust and fully documentation-truthful.
 
-The v1.1 "TypeScript 6 Migration & Toolchain Modernization" milestone shipped as 0.3.0: a
+The v0.3 "TypeScript 6 Migration & Toolchain Modernization" milestone shipped as 0.3.0: a
 runtime-invisible modernization pass — Node 22 LTS floor (breaking for contributors, not
 consumers), TypeScript 6 with a standalone `tsc --noEmit` gate and zero deprecation shims, TS7
 forward-compat flags on, a build-artifact smoke test, a machine-enforced zero-runtime-dep gate,
@@ -27,7 +27,7 @@ DxKit stays trustworthy for real use: failures are visible (never silent), the d
 behavior matches the actual behavior, and the alpha is stable enough to build on with
 confidence.
 
-## Current Milestone: v1.2 On-Chain Deployment (ERC-8244)
+## Current Milestone: v0.4 On-Chain Deployment (ERC-8244)
 
 **Goal:** A DxKit dapp can live entirely on Ethereum L1 — the dapp's ERC-8244 `html()` chain-loads a
 versioned on-chain DxKit plus its own dapp assets — backed by a complete local dev loop
@@ -64,7 +64,7 @@ alongside bundler/webserver and IIFE/static/IPFS — none is privileged, none re
 - Zero runtime deps preserved (Foundry is dev-only tooling); all core changes additive; npm target 0.4.0.
 
 <details>
-<summary>Shipped: v1.1 TypeScript 6 Migration & Toolchain Modernization (0.3.0)</summary>
+<summary>Shipped: v0.3 TypeScript 6 Migration & Toolchain Modernization (0.3.0)</summary>
 
 **Goal:** Migrate core + all plugins to TypeScript 6, audit and modernize the full toolchain,
 and put continuous forward-compat guardrails in place so the eventual jump to TS 7.1 is clean.
@@ -130,36 +130,36 @@ to keep this a focused modernization pass.
 - ✓ Manifest/route validation edge-case tests: invalid route formats rejected with `dx:error`, multi-match/duplicate routes resolved deterministically, deep-merge override semantics locked — validated Phase 4
 - ✓ Full-shell regression proves settings handlers registered by a dapp stop firing after `disableDapp()` — validated Phase 4
 
-<!-- Validated in Phase 6: Toolchain Audit & Modernization (v1.1) -->
+<!-- Validated in Phase 6: Toolchain Audit & Modernization (v0.3) -->
 - ✓ Build/test/lint tooling bumped to current TS6-compatible versions (tsup ^8.5, vite ^8.1, vitest ^4.1, happy-dom ^20.10, Biome ^2.5), `make test` green (321 specs) — validated Phase 6 (TOOL-03)
 - ✓ Node floor raised to 22 LTS via `engines.node: "^22.12.0 || >=24.0.0"` (tightened to match pinned vite/vitest ranges) + `.npmrc` engine-strict + CI matrix `['22.12.0', 24]`; negative install on Node 20 confirmed to fail-fast (UAT) — validated Phase 6 (TOOL-01, TOOL-02)
 - ✓ Commitizen adapter swapped to maintained `cz-git` (`cz-conventional-changelog` removed); interactive flow confirmed to emit conventional commits (UAT) — validated Phase 6 (TOOL-04)
 - ✓ All three build outputs (ESM/CJS/IIFE) confirmed present per package post-bump; `verify-outputs` wired into release/publish/CI so a dropped output fails automatically — validated Phase 6 (TOOL-05)
 
-<!-- Validated in Phase 7: TypeScript 6 Migration & Standalone Typecheck (v1.1) -->
+<!-- Validated in Phase 7: TypeScript 6 Migration & Standalone Typecheck (v0.3) -->
 - ✓ Standalone per-package `tsc --noEmit` typecheck (`tsconfig.typecheck.json` ×5 + `make typecheck`, independent of tsup's dts emit), wired into `make test`/CI as a green baseline before the bump — validated Phase 7 (TS6-03)
 - ✓ Core + all 4 plugins compile clean under TypeScript 6.0.3; dts emission switched from tsup's `dts:true` to `tsc --emitDeclarationOnly` to avoid TS6's `TS5101` baseUrl deprecation — validated Phase 7 (TS6-01)
 - ✓ No `ignoreDeprecations` shim in any tsconfig; every TS6 deprecation resolved at source; full vitest suite (321) green under TS6 — validated Phase 7 (TS6-02)
 
-<!-- Validated in Phase 8: Forward-Compat Typing (v1.1) -->
+<!-- Validated in Phase 8: Forward-Compat Typing (v0.3) -->
 - ✓ `verbatimModuleSyntax`, `isolatedDeclarations`, and `erasableSyntaxOnly` all enabled in the root base `tsconfig.json`, inherited by all 4 plugin tsconfigs via `extends`; enabled with zero at-source churn (no `src/` or `plugins/*/src/` changes), `.d.ts` emit succeeds for every package, and a durable flag-presence guard test fails the suite on silent flag removal — validated Phase 8 (FCT-01, FCT-02, FCT-03)
 - ✓ `make smoke` build-artifact gate: builds, then runs a separate vitest config against real `dist/` artifacts asserting each IIFE global attaches to a happy-dom Window with its full expected export-key set and CJS `require()` interop returns the same set (all 5 packages); wired into release/publish/CI after `verify-outputs`, never into `make test` — validated Phase 8 (FCT-04)
 
-<!-- Validated in Phase 9: Continuous Debt Guardrails & Registry Robustness (v1.1) -->
+<!-- Validated in Phase 9: Continuous Debt Guardrails & Registry Robustness (v0.3) -->
 - ✓ Named, distinct, blocking CI `Typecheck / deprecation gate (GATE-01)` step running `make typecheck` (scoped to `src`/`tests` via `tsconfig.typecheck.json`), separated from `make test` so a `tsc` deprecation/type error fails its own dedicated GitHub Check — validated Phase 9 (GATE-01)
 - ✓ Machine-enforced zero-runtime-dependency posture for the core `@dnzn/dxkit` package: `scripts/check-no-runtime-deps.cjs` (zero-dep, `node:fs` only) + `make verify-no-runtime-deps` + named CI step + release/publish prerequisites; guard test locks the wiring — validated Phase 9 (GATE-02)
 - ✓ Renovate automation for the pnpm workspace via committed `renovate.json` — `config:recommended`, `minimumReleaseAge: "3 days"`, toolchain group always blocking major automerge, weekly `lockFileMaintenance`; invariant guard test — validated Phase 9 (GATE-03)
 - ✓ WR-01/ROB-05 — `loadManifests()` `Array.isArray()`-guards the `registry.json` 200 body, fail-closing to `[]` with an ungated `dx:error` instead of an uncaught `TypeError` before `window.__DXKIT__` is exposed — validated Phase 9 (ROB-05)
 
-<!-- Validated in Phase 10: Close gap CR-01 — guard dapps/inline manifests tiers (v1.1) -->
+<!-- Validated in Phase 10: Close gap CR-01 — guard dapps/inline manifests tiers (v0.3) -->
 - ✓ CR-01/ROB-06 — a shared closure-local `coerceManifestArray()` helper extends ROB-05's array-shape guard to the `dapps` and inline `manifests` tiers of `loadManifests()`; all three tiers fail closed on a wrong-shape value (`coerced === null` → `[]`) with a single coherent `dx:error` (source `shell:manifest`) instead of an uncaught `TypeError`, while preserving each tier's asymmetric empty-array fallthrough — validated Phase 10 (ROB-06)
 
 ### Active
 
-<!-- v1.1 shipped (0.3.0). CR-01 follow-up closed by Phase 10 (ROB-06). The next milestone
+<!-- v0.3 shipped (0.3.0). CR-01 follow-up closed by Phase 10 (ROB-06). The next milestone
      (on-chain / ERC-8244 deployment — see Next Milestone Goals) will populate this section. -->
 
-<!-- v1.2 requirements are defined in REQUIREMENTS.md with REQ-IDs; summarized here at the feature level. -->
+<!-- v0.4 requirements are defined in REQUIREMENTS.md with REQ-IDs; summarized here at the feature level. -->
 - [ ] Local Foundry/Anvil dev loop: build → publish DxKit + dapp to Anvil → load in browser (make targets, forge tests)
 - [ ] On-chain publish tooling: data contracts + versioned facade with ERC-8244 `html()` / `source()`, keccak-pinned, chain-agnostic deploy
 - [ ] `web3://` resolver loader package (template/script/style) with gunzip + pin verification
@@ -172,7 +172,7 @@ to keep this a focused modernization pass.
 
 <!-- Deferred, not dropped — each is a candidate for a later milestone. -->
 
-- TypeScript 7.x migration — the payoff of v1.1's forward-compat groundwork; waiting on a stable TS 7.1 point release (ABI/API)
+- TypeScript 7.x migration — the payoff of v0.3's forward-compat groundwork; waiting on a stable TS 7.1 point release (ABI/API)
 - tsup → tsdown swap — needs Node ≥22.18; deferred until the TS7 jump makes the build-tool churn worth it
 - New routing features (wildcard / regex / `:param` routes) — a feature, not hardening
 - Storage encryption for persisted settings/wallet state — larger design effort; defer
@@ -190,11 +190,11 @@ to keep this a focused modernization pass.
   types and factory functions.
 - **Plugin lockstep versioning.** Core + all plugins release at the same version (enforced by
   `.versionrc.json`) — a 0.2.0 bump moves everything together.
-- **Shipped state (v1.0 / 0.2.0).** ~2,986 LOC TypeScript source (core + 4 plugins), ~5,932 LOC
+- **Shipped state (v0.2 / 0.2.0).** ~2,986 LOC TypeScript source (core + 4 plugins), ~5,932 LOC
   tests across 321 passing vitest specs. 15/15 milestone requirements validated across 5 phases
   (DIAG, ROB, SEC, TEST, DOC). Three breaking changes shipped with migration notes (nested
   `ShellConfig.lifecycle`, load-timeout defaults, sanitizer hook).
-- **Shipped state (v1.1 / 0.3.0).** ~2,957 LOC TypeScript source, ~6,790 LOC tests across 413 passing
+- **Shipped state (v0.3 / 0.3.0).** ~2,957 LOC TypeScript source, ~6,790 LOC tests across 413 passing
   vitest specs + an 11-spec `make smoke` artifact suite. TypeScript 6.0.x, Node `^22.12.0 || >=24.0.0`
   (engine-strict), vite 8 / vitest 4.1 / tsup 8.5 / Biome 2.5, `verbatimModuleSyntax` +
   `isolatedDeclarations` + `erasableSyntaxOnly` on. Zero runtime deps now machine-enforced for core
@@ -206,18 +206,18 @@ to keep this a focused modernization pass.
 
 ## Next Milestone Goals
 
-Candidates for the milestone after v1.2 (not committed):
+Candidates for the milestone after v0.4 (not committed):
 
 - **TypeScript 7.1 migration** — waiting on a stable TS7 point release; forward-compat flags already on. Pair with tsup → tsdown.
-- **On-chain follow-ons** (if v1.2 lands): L2 deploys (Base et al.), ENS-name discovery for DxKit versions, `web3://` gateway (ERC-4804/5219) resolution mode for the facade, Freedom-browser-specific integration once its provider story is public.
+- **On-chain follow-ons** (if v0.4 lands): L2 deploys (Base et al.), ENS-name discovery for DxKit versions, `web3://` gateway (ERC-4804/5219) resolution mode for the facade, Freedom-browser-specific integration once its provider story is public.
 - **Storage encryption** for persisted settings/wallet state — larger design effort, deferred three times.
 - Possible new routing features (wildcard / `:param`) if consumer demand appears.
 
-*(On-chain / ERC-8244 deployment moved into the committed v1.2 milestone above.)*
+*(On-chain / ERC-8244 deployment moved into the committed v0.4 milestone above.)*
 
 ## Constraints
 
-- **Tech stack**: TypeScript 6.0.x, Node `^22.12.0 || >=24.0.0` (engine-strict) / ES2022, pnpm 10.32.1, tsup 8.5, vite 8, vitest 4.1 + happy-dom, Biome 2.5 — established as of v1.1; TS7/tsdown deferred until a stable TS 7.1.
+- **Tech stack**: TypeScript 6.0.x, Node `^22.12.0 || >=24.0.0` (engine-strict) / ES2022, pnpm 10.32.1, tsup 8.5, vite 8, vitest 4.1 + happy-dom, Biome 2.5 — established as of v0.3; TS7/tsdown deferred until a stable TS 7.1.
 - **Compatibility**: Breaking changes are acceptable (still alpha) *only where they clearly
   improve the API*; each must carry a `BREAKING CHANGE:` footer and migration notes. Prefer
   additive (new events / optional config) wherever it's equivalent.
@@ -235,7 +235,7 @@ Candidates for the milestone after v1.2 (not committed):
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Scope milestone as "harden toward beta", ship as 0.2.0 | Alpha is field-stable; increase robustness + doc trust without a feature push | ✓ Good — shipped v1.0, 5 phases, 15/15 reqs, 321 tests green |
+| Scope milestone as "harden toward beta", ship as 0.2.0 | Alpha is field-stable; increase robustness + doc trust without a feature push | ✓ Good — shipped v0.2, 5 phases, 15/15 reqs, 321 tests green |
 | Target all four hardening tracks (silent failures, robustness, tests, security) | Concerns audit shows they're interrelated; a partial pass leaves obvious gaps | ✓ Good — all four tracks landed and verified |
 | Docs pass = verify-against-code + slop cleanup + gap-fill | "Code is truth"; drift and AI slop erode trust as much as bugs | ✓ Good — every doc snippet compile-checked; drift log is DOC-01 proof |
 | Breaking changes allowed but justified + migration-documented | Still alpha, but consumers exist; churn must earn its keep | ✓ Good — nested `ShellConfig.lifecycle` (D-04/05) shipped with migration section |
@@ -248,7 +248,7 @@ Candidates for the milestone after v1.2 (not committed):
 | Artifact smoke test via `node:vm`, not happy-dom `<script>` | happy-dom's script-element path is broken for IIFE global-attach; the point is to exercise the real `dist/` outputs | ✓ Good (Phase 8) — 11-spec `make smoke` gate wired into release/publish/CI |
 | Zero-runtime-dep gate scoped to core only | Plugins depend on `@dnzn/dxkit` types (workspace); the selling point is the core package | ✓ Good (Phase 9) — GATE-02 enforces exactly the promise the README makes |
 | Fail-closed array-shape guard at every `loadManifests()` tier via one helper | Untyped IIFE consumers get no compile-time protection; an uncaught `TypeError` before `window.__DXKIT__` is the worst silent failure | ✓ Good (Phase 9/10) — ROB-05 + ROB-06, single `dx:error` source `shell:manifest` |
-| Release v1.1 as **0.3.0** (minor, not patch) | Node-floor bump is a `BREAKING CHANGE` for the dev toolchain even though the runtime API is unchanged from 0.2.1 | ✓ Good — tagged `v0.3.0` 2026-08-16 |
+| Release v0.3 as **0.3.0** (minor, not patch) | Node-floor bump is a `BREAKING CHANGE` for the dev toolchain even though the runtime API is unchanged from 0.2.1 | ✓ Good — tagged `v0.3.0` 2026-08-16 |
 
 ## Evolution
 
@@ -268,4 +268,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-08-16 — v1.2 On-Chain Deployment (ERC-8244) milestone started (Foundry/Anvil dev loop, on-chain publish tooling, `web3://` resolver, sandbox hardening, demo dapp, Sepolia → mainnet deploys). Previous: v1.1 shipped as 0.3.0.*
+*Last updated: 2026-08-16 — v0.4 On-Chain Deployment (ERC-8244) milestone started (Foundry/Anvil dev loop, on-chain publish tooling, `web3://` resolver, sandbox hardening, demo dapp, Sepolia → mainnet deploys). Previous: v0.3 shipped as 0.3.0.*

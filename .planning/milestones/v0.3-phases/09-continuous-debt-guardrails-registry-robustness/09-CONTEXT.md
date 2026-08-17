@@ -6,7 +6,7 @@
 <domain>
 ## Phase Boundary
 
-Close out v1.1 with four independent, mostly-mechanical guardrails — no feature work:
+Close out v0.3 with four independent, mostly-mechanical guardrails — no feature work:
 
 1. **GATE-01** — a **visible CI deprecation gate**: `tsc --noEmit` type/deprecation errors fail
    the build, scoped to **project-owned paths only** (`src/`, `tests/`, `plugins/*/src/`) and

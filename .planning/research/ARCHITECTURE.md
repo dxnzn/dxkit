@@ -29,7 +29,7 @@ to this project) before the contract interface is locked as "immutable."
 │                         DxKit Deployment Targets (co-equal, none privileged)   │
 ├─────────────────────────────┬─────────────────────────────┬───────────────────┤
 │ 1. Bundler / webserver       │ 2. IIFE / static / IPFS      │ 3. On-chain        │
-│    (existing)                │    (existing)                │    (NEW, v1.2)     │
+│    (existing)                │    (existing)                │    (NEW, v0.4)     │
 │ ESM/CJS import into a         │ <script> tag, no bundler,    │ eth_call-driven    │
 │ bundled app; fetch() for      │ fetch() for assets, served   │ bootstrap; NO      │
 │ manifests/templates           │ from any static host/IPFS    │ fetch() permitted  │
@@ -95,7 +95,7 @@ to core are two small, additive, off-by-default items (see below).
 | `src/shell.ts` | **MODIFIED (additive)** | `isValidManifest()` loosened to match; `entry`-load step guarded | shell.ts:211-221 |
 | `src/lifecycle.ts` | **MODIFIED (additive)** | `mount()` skips the entry-load step when `manifest.entry` is absent; new opt-in `executeInlineScripts` hook re-executes `<script>` tags after template injection | lifecycle.ts:428-442, 397-401 |
 | `src/router.ts`, `src/events.ts`, `src/registry.ts` | **UNCHANGED** | No on-chain-specific behavior needed — see Integration Points | — |
-| `plugins/wallet`, `plugins/theme`, `plugins/settings` | **UNCHANGED** | Already storage-fail-soft (v1.0 Phase 3); wallet already reads the same `window.ethereum` global `dxkit-web3` uses | — |
+| `plugins/wallet`, `plugins/theme`, `plugins/settings` | **UNCHANGED** | Already storage-fail-soft (v0.2 Phase 3); wallet already reads the same `window.ethereum` global `dxkit-web3` uses | — |
 
 ---
 
@@ -126,7 +126,7 @@ to core are two small, additive, off-by-default items (see below).
 - `defaultScriptLoader`/`defaultStyleLoader`/`defaultTemplateLoader` (`src/lifecycle.ts:112-250`)
   are untouched — the on-chain path only ever *supplies a custom loader* through the existing
   `ShellConfig.lifecycle.{scriptLoader,styleLoader,templateLoader}` seam (`src/types/shell.ts:33`),
-  which was built in v1.0 Phase 3 precisely to be pluggable.
+  which was built in v0.2 Phase 3 precisely to be pluggable.
 - `dxkit-web3` is a standalone package with `@dnzn/dxkit` as an external peer/type-only import,
   identical in structure to `plugins/wallet` — it cannot regress core because it never edits
   core's source, only calls its public factory functions.
@@ -146,7 +146,7 @@ to core are two small, additive, off-by-default items (see below).
 | `mount()` entry-load gate | `src/lifecycle.ts:428-442` — unconditional `await loadScript(manifest.entry)` | **Modified.** Must become `if (manifest.entry) { await loadScript(manifest.entry); ... }` — skipped entirely when absent. |
 | Inline-`<script>` re-execution after template injection | `src/lifecycle.ts:397,399` — `container.innerHTML = ...` | **New additive hook.** Only `mount()` has a reference to `container` after injection — a `TemplateLoader` only returns a string (`src/lifecycle.ts:31`), so it structurally *cannot* re-execute scripts itself. This is why the fix must land in core, not in `dxkit-web3` alone. |
 | Wallet provider access | `plugins/wallet/src/index.ts:23-25` — `getEthereumProvider() { return (window as any).ethereum; }` | **Unmodified, directly reused.** The bootstrap snippet talks to `window.ethereum` *before* any DxKit plugin exists (chicken-and-egg: DxKit itself is being loaded via `eth_call`), so `dxkit-web3` calls the same global directly. Once `createShell()` runs, an optional `wallet` plugin can be registered as usual and will resolve the identical global — no conflict, no bridging needed. |
-| Storage graceful degradation | `plugins/wallet/src/index.ts` (`canUseStorage`), `plugins/theme/src/index.ts:60-91`, `plugins/settings/src/index.ts:41-81` | **Already covers this — zero new code.** All three storage-touching plugins already wrap every `localStorage` access in `canUseStorage()` + try/catch that emits `dx:error` on failure and continues in-memory. A sandboxed/opaque origin where `localStorage` throws a `SecurityError` is already handled by v1.0 Phase 3 hardening. |
+| Storage graceful degradation | `plugins/wallet/src/index.ts` (`canUseStorage`), `plugins/theme/src/index.ts:60-91`, `plugins/settings/src/index.ts:41-81` | **Already covers this — zero new code.** All three storage-touching plugins already wrap every `localStorage` access in `canUseStorage()` + try/catch that emits `dx:error` on failure and continues in-memory. A sandboxed/opaque origin where `localStorage` throws a `SecurityError` is already handled by v0.2 Phase 3 hardening. |
 | `dx:error` surfacing for custom-loader failures | `src/lifecycle.ts:336-350` (styles), `356-366` (template), `404-419` (dependency), `429-442` (entry) | **Already covers this.** Every loader call is already wrapped in try/catch that emits `dx:error` with source `lifecycle:<id>:<step>`. A `dxkit-web3` loader that throws `new Error('[web3:no-provider] window.ethereum not found', { cause: ... })` surfaces through the *existing* taxonomy for free. Recommend a documented message-prefix convention (`[web3:no-provider]`, `[web3:revert]`, `[web3:keccak-mismatch]`, `[web3:gunzip]`) rather than a new `dx:error` source field — keeps the change entirely inside `dxkit-web3`, not core. |
 | Routing mode under opaque origin | `src/router.ts` (history vs hash), documented in `docs/system-internals.md:176-188` | **No core change required, but a real constraint.** `history.pushState()` throws under a `data:`/opaque-origin document; only `mode: 'hash'` works. This is a *configuration* requirement on the bootstrap snippet (`createShell({ mode: 'hash' })`), not a code change — document it prominently. (A defensive `try/catch` around `pushState` that turns a `SecurityError` into a `dx:error` instead of an uncaught exception is a **nice-to-have polish item**, not required for the MVP build order below.) |
 
@@ -330,7 +330,7 @@ Mount the entire on-chain dapp inside a sandboxed iframe instead of into `#dx-mo
   doesn't exist today and isn't scoped in this milestone's target features.
 - `window.__DXKIT__` (`src/shell.ts:437-438`) would need to live *inside* the iframe's own
   `window`, meaning each on-chain dapp effectively runs its own isolated DxKit shell instance —
-  fine for a single-dapp on-chain deployment (which is the realistic v1.2 use case: one dapp, one
+  fine for a single-dapp on-chain deployment (which is the realistic v0.4 use case: one dapp, one
   `html()` page) but architecturally a dead end for the shell's actual multi-dapp routing model
   (`Router`, `enableDapp`/`disableDapp`) — those features become meaningless per-iframe.
 
@@ -356,7 +356,7 @@ markup as the "fragment." Document it in the cookbook as an advanced pattern, no
 **What people might do:** Add a `web3://`-aware overload or a new `WebLoader3` type to
 `src/lifecycle.ts` so the resolver can pass richer metadata (chain ID, ABI type, etc.) directly.
 **Why it's wrong:** Breaks the "one seam, any transport" property that makes the existing
-`ShellConfig.lifecycle` override pattern (v1.0 Phase 3) valuable, and creates a permanent core
+`ShellConfig.lifecycle` override pattern (v0.2 Phase 3) valuable, and creates a permanent core
 dependency on web3-specific concepts inside a package whose whole selling point is zero runtime
 deps and target-agnosticism.
 **Do this instead:** Encode everything the resolver needs *in the URI string itself*
@@ -367,7 +367,7 @@ deps and target-agnosticism.
 **What people might do:** Just drop the `entry` requirement from `isValidManifest()` without
 requiring *something* loadable.
 **Why it's wrong:** A manifest with neither `entry` nor `template` silently "mounts" nothing —
-reintroducing exactly the class of silent failure v1.0's Phase 1 (Diagnostics) eliminated.
+reintroducing exactly the class of silent failure v0.2's Phase 1 (Diagnostics) eliminated.
 **Do this instead:** `isValidManifest()` should require `entry != null || template != null`,
 emitting the existing `dx:error` (`shell:manifest` source, `src/shell.ts:356-364` pattern) when
 neither is present.
@@ -452,5 +452,5 @@ against directly, use two verification rings:
 - ERC-8244 spec text — **not independently located** via public search (searches returned ERC-4804/ERC-6860 `web3://` URL-translation standards and the unrelated ERC-8004 "Trustless Agents" standard instead). Treated as the milestone brief's working definition; **flagged as a gap requiring a dedicated spike** before contract interfaces are frozen as "immutable."
 
 ---
-*Architecture research for: DxKit v1.2 On-Chain Deployment (ERC-8244)*
+*Architecture research for: DxKit v0.4 On-Chain Deployment (ERC-8244)*
 *Researched: 2026-08-16*

@@ -105,7 +105,7 @@ Requirements covered: **TS6-01, TS6-02, TS6-03** (3 total — see `.planning/REQ
 - `.planning/ROADMAP.md` §"Phase 7: TypeScript 6 Migration & Standalone Typecheck"
   (lines ~100-112) — goal, 4 success criteria, and the baseline-before-bump sequencing
   constraint (Criterion 1).
-- `.planning/PROJECT.md` §"Current Milestone: v1.1" + §Constraints + §Key Decisions —
+- `.planning/PROJECT.md` §"Current Milestone: v0.3" + §Constraints + §Key Decisions —
   zero-runtime-deps posture, caret-range convention, and why TS6 is the TS7 stepping stone.
 - `.planning/STATE.md` §"Accumulated Context → Decisions" + §Blockers/Concerns — the
   cross-research sequencing convergence (tsc step is a precondition for GATE-01) and the

@@ -1,6 +1,6 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.2
+milestone: v0.4
 milestone_name: On-Chain Deployment (ERC-8244)
 status: planning
 last_updated: "2026-08-17T04:30:00.000Z"
@@ -20,7 +20,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-16)
 
 **Core value:** DxKit stays trustworthy for real use — failures are visible (never silent), documented behavior matches actual behavior, and the alpha is stable enough to build on with confidence.
-**Current focus:** v1.2 On-Chain Deployment (ERC-8244) — roadmap complete, Phases 11–18. Three co-equal deployment targets (bundler/webserver, IIFE/IPFS, on-chain); everything proven on the Foundry/Anvil local loop first; Sepolia → mainnet are the final two phases. Next: plan Phase 11.
+**Current focus:** v0.4 On-Chain Deployment (ERC-8244) — roadmap complete, Phases 11–18. Three co-equal deployment targets (bundler/webserver, IIFE/IPFS, on-chain); everything proven on the Foundry/Anvil local loop first; Sepolia → mainnet are the final two phases. Next: plan Phase 11.
 
 ## Current Position
 
@@ -28,15 +28,15 @@ Phase: 11 - Foundry/Anvil Dev Loop & Spec Pin (not started)
 Plan: — (not planned yet)
 Status: Not started
 Progress: [░░░░░░░░░░] 0% (0/8 phases, 0/36 requirements)
-Last activity: 2026-08-16 — v1.2 roadmap created (Phases 11–18, 36/36 requirements mapped)
+Last activity: 2026-08-16 — v0.4 roadmap created (Phases 11–18, 36/36 requirements mapped)
 
-## Milestone Phase Map (v1.2)
+## Milestone Phase Map (v0.4)
 
-Continues numbering from v1.1 (which ended at Phase 10). 36/36 v1.2 requirements mapped; no orphans.
+Continues numbering from v0.3 (which ended at Phase 10). 36/36 v0.4 requirements mapped; no orphans.
 
 | Phase | Name | Requirements | Depends on |
 |-------|------|--------------|------------|
-| 11 | Foundry/Anvil Dev Loop & Spec Pin | DEV-01, DEV-03, DEV-04, DEV-06, PUB-07 | — (v1.1 shipped) |
+| 11 | Foundry/Anvil Dev Loop & Spec Pin | DEV-01, DEV-03, DEV-04, DEV-06, PUB-07 | — (v0.3 shipped) |
 | 12 | On-Chain Publish Tooling & Facade Contracts | DEV-02, PUB-01..06 | Phase 11 |
 | 13 | `web3://` Resolver & Loader Integration | RES-01..08, DEV-05 | Phase 12 |
 | 14 | Core Sandbox Hardening (additive) | CORE-01..06 | Phase 13 |
@@ -61,13 +61,13 @@ Key sequencing constraints (fixed by the user + research build order):
   that marker requirement.
 
 <details>
-<summary>v1.1 phase map (archived)</summary>
+<summary>v0.3 phase map (archived)</summary>
 
-Continues numbering from v1.0 (which ended at Phase 5).
+Continues numbering from v0.2 (which ended at Phase 5).
 
 | Phase | Name | Requirements | Depends on |
 |-------|------|--------------|------------|
-| 6 | Toolchain Audit & Modernization | TOOL-01..05 | — (v1.0 shipped) |
+| 6 | Toolchain Audit & Modernization | TOOL-01..05 | — (v0.2 shipped) |
 | 7 | TypeScript 6 Migration & Standalone Typecheck | TS6-01..03 | Phase 6 |
 | 8 | Forward-Compat Typing | FCT-01..04 | Phase 7 |
 | 9 | Continuous Debt Guardrails & Registry Robustness | GATE-01..03, ROB-05 | Phase 7, Phase 8 |
@@ -82,11 +82,11 @@ Phase 7) is a precondition — it must exist before/with the TS6 bump and before
 
 **Velocity:**
 
-- Total plans completed: 40 (v1.0)
+- Total plans completed: 40 (v0.2)
 - Average duration: - min
 - Total execution time: 0 hours
 
-**By Phase (v1.0):**
+**By Phase (v0.2):**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
@@ -156,29 +156,29 @@ Phase 7) is a precondition — it must exist before/with the TS6 bump and before
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table (v1.0 and v1.1 rows are current there).
+Decisions are logged in PROJECT.md Key Decisions table (v0.2 and v0.3 rows are current there).
 
-**v1.2 roadmap decisions:**
+**v0.4 roadmap decisions:**
 
-- v1.2 roadmap: 8-phase structure (Dev loop → Publish tooling → Resolver → Core hardening → Bootstrap+Demo → Docs → Sepolia → Mainnet), continuing phase numbering at 11 — follows the research build order with steps 3+4 (resolver, loader-integration proof) merged into one coherent package phase, and steps 6+7 (self-contained demo, full demo + bootstrap) merged into Phase 15.
-- v1.2: DEV-05 (CI Foundry + Anvil-backed integration tests) is placed in Phase 13, not Phase 11, because the requirement demands an end-to-end run across publish pipeline + resolver + gateway — the resolver must exist first.
-- v1.2: PUB-07 (spec pin) sits in Phase 11 at the start of contracts work, per Pitfall 0 — ERC-8244 is Draft and every deploy is immutable.
-- v1.2: Phase 14 (core hardening) is the only phase touching `src/`-shared lifecycle/manifest code; sequenced after the resolver so a bundler/IIFE regression bisects to one phase. No existing vitest spec may be modified to accommodate it.
-- v1.2: Phases 17 (Sepolia) and 18 (mainnet) are the final two phases by user decree — nothing ships after them.
-
-<details>
-<summary>v1.1 phase-level decisions (archived context)</summary>
-
-- v1.1 roadmap: 4-phase structure (Toolchain → TS6 Migration → Forward-Compat Typing → Guardrails), continuing phase numbering at 6 — matches the strong cross-research convergence and keeps the milestone a lean modernization pass.
-- v1.1 sequencing: standalone `tsc --noEmit` (TS6-03) lands inside Phase 7 *before* the TS6 version bump, so the migration has a baseline and GATE-01 (Phase 9) has something to gate on.
-- v1.1: Node floor moves to Node 22 LTS (not 20 — research found Node 20 is also EOL); enforced via `engines` + engine-strict, verified with a negative install test.
-- v1.1: forward-compat flags (verbatimModuleSyntax → isolatedDeclarations → erasableSyntaxOnly) adopted per-package, core-before-plugins, for TS7-readiness discipline only — no build-speed payoff expected under tsup 8.x; FCT-04 requires an IIFE/CJS smoke test on built `dist/` artifacts.
-- v1.1: TS7 migration and tsup→tsdown swap are explicitly out of scope (deferred to v2).
-- v1.1: WR-01 (ROB-05) bundled into Phase 9 with the guardrails work — it is independent and could land in any phase, placed with the robustness/guardrails cluster for a clean fit.
-- v1.1 breaking changes to flag with `BREAKING CHANGE:` footers + migration notes: Node engines bump (Phase 6); isolatedDeclarations requiring explicit export types for consumers augmenting DxKit public types (Phase 8).
+- v0.4 roadmap: 8-phase structure (Dev loop → Publish tooling → Resolver → Core hardening → Bootstrap+Demo → Docs → Sepolia → Mainnet), continuing phase numbering at 11 — follows the research build order with steps 3+4 (resolver, loader-integration proof) merged into one coherent package phase, and steps 6+7 (self-contained demo, full demo + bootstrap) merged into Phase 15.
+- v0.4: DEV-05 (CI Foundry + Anvil-backed integration tests) is placed in Phase 13, not Phase 11, because the requirement demands an end-to-end run across publish pipeline + resolver + gateway — the resolver must exist first.
+- v0.4: PUB-07 (spec pin) sits in Phase 11 at the start of contracts work, per Pitfall 0 — ERC-8244 is Draft and every deploy is immutable.
+- v0.4: Phase 14 (core hardening) is the only phase touching `src/`-shared lifecycle/manifest code; sequenced after the resolver so a bundler/IIFE regression bisects to one phase. No existing vitest spec may be modified to accommodate it.
+- v0.4: Phases 17 (Sepolia) and 18 (mainnet) are the final two phases by user decree — nothing ships after them.
 
 <details>
-<summary>v1.0 phase-level decisions (archived context)</summary>
+<summary>v0.3 phase-level decisions (archived context)</summary>
+
+- v0.3 roadmap: 4-phase structure (Toolchain → TS6 Migration → Forward-Compat Typing → Guardrails), continuing phase numbering at 6 — matches the strong cross-research convergence and keeps the milestone a lean modernization pass.
+- v0.3 sequencing: standalone `tsc --noEmit` (TS6-03) lands inside Phase 7 *before* the TS6 version bump, so the migration has a baseline and GATE-01 (Phase 9) has something to gate on.
+- v0.3: Node floor moves to Node 22 LTS (not 20 — research found Node 20 is also EOL); enforced via `engines` + engine-strict, verified with a negative install test.
+- v0.3: forward-compat flags (verbatimModuleSyntax → isolatedDeclarations → erasableSyntaxOnly) adopted per-package, core-before-plugins, for TS7-readiness discipline only — no build-speed payoff expected under tsup 8.x; FCT-04 requires an IIFE/CJS smoke test on built `dist/` artifacts.
+- v0.3: TS7 migration and tsup→tsdown swap are explicitly out of scope (deferred to v2).
+- v0.3: WR-01 (ROB-05) bundled into Phase 9 with the guardrails work — it is independent and could land in any phase, placed with the robustness/guardrails cluster for a clean fit.
+- v0.3 breaking changes to flag with `BREAKING CHANGE:` footers + migration notes: Node engines bump (Phase 6); isolatedDeclarations requiring explicit export types for consumers augmenting DxKit public types (Phase 8).
+
+<details>
+<summary>v0.2 phase-level decisions (archived context)</summary>
 
 - Milestone-wide: Scope as "harden toward beta", ship as 0.2.0 — alpha is field-stable, this is robustness/trust work, not a feature push.
 - Milestone-wide: Target all four hardening tracks (diagnostics/silent failures, robustness, security, tests) — a partial pass leaves obvious gaps per the concerns audit.
@@ -230,7 +230,7 @@ None open. (WR-01 → ROB-05 Phase 9; CR-01 → ROB-06 Phase 10; WR-02/03 → Ph
 
 ### Blockers/Concerns
 
-None carried from v1.1 (Phase 8/9 risks were retired by FCT-04 smoke test and the scoped GATE-01).
+None carried from v0.3 (Phase 8/9 risks were retired by FCT-04 smoke test and the scoped GATE-01).
 
 Open questions for the next milestone (on-chain / ERC-8244 candidate) — to resolve in a spike before tooling investment:
 
@@ -247,7 +247,7 @@ Open questions for the next milestone (on-chain / ERC-8244 candidate) — to res
 
 ### Roadmap Evolution
 
-- Phase 10 added: Close gap: CR-01 — guard dapps/inline manifests tiers (from v1.1 milestone audit)
+- Phase 10 added: Close gap: CR-01 — guard dapps/inline manifests tiers (from v0.3 milestone audit)
 
 ## Deferred Items
 
@@ -255,19 +255,19 @@ Items acknowledged and carried forward:
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
-| Modernization | TS7.1 migration (TS7-01) | Deferred — awaiting stable TS 7.1 | v1.1 scoping (re-affirmed v1.1 close) |
-| Build | tsup → tsdown migration (BUILD-01) | Deferred — pair with TS7 jump | v1.1 scoping (re-affirmed v1.1 close) |
-| Security | Storage encryption for persisted state | Deferred | v1.0 close |
-| Feature | New routing (wildcard / `:param`) | Deferred | v1.0 close |
+| Modernization | TS7.1 migration (TS7-01) | Deferred — awaiting stable TS 7.1 | v0.3 scoping (re-affirmed v0.3 close) |
+| Build | tsup → tsdown migration (BUILD-01) | Deferred — pair with TS7 jump | v0.3 scoping (re-affirmed v0.3 close) |
+| Security | Storage encryption for persisted state | Deferred | v0.2 close |
+| Feature | New routing (wildcard / `:param`) | Deferred | v0.2 close |
 
 ## Session Continuity
 
 Last session: 2026-08-16T22:30:00.000Z
-Stopped at: v1.2 roadmap created (Phases 11–18); awaiting approval, then Phase 11 planning
+Stopped at: v0.4 roadmap created (Phases 11–18); awaiting approval, then Phase 11 planning
 Resume file:
 None
 
 ## Operator Next Steps
 
-- ~~`make publish`~~ 0.3.0 published to npm 2026-08-17 (all 5 packages). Still to push: `git push --follow-tags origin main` (3 planning commits + tags `v0.3.0`, `v1.1`)
-- v1.2 roadmap approved → `/gsd-discuss-phase 11` (Foundry/Anvil Dev Loop & Spec Pin), then `/gsd-plan-phase 11`
+- ~~`make publish`~~ 0.3.0 published to npm 2026-08-17 (all 5 packages). Still to push: `git push --follow-tags origin main` (3 planning commits + tags `v0.3.0`, `v0.3`)
+- v0.4 roadmap approved → `/gsd-discuss-phase 11` (Foundry/Anvil Dev Loop & Spec Pin), then `/gsd-plan-phase 11`

@@ -125,7 +125,7 @@ Local preview/dev-server proxy (differentiator)
 
 ## MVP Definition
 
-### Launch With (v1 — this milestone, v1.2)
+### Launch With (v1 — this milestone, v0.4)
 
 Minimum viable product to prove "DxKit dapp lives entirely on Ethereum L1, chain-loading DxKit
 from a separate contract" is real, not aspirational.
@@ -163,7 +163,7 @@ from a separate contract" is real, not aspirational.
 - [ ] ENS-name discovery for DxKit versions — defer: PROJECT.md explicitly calls this "optional
   sugar," and no working precedent (zFi/zSwap) uses ENS-based discovery at all
 - [ ] L2 deploys (Base, etc.) — defer: PROJECT.md lists this as a *next-milestone* candidate,
-  contingent on v1.2 landing first
+  contingent on v0.4 landing first
 - [ ] Freedom-browser-specific integration — defer: blocked on an open question (does its preview
   mode inject an EIP-1193 provider?) that PROJECT.md correctly scopes as a spike, not a commitment
 
@@ -242,5 +242,5 @@ project README/docs via fetch, not independently verified against deployed bytec
   independently corroborating a public ERC-8244 spec text.
 
 ---
-*Feature research for: On-chain (ERC-8244) deployment target for DxKit v1.2*
+*Feature research for: On-chain (ERC-8244) deployment target for DxKit v0.4*
 *Researched: 2026-08-16*

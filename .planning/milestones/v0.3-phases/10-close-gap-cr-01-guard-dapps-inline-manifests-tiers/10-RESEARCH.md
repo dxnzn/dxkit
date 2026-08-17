@@ -6,7 +6,7 @@
 
 ## Summary
 
-This phase closes a scope-extension gap the v1.1 milestone audit flagged as CR-01: ROB-05
+This phase closes a scope-extension gap the v0.3 milestone audit flagged as CR-01: ROB-05
 (Phase 9) added an `Array.isArray()` guard to only the `registryUrl`-fetch tier of
 `loadManifests()`. The other two tiers — `dapps` (`DappEntry[]`) and inline `manifests`
 (`DappManifest[]`) — still trust the raw config value's shape. All findings below come from a
@@ -387,7 +387,7 @@ plugins/` returns only the definition and its one call site).
 | # | Claim | Section | Risk if Wrong |
 |---|-------|---------|---------------|
 | A1 | Malformed (present-but-wrong-shape) `dapps`/`manifests` config should fail closed (emit + return `[]`, no fallthrough to the next tier) rather than silently trying the next configured tier | Architecture Patterns / Pitfall 2 | If the project maintainer actually wants fallthrough-on-malformed (treating a bad `dapps` config the same as an absent one), the recommended `T[] \| null` sentinel design still supports that by changing one branch — but the *default* recommendation here (fail closed) is a design judgment, not something pinned by existing precedent (ROB-05's registry tier is the *last* tier, so it never had to answer "should a malformed non-terminal tier fall through?"). Flag for discuss-phase/plan-check confirmation. |
-| A2 | Register a new requirement ID (e.g. `ROB-06`) in `REQUIREMENTS.md`, traced to Phase 10, rather than silently extending `ROB-05`'s existing (already-`[x]`-checked) requirement | Summary / Open Questions | If tracked under the closed `ROB-05` instead, `REQUIREMENTS.md`'s traceability table would show a requirement satisfied by two phases (9 and 10), which breaks the "Mapped to phases: 1:1" invariant the milestone audit's 3-source cross-reference relies on (`v1.1-MILESTONE-AUDIT.md`'s Requirements Coverage table). A fresh ID keeps that invariant intact for the next milestone audit. |
+| A2 | Register a new requirement ID (e.g. `ROB-06`) in `REQUIREMENTS.md`, traced to Phase 10, rather than silently extending `ROB-05`'s existing (already-`[x]`-checked) requirement | Summary / Open Questions | If tracked under the closed `ROB-05` instead, `REQUIREMENTS.md`'s traceability table would show a requirement satisfied by two phases (9 and 10), which breaks the "Mapped to phases: 1:1" invariant the milestone audit's 3-source cross-reference relies on (`v0.3-MILESTONE-AUDIT.md`'s Requirements Coverage table). A fresh ID keeps that invariant intact for the next milestone audit. |
 | A3 | `manifests: []` not triggering a `registryUrl` fetch is current, load-bearing, tested-by-inference (not explicitly asserted) behavior worth preserving and pinning with an explicit new test in this phase | Common Pitfalls (Pitfall 3) | If wrong, an explicit test asserting "no fetch call when `manifests: []`" would be added defending behavior nobody actually depends on — low cost either way, but worth the planner confirming intent rather than research asserting it as settled product behavior. |
 
 ## Open Questions
@@ -410,10 +410,10 @@ plugins/` returns only the definition and its one call site).
    - What we know: The project's existing naming convention uses feature-prefixed IDs
      (`ROB-05`, `TOOL-01`, `FCT-01`) tied to the *milestone's* requirement categories, not the
      audit's internal tech-debt numbering (`CR-01` there is itself a recycled label — a
-     different `CR-01` already exists in the v1.0/Phase-6 decision log, "Node engines bump...
-     closing CR-01" — reusing `CR-01` as a v1.1 requirement ID would collide with that unrelated
+     different `CR-01` already exists in the v0.2/Phase-6 decision log, "Node engines bump...
+     closing CR-01" — reusing `CR-01` as a v0.3 requirement ID would collide with that unrelated
      prior usage).
-   - What's unclear: Whether the milestone considers this new work still "v1.1" scope (the
+   - What's unclear: Whether the milestone considers this new work still "v0.3" scope (the
      milestone's own audit already passed/closed) or effectively a new mini-milestone/patch.
    - Recommendation: Register `ROB-06` under the existing "Robustness" category in
      `REQUIREMENTS.md`'s v1 Requirements section, phrased analogously to `ROB-05`:
@@ -507,7 +507,7 @@ a high-severity issue exists.
   `shell:manifest` error catalog rows, confirming the message-format precedent and that this
   phase will need a new catalog row (owned by `/gsd-docs-update`, not this phase's plan directly,
   but noted so the planner doesn't overlook the doc-gate dependency)
-- `/Users/derks/Development/Denizen/dxkit/.planning/v1.1-MILESTONE-AUDIT.md` — authoritative
+- `/Users/derks/Development/Denizen/dxkit/.planning/v0.3-MILESTONE-AUDIT.md` — authoritative
   CR-01 scope statement (Tech Debt item #1)
 - `/Users/derks/Development/Denizen/dxkit/.planning/STATE.md` — Phase 09-04 ROB-05 decision log
   (D-10/P2 ungating decision, single-choke-point decision for

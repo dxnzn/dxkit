@@ -2,7 +2,7 @@
 
 *A living document updated after each milestone. Lessons feed forward into future planning.*
 
-## Milestone: v1.0 — Beta Hardening
+## Milestone: v0.2 — Beta Hardening
 
 **Shipped:** 2026-07-15
 **Phases:** 5 | **Plans:** 23 | **Tasks:** 51
@@ -42,7 +42,7 @@
 
 ---
 
-## Milestone: v1.1 — TypeScript 6 Migration & Toolchain Modernization
+## Milestone: v0.3 — TypeScript 6 Migration & Toolchain Modernization
 
 **Shipped:** 2026-08-16 (released as 0.3.0)
 **Phases:** 5 | **Plans:** 17 | **Tasks:** 32
@@ -69,7 +69,7 @@
 ### Patterns Established
 - **Every quality promise gets a machine gate**: build outputs (`verify-outputs`), artifacts (`smoke`), types (`typecheck`), zero deps (`verify-no-runtime-deps`) — all wired into `make release`/`publish`/CI, each with a guard test that fails if the wiring is removed.
 - **Fix at source, never shim** — TS6 deprecations resolved by changing how dts is emitted rather than `ignoreDeprecations`.
-- **Fail-closed shape guards at every input tier** through a single shared helper (ROB-05/06), matching v1.0's visible-failure throughline.
+- **Fail-closed shape guards at every input tier** through a single shared helper (ROB-05/06), matching v0.2's visible-failure throughline.
 
 ### Key Lessons
 1. **Compute an enforceable floor from tool engine ranges before declaring it** — a declared floor looser than what the pinned tools accept produces a confusing two-stage failure.
@@ -89,15 +89,15 @@
 
 | Milestone | Phases | Plans | Key Change |
 |-----------|--------|-------|------------|
-| v1.0 Beta Hardening | 5 | 23 | First milestone; established fixes-first doc ordering, compile-checked docs, and project-specific ship gates |
-| v1.1 TS6 & Toolchain | 5 | 17 | Baseline-before-bump sequencing; every quality promise gets a machine gate + wiring guard test; audit-driven inserted gap phase |
+| v0.2 Beta Hardening | 5 | 23 | First milestone; established fixes-first doc ordering, compile-checked docs, and project-specific ship gates |
+| v0.3 TS6 & Toolchain | 5 | 17 | Baseline-before-bump sequencing; every quality promise gets a machine gate + wiring guard test; audit-driven inserted gap phase |
 
 ### Cumulative Quality
 
 | Milestone | Tests | Source LOC | Zero-Dep Maintained |
 |-----------|-------|------------|---------------------|
-| v1.0 Beta Hardening | 321 | ~2,986 | Yes |
-| v1.1 TS6 & Toolchain | 413 (+11 smoke) | ~2,957 | Yes — now machine-enforced (GATE-02) |
+| v0.2 Beta Hardening | 321 | ~2,986 | Yes |
+| v0.3 TS6 & Toolchain | 413 (+11 smoke) | ~2,957 | Yes — now machine-enforced (GATE-02) |
 
 ### Top Lessons (Verified Across Milestones)
 

@@ -12,7 +12,7 @@
   "jina": false,
   "git": {
     "branching_strategy": "phase",
-    "create_tag": true,
+    "create_tag": false,
     "phase_branch_template": "gsd/phase-{phase}-{slug}",
     "milestone_branch_template": "gsd/{milestone}-{slug}",
     "quick_branch_template": null
@@ -87,5 +87,20 @@
     "source_grounding_authority": "grep"
   },
   "mode": "interactive",
-  "granularity": "standard"
+  "granularity": "standard",
+  "model_overrides": {
+    "gsd-code-reviewer": "fable"
+  },
+  "review": {
+    "reviewer_instances": {
+      "claude-fable": {
+        "cli": "claude",
+        "model": "claude-fable-5"
+      }
+    },
+    "default_reviewers": [
+      "claude-fable",
+      "codex"
+    ]
+  }
 }

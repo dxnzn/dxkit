@@ -7,7 +7,7 @@
 ## Phase Boundary
 
 Get the DxKit dev toolchain onto current, TS6-compatible versions and raise the
-Node floor to 22 LTS — establishing the version baseline every later v1.1 phase
+Node floor to 22 LTS — establishing the version baseline every later v0.3 phase
 depends on. Concretely: bump tsup / vite / vitest / happy-dom / Biome to their
 latest stable majors, add an enforced `engines: ">=22"` floor across all five
 packages, swap `cz-conventional-changelog` → maintained `cz-git`, and confirm all
@@ -95,7 +95,7 @@ see `.planning/REQUIREMENTS.md`).
 ### Milestone scope & requirements (authoritative)
 - `.planning/REQUIREMENTS.md` — TOOL-01..05 exact wording, acceptance framing, and v2 out-of-scope (TS7, tsdown). This is the source of truth for what "done" means.
 - `.planning/ROADMAP.md` §"Phase 6: Toolchain Audit & Modernization" (lines ~63–77) — goal, 5 success criteria, dependency framing, breaking-change note.
-- `.planning/PROJECT.md` §"Current Milestone: v1.1" + §Constraints + §Key Decisions — locked decisions (Node 22 not 20, cz-git, zero-runtime-deps, IIFE-first), and why TS6 is deferred to Phase 7.
+- `.planning/PROJECT.md` §"Current Milestone: v0.3" + §Constraints + §Key Decisions — locked decisions (Node 22 not 20, cz-git, zero-runtime-deps, IIFE-first), and why TS6 is deferred to Phase 7.
 
 ### Codebase baseline
 - `.planning/codebase/STACK.md` — current tool versions (tsup 8.4, vite 7.3.6, vitest 4.1.9, happy-dom 20.10.6, Biome 2.5.1, TS 5.8.3, pnpm 10.32.1) — the "from" side of every bump.

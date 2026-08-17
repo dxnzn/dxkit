@@ -1,4 +1,4 @@
-# Research Summary: DxKit v1.1 TypeScript 6 + Toolchain Modernization
+# Research Summary: DxKit v0.3 TypeScript 6 + Toolchain Modernization
 
 **Project:** DxKit — headless microframework for composable dapps  
 **Domain:** TypeScript 6 migration + forward-compat hardening for zero-runtime-dep TS library monorepo  
@@ -7,7 +7,7 @@
 
 ## Executive Summary
 
-DxKit v1.1 is a focused modernization pass addressing one critical problem and one strategic opportunity. **Problem:** Node 20 (currently assumed as the "new floor") is already EOL as of 2026-04-30; this milestone should land on Node 22 (current Maintenance LTS) instead, at no cost to the rest of the recommended stack. **Opportunity:** The codebase is already ~80% prepared for TypeScript 6's stricter forward-compat flags (`isolatedDeclarations`, `verbatimModuleSyntax`), which are not speedups under the current tsup-based build but are **prerequisite type-safety discipline** for a later, separate TypeScript 7 / tsdown migration. The research converges on three independent, high-confidence findings: (1) add a `tsc --noEmit` CI step *before* touching the TS6 version bump, not after; (2) adopt both strict flags per-package, not repo-wide, to isolate failures; (3) establish Renovate (not Dependabot) for pnpm-workspace dependency automation, with scoped automerge rules to protect the zero-runtime-dep posture.
+DxKit v0.3 is a focused modernization pass addressing one critical problem and one strategic opportunity. **Problem:** Node 20 (currently assumed as the "new floor") is already EOL as of 2026-04-30; this milestone should land on Node 22 (current Maintenance LTS) instead, at no cost to the rest of the recommended stack. **Opportunity:** The codebase is already ~80% prepared for TypeScript 6's stricter forward-compat flags (`isolatedDeclarations`, `verbatimModuleSyntax`), which are not speedups under the current tsup-based build but are **prerequisite type-safety discipline** for a later, separate TypeScript 7 / tsdown migration. The research converges on three independent, high-confidence findings: (1) add a `tsc --noEmit` CI step *before* touching the TS6 version bump, not after; (2) adopt both strict flags per-package, not repo-wide, to isolate failures; (3) establish Renovate (not Dependabot) for pnpm-workspace dependency automation, with scoped automerge rules to protect the zero-runtime-dep posture.
 
 The critical risk is treating `isolatedDeclarations` as a build-speed lever (it isn't, under tsup); the phase must be framed as TS7-readiness type discipline, not performance. Secondary risk: skipping the IIFE artifact verification step after `verbatimModuleSyntax` lands, since neither `tsc` nor the existing vitest suite exercises that output format. Mitigation: explicit IIFE smoke test added to the build-artifact verification gate.
 
@@ -40,7 +40,7 @@ This milestone bumps TypeScript from 5.8 → 6.0 and modernizes the dev toolchai
 - `erasableSyntaxOnly: true` (alongside verbatimModuleSyntax; disallows enums/namespaces — already forbidden by convention, zero-diff audit)
 - Project references in `tsconfig.json` (`composite: true` at root, per-package `references` fields) — explicit DAG for TS7's parallel monorepo builds
 
-**Defer (v1.2+, TS7 / next-milestone scope):**
+**Defer (v0.4+, TS7 / next-milestone scope):**
 - tsup → tsdown migration (requires Node 22.18+, is a bundler-identity change, deferred per PROJECT.md constraints)
 - Internal `@deprecated` JSDoc lint coverage (Biome has no equivalent to `@typescript-eslint/no-deprecated`; tooling gap, not code gap)
 
@@ -60,7 +60,7 @@ This milestone integrates with existing architecture with zero breaking changes.
 
 2. **`isolatedDeclarations` churn concentrated in barrels and `as const` exports, not factory functions** — Factories already have explicit return types by convention. Real work is auditing `export type { ... } from` statements in `src/types/index.ts`, `src/index.ts`, and per-plugin barrels, plus any `as const`-derived exports. Budget this as low-to-moderate (single-digit to low-double-digit annotations across 5 packages), scoped per-package with `tsc` diagnostics as the gate.
 
-3. **`isolatedDeclarations` enables build speed only with tsdown, not tsup** — The flag forces explicit annotations (type-safety win), but tsup 8.x's `.d.ts` emission still goes through the full TypeScript compiler API + rollup bundling. The speed payoff requires switching to tsdown or `tsc` with `oxc-transform`, neither in scope for v1.1. Frame this phase as TS7-readiness discipline, not performance improvement. Do not gate on build-time deltas.
+3. **`isolatedDeclarations` enables build speed only with tsdown, not tsup** — The flag forces explicit annotations (type-safety win), but tsup 8.x's `.d.ts` emission still goes through the full TypeScript compiler API + rollup bundling. The speed payoff requires switching to tsdown or `tsc` with `oxc-transform`, neither in scope for v0.3. Frame this phase as TS7-readiness discipline, not performance improvement. Do not gate on build-time deltas.
 
 4. **`verbatimModuleSyntax` risk is at the IIFE/CJS build boundary, not in source** — Source is already 100% `import type` clean; the real risk is the *build*: esbuild's import elision must continue to correctly drop core's types from plugin IIFEs. Must include a smoke test (load `dist/index.global.js` in a bare HTML page or vitest setup) to confirm expected globals exist and have expected keys.
 
@@ -70,7 +70,7 @@ This milestone integrates with existing architecture with zero breaking changes.
 
 ## Implications for Roadmap
 
-Based on cross-research convergence, the v1.1 milestone should be structured as **four sequential phases plus one explicit decision point**:
+Based on cross-research convergence, the v0.3 milestone should be structured as **four sequential phases plus one explicit decision point**:
 
 ### Phase 1: Toolchain Audit & Modernization
 **Rationale:** Prerequisite for everything else. Establishes the Node floor, bumps toolchain versions, adds `engines` enforcement, and widens CI matrix.
@@ -167,7 +167,7 @@ Based on cross-research convergence, the v1.1 milestone should be structured as 
 2. **Vite 8 `rollupOptions` compatibility:** Grep live `vite.config.ts` and `vitest.config.ts` for `rollupOptions`/`esbuildOptions` usage before upgrading to Vite 8.
 3. **Renovate automerge gate:** Test automerge gate logic in dry-run mode before enabling in production.
 4. **IIFE smoke test implementation:** Forward-Compat Typing phase should include concrete smoke-test code (vitest setup hook or HTML-based test).
-5. **Internal `@deprecated` JSDoc usage:** Quick grep for `@deprecated` in `src/` at phase planning to determine if v1.1 or v1.2 scope.
+5. **Internal `@deprecated` JSDoc usage:** Quick grep for `@deprecated` in `src/` at phase planning to determine if v0.3 or v0.4 scope.
 
 ## Sources
 

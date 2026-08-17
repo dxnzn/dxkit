@@ -103,7 +103,7 @@ status: complete
 
 # Phase 10 Plan 01: Guard dapps/inline-manifests tiers Summary
 
-**Extended ROB-05's registry-tier `Array.isArray()` guard to `loadManifests()`'s `dapps` and inline `manifests` tiers via a shared closure-local `coerceManifestArray()` helper — closes v1.1 milestone-audit CR-01.**
+**Extended ROB-05's registry-tier `Array.isArray()` guard to `loadManifests()`'s `dapps` and inline `manifests` tiers via a shared closure-local `coerceManifestArray()` helper — closes v0.3 milestone-audit CR-01.**
 
 ## Performance
 
@@ -152,7 +152,7 @@ None - no external service configuration required.
 
 ## Next Phase Readiness
 
-- ROB-06 satisfied; v1.1 milestone-audit CR-01 gap closed. No further code changes required for this phase's scope.
+- ROB-06 satisfied; v0.3 milestone-audit CR-01 gap closed. No further code changes required for this phase's scope.
 - `docs/events-reference.md`'s `shell:manifest` error catalog was flagged by research as needing a doc-gate pass (new/changed wording is now shape-checked for `dapps`/`manifests` too) — owned by `/gsd-docs-update`, not this plan; noted for the phase's doc-gate step before ship.
 - No blockers.
 

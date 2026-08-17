@@ -1,4 +1,4 @@
-# Requirements: DxKit — v1.2 On-Chain Deployment (ERC-8244)
+# Requirements: DxKit — v0.4 On-Chain Deployment (ERC-8244)
 
 **Defined:** 2026-08-16
 **Core Value:** DxKit stays trustworthy for real use — failures are visible (never silent), documented behavior matches actual behavior, and the alpha is stable enough to build on with confidence.
@@ -49,7 +49,7 @@ Requirements for this milestone. Each maps to a roadmap phase.
 - [ ] **CORE-01**: `DappManifest.entry` becomes optional; `isValidManifest()` fails closed requiring at least one of `entry` or `template`, and existing manifests/tests are unchanged (413-spec suite stays green with no spec modified)
 - [ ] **CORE-02**: An opt-in `LifecycleManagerOptions.executeInlineScripts` (default `false`) re-executes `<script>` elements found in an injected template after `innerHTML` injection, so a full ERC-8244 `html()` document (or fragment) mounted into `#dx-mount` runs its inline scripts; off-by-default preserves 0.3.0 behavior byte-for-byte
 - [ ] **CORE-03**: The template path can extract a usable fragment from a full HTML document (`<body>` + `<style>` + inline `<script>`) when the template is a complete `html()` page, without affecting fragment templates
-- [ ] **CORE-04**: Wallet/theme/settings plugins tolerate opaque-origin sandboxes where `localStorage`/`sessionStorage` *property access itself throws* (not only `getItem`/`setItem`), degrading to in-memory state and surfacing `dx:error` per the v1.0 storage-error contract
+- [ ] **CORE-04**: Wallet/theme/settings plugins tolerate opaque-origin sandboxes where `localStorage`/`sessionStorage` *property access itself throws* (not only `getItem`/`setItem`), degrading to in-memory state and surfacing `dx:error` per the v0.2 storage-error contract
 - [ ] **CORE-05**: Documented guidance + a `dx:error` (or warning event) when history-mode routing is configured under a `srcdoc`/opaque-origin context where `pushState` is unusable; hash mode remains the recommended on-chain default
 - [ ] **CORE-06**: Every core change is proven non-regressive for the other two targets: unchanged defaults, no new runtime dependency (GATE-02 still green), `make smoke` (IIFE/CJS artifacts) still green
 

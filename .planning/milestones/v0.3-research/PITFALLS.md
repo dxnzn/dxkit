@@ -98,7 +98,7 @@ Forward-Compat Typing phase — but the *verification* step must explicitly incl
 ### Pitfall 5: Node 20 floor is stated but not enforced — `engines` field is missing everywhere
 
 **What goes wrong:**
-PROJECT.md and CI already assume Node 20, but none of the 5 `package.json` files declare `"engines": { "node": ">=20" }`. Without it, `pnpm install` on Node 18 (EOL, but still installed on some contributor/CI machines) succeeds silently and only fails later with a cryptic runtime or type error — exactly the "silent failure" class this project's v1.0 milestone spent a whole phase eliminating from the *runtime*. Shipping a v1.1 that raises the floor without an `engines` guard reintroduces that same failure class at the *tooling* layer.
+PROJECT.md and CI already assume Node 20, but none of the 5 `package.json` files declare `"engines": { "node": ">=20" }`. Without it, `pnpm install` on Node 18 (EOL, but still installed on some contributor/CI machines) succeeds silently and only fails later with a cryptic runtime or type error — exactly the "silent failure" class this project's v0.2 milestone spent a whole phase eliminating from the *runtime*. Shipping a v0.3 that raises the floor without an `engines` guard reintroduces that same failure class at the *tooling* layer.
 A second, subtler risk: bumping `@types/node` (currently transitive-only, resolved to `25.5.0` via vite) to an explicit devDependency pinned to `^20` is necessary — if it's left unpinned or bumped to `latest`/`^25` to "match" what's already in the lockfile, contributors get autocomplete/typechecking for Node 22+/25 APIs (e.g. newer `fs`/`util` additions) that don't exist on the Node 20 floor consumers are told to target, and nothing catches the mismatch until a consumer on real Node 20 hits a `TypeError: X is not a function`.
 
 **Why it happens:**
@@ -200,7 +200,7 @@ Cross-boundary mistakes specific to this monorepo's core↔plugin↔build-tool s
 | Pitfall | Developer Impact | Better Approach |
 |---------|-------------------|-------------------|
 | Bumping the Node floor and TS version in the same commit as unrelated toolchain bumps (vite/vitest/biome) | A contributor hitting a build failure can't tell which change caused it; bisecting becomes expensive | Land TS6 migration, Node floor, and toolchain-version bumps as separate, individually-revertible commits/PRs even within the same phase |
-| Publishing v1.1 with `isolatedDeclarations`/`verbatimModuleSyntax` on but no migration note for consumers who extend DxKit's types (module augmentation on `Context`/`__DXKIT__`) | A consumer's own `declare global` augmentation (a documented, supported pattern per `src/types/context.ts`) could hit new type-only-export requirements they don't control | Explicitly test/document the module-augmentation path under the new flags before shipping; add a migration note only if consumer-visible type behavior changes |
+| Publishing v0.3 with `isolatedDeclarations`/`verbatimModuleSyntax` on but no migration note for consumers who extend DxKit's types (module augmentation on `Context`/`__DXKIT__`) | A consumer's own `declare global` augmentation (a documented, supported pattern per `src/types/context.ts`) could hit new type-only-export requirements they don't control | Explicitly test/document the module-augmentation path under the new flags before shipping; add a migration note only if consumer-visible type behavior changes |
 
 ## "Looks Done But Isn't" Checklist
 
@@ -231,7 +231,7 @@ Cross-boundary mistakes specific to this monorepo's core↔plugin↔build-tool s
 | 5. Node 20 floor unenforced | Toolchain Audit & Modernization | `engines` field in all 5 `package.json`s + `engine-strict=true`; negative-case install test on Node 18 expected to fail |
 | 6. CI deprecation gate scope/flakiness | Continuous Debt Guardrails (sequenced after TS6 Migration) | Gate fails only on diagnostics under `src/`/`plugins/*/src/`, never on `node_modules/`-path diagnostics |
 | 7. Dependency-freshness automation risk | Continuous Debt Guardrails | Bot config denies automerge on tool majors; zero-runtime-dep CI assertion (`pnpm why`-style check) added same phase as the bot |
-| WR-01 (registry.json array validation) — not a migration pitfall but shares this milestone | Robustness Carryover (can run independently/parallel to the TS/toolchain phases — no dependency between them) | Existing test pattern from v1.0's DIAG/ROB phases (malformed-input → `dx:error`, no throw before `window.__DXKIT__` is exposed) |
+| WR-01 (registry.json array validation) — not a migration pitfall but shares this milestone | Robustness Carryover (can run independently/parallel to the TS/toolchain phases — no dependency between them) | Existing test pattern from v0.2's DIAG/ROB phases (malformed-input → `dx:error`, no throw before `window.__DXKIT__` is exposed) |
 
 ## Sources
 
@@ -246,5 +246,5 @@ Cross-boundary mistakes specific to this monorepo's core↔plugin↔build-tool s
 - Direct repository inspection (`tsconfig.json`, `tsup.config.ts` × 5, `.github/workflows/ci.yml`, `Makefile`, `package.json` × 5, `biome.json`, `pnpm-lock.yaml`, `src/**/*.ts`, `plugins/*/src/**/*.ts`) — HIGH confidence, ground truth as of 2026-07-15
 
 ---
-*Pitfalls research for: DxKit v1.1 TypeScript 6 Migration & Toolchain Modernization*
+*Pitfalls research for: DxKit v0.3 TypeScript 6 Migration & Toolchain Modernization*
 *Researched: 2026-07-15*

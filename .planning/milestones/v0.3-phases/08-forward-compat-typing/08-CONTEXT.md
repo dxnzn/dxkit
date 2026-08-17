@@ -128,7 +128,7 @@ Requirements covered: **FCT-01, FCT-02, FCT-03, FCT-04** (4 total — see `.plan
 - `.planning/ROADMAP.md` §"Phase 8: Forward-Compat Typing" — goal, 4 success criteria, the
   **core-before-plugins** ordering for `isolatedDeclarations`, and the `isolatedDeclarations`
   **BREAKING CHANGE** caveat (module augmentation on `Context` / `window.__DXKIT__`).
-- `.planning/PROJECT.md` §"Current Milestone: v1.1" + §Constraints — zero-runtime-deps posture
+- `.planning/PROJECT.md` §"Current Milestone: v0.3" + §Constraints — zero-runtime-deps posture
   (smoke-test helpers must not add runtime deps), browser-first posture, and why the flags are
   TS7 de-risking.
 - `.planning/STATE.md` §Blockers/Concerns — **Phase 8 risk note**: the IIFE/CJS build boundary
