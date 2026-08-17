@@ -269,5 +269,5 @@ None
 
 ## Operator Next Steps
 
-- `make publish` then `git push --follow-tags origin main` to release 0.3.0 (tag `v0.3.0` exists locally)
+- ~~`make publish`~~ 0.3.0 published to npm 2026-08-17 (all 5 packages). Still to push: `git push --follow-tags origin main` (3 planning commits + tags `v0.3.0`, `v1.1`)
 - v1.2 roadmap approved → `/gsd-discuss-phase 11` (Foundry/Anvil Dev Loop & Spec Pin), then `/gsd-plan-phase 11`
