@@ -1,6 +1,6 @@
 {
   "name": "@dnzn/dxkit-settings",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "DxKit settings plugin — per-dapp configuration with form generation",
   "author": "Denizen. <null@dnzn.dev>",
   "license": "MIT",
@@ -10,7 +10,9 @@
     "directory": "plugins/settings"
   },
   "homepage": "https://dnzn.dev",
-  "engines": { "node": "^22.12.0 || >=24.0.0" },
+  "engines": {
+    "node": "^22.12.0 || >=24.0.0"
+  },
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",

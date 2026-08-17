@@ -2,6 +2,244 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.3.0](https://github.com/dxnzn/dxkit/compare/v0.2.1...v0.3.0) (2026-08-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* the workspace now requires Node >=22 to install (engine-strict
+enforced). Contributors and consumers on Node 18 or 20 must upgrade before running
+pnpm install. Recommend Node 22.12+ or Node 24 specifically, not just "22" —
+Vite 8's own floor is node ^20.19.0 || >=22.12.0, narrower than this workspace's
+>=22, so Node 22.0-22.11 would pass this gate but still fail inside vitest/vite.
+
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+
+* docs(06-01): complete Node engines floor plan
+
+* ci: run CI on Node 22 and 24, drop EOL Node 20
+
+Node 20 is EOL alongside Node 18; the toolchain-audit milestone raises
+the floor to Node 22 LTS (D-07). Adds Node 24 (current stable) to the
+matrix to catch forward-compat breakage early. Only the matrix values
+change — pnpm/action-setup@v4 still precedes actions/setup-node@v4
+(cache: pnpm depends on pnpm already being installed), and the
+existing make build / make test steps are untouched.
+
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+
+* docs(06-02): complete CI Node matrix modernization plan
+
+* chore(deps): bump tsup to 8.5.1
+
+Routine patch/minor bump within tsup major 8 (8.4.0 -> 8.5.1). tsup's
+typescript peer range (>=4.5.0) imposes no upper bound, keeping this
+bump TS6-compatible for the Phase 7 migration. No tsup.config.ts
+changes required; make build (all 5 packages, 3 output formats each)
+and make test (321 specs) both green.
+
+Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+
+* chore(deps): bump vite to 8.1.4
+
+Major version jump (7.3.6 -> 8.1.4), the phase's one real
+major-version risk: Vite 8 replaces the Rollup-based bundler with
+Rolldown (Rust) by default. This repo's only Vite consumer is
+vitest.config.ts, which sets just `test` and `resolve.alias` with no
+`build` key, so the widely-documented build.rollupOptions ->
+rolldownOptions rename and CJS-interop/Lightning-CSS defaults do not
+apply here (confirmed via grep before and after the bump, both
+zero-hit). vitest 4.1.x's peer range already accepts vite@^8, so the
+pairing is compatible out of the box. Full 321-spec suite green as
+the acceptance gate; vitest.config.ts left untouched.
+
+Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+
+* chore(deps): bump vitest to 4.1.10
+
+Routine patch bump within vitest major 4 (4.1.9 -> 4.1.10); vitest 5
+exists only as a beta dist-tag and is intentionally not used this
+phase. Full 321-spec suite green.
+
+Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+
+* docs(06-03): complete core toolchain bump plan (tsup/vite/vitest/happy-dom)
+
+* chore(deps): bump biome to 2.5.4
+
+Routine patch bump within Biome major 2.x (2.5.1 -> 2.5.4) - the
+latest stable major is still 2.x, no 3.x published, per RESEARCH.md
+Pitfall 3. biome.json's version-pinned $schema URL bumped in lockstep
+so the schema reference matches the installed formatter/linter
+version. No rule config changed beyond the schema pointer.
+
+The new version surfaces one narrow formatting diff in
+tests/lifecycle.test.ts, landing in a separate style: commit per D-02
+so reformat churn stays out of this version-bump diff.
+
+Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+
+* style: apply biome 2.5.4 formatting
+
+Biome 2.5.4 changes the curried it.each(...)(...) call-formatting
+rule, reflowing the single test case in tests/lifecycle.test.ts that
+used that pattern. Purely mechanical reformat (indentation + line
+breaks), no behavior change - kept out of the version-bump commit
+per D-02 so reformat churn is separately bisectable.
+
+Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+
+* chore(deps): replace cz-conventional-changelog with cz-git
+
+cz-conventional-changelog has been unmaintained for ~6 years; cz-git
+is the actively-maintained replacement (D-08). Swap is 1:1 parity:
+config.commitizen.path now points at the node_modules-resolved path
+(node_modules/cz-git, not the bare package name - commitizen resolves
+this string at runtime, so the resolved path avoids a stale-lookup
+failure per RESEARCH.md Pitfall 5). No custom cz-git config block
+added - its zero-config default type list (feat/fix/docs/style/
+refactor/perf/test/build/ci/chore/revert) is a strict superset of
+CLAUDE.md's required conventional-commit types, with no scope
+enforcement. commit-and-tag-version and .versionrc.json are a
+separate release-tooling concern and are untouched.
+
+Verified via `npx cz`: after `pnpm remove` + `pnpm add` + `pnpm
+install`, the adapter resolves and renders the expected interactive
+type-selection prompt ("cz-cli@4.3.2, cz-git@1.13.1" header, standard
+type list) - confirms the config.commitizen.path swap works at
+runtime.
+
+Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+
+* docs(06-04): complete Biome bump + cz-git swap plan
+
+* chore(build): add verify-outputs target asserting all three formats per package
+
+Adds a `verify-outputs` .PHONY Makefile target that checks dist/index.js,
+dist/index.cjs, and dist/index.global.js exist for the root package and each
+of the four plugins (reusing PLUGIN_BUILD_ORDER, not a hardcoded list). This
+is the TOOL-05 build-output existence check called for in the Wave 0
+validation gap — file-existence only, not the deeper IIFE/CJS interop smoke
+test (that's FCT-04, Phase 8). Verified green after a fresh `make clean &&
+make build`, and verified the failure path by deleting one output and
+confirming a clear MISSING message + non-zero exit before rebuilding.
+
+Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+
+* docs(06-05): complete build-output existence check plan
+
+* docs(06): add code review report
+
+* docs(06): record verification gaps; reopen phase pending gap closure
+
+Phase 06 verification returned gaps_found. An executor's plan-progress
+update had prematurely flipped the ROADMAP checkbox to complete; revert
+it to unchecked and set STATE status to gaps_found so tracking reflects
+reality (documented behavior matches actual — milestone Core Value).
+
+Gap: CR-01 — declared engines.node ">=22" admits Node 22.0-22.11 and
+23.x, which the pinned vite@8.1.4 / vitest@4.1.10 reject under
+engine-strict; the floor is not the enforceable contract the phase goal
+claims. See: .planning/phases/06-toolchain-audit-modernization/06-VERIFICATION.md
+
+Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+
+* docs(06): plan gap closure for CR-01/WR-02/WR-01 (06-06)
+
+* docs(06-06): assert BREAKING CHANGE footer in task 1 verify
+
+* fix(engines)!: tighten Node floor to match pinned vite/vitest ranges
+
+CR-01 (06-VERIFICATION.md): the previously declared engines.node
+">=22" was broader than the toolchain this same phase pinned. With
+engine-strict=true, vite@8.1.4 (^20.19.0 || >=22.12.0) rejects Node
+22.0-22.11, and vitest@4.1.10 (^20.0.0 || ^22.0.0 || >=24.0.0) rejects
+Node 23.x — both satisfy the project's own ">=22" contract but fail
+pnpm install on a sub-dependency's engine check. This is exactly the
+documented-vs-actual drift the milestone's Core Value exists to
+eliminate.
+
+Tighten engines.node to `^22.12.0 || >=24.0.0` across all five
+package.json (root + auth + wallet + theme + settings, lockstep per
+D-05). This value is the intersection of vite's and vitest's declared
+ranges, so no Node version the project admits can be rejected by a
+sub-dependency at install time. Node 23.x is intentionally excluded
+because vitest rejects it.
+
+This deviates from the literal ">=22" string in ROADMAP Success
+Criterion 1 and 06-CONTEXT D-05, but preserves and corrects the
+intent ("an enforced Node 22 LTS floor") — see 06-06-PLAN.md's
+"Deviation note" for detail. pnpm-lock.yaml is unchanged (metadata-only
+edit, no dependency resolution change).
+* engines.node narrows from ">=22" to
+"^22.12.0 || >=24.0.0". Contributors/consumers must be on Node
+22.12.0+ or Node 24.0.0+; Node 22.0-22.11 and the entire Node 23.x
+line are no longer declared-supported because the pinned vite/vitest
+toolchain rejects them under engine-strict.
+
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+
+* ci: pin exact-floor 22.12.0 matrix leg instead of bare 22
+
+WR-02 (06-VERIFICATION.md): actions/setup-node resolves a bare `22`
+matrix entry to the latest 22.x patch, which sits above the toolchain's
+real floor (vite@8.1.4 requires >=22.12.0). CI therefore never
+installed on the declared floor and could not catch CR-01-style
+engines drift — the pipeline stayed green over an inaccurate contract.
+
+Replace `[22, 24]` with `['22.12.0', 24]`, quoting the exact patch so
+YAML doesn't misparse it as a float. `24` remains the forward-stable
+leg (D-07). Step ordering (pnpm/action-setup before actions/setup-node),
+pnpm cache, and the build/test run steps are unchanged.
+
+See: .planning/phases/06-toolchain-audit-modernization/06-06-PLAN.md (Task 2)
+
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+
+* chore(build): wire verify-outputs into release, publish, and CI
+
+WR-01 (06-VERIFICATION.md): verify-outputs asserts all 15 build
+outputs (3 formats x 5 packages) but was manual-only, so a regression
+(e.g. tsup silently dropping a plugin's IIFE build) would ship
+uncaught through release, publish, or CI.
+
+Insert verify-outputs as a prerequisite between build and test on
+both `release` and `publish` Makefile targets, and add it as its own
+CI step between `make build` and `make test`. A dropped build output
+now fails all three automated paths.
+
+Spot-checked: deleting dist/index.global.js after a fresh build makes
+`make verify-outputs` exit non-zero with a MISSING: line; rebuilding
+restores a clean exit 0.
+
+See: .planning/phases/06-toolchain-audit-modernization/06-06-PLAN.md (Task 3)
+
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+
+* docs(06-06): complete toolchain gap-closure plan
+
+* docs(06): re-review after gap closure — all gaps closed
+
+* test(06): persist human verification items as UAT
+
+* docs(06): re-verification after gap closure — 9/9 verified, human_needed
+
+* test(06): complete UAT - 2 passed, 0 issues
+
+* docs(phase-06): add security threat verification
+
+* docs(phase-06): mark phase complete — verification passed, UAT + security green
+
+* docs(phase-06): clean up ROADMAP completion annotation
+
+* docs(phase-06): update validation strategy — nyquist-compliant, UAT evidence recorded
+
+* docs(phase-06): re-audit security — 13/13 closed, no drift
+
+* docs(06): sync toolchain docs to Phase 6 end-state + DOCS ship-gate marker
+
+* Phase 6: Toolchain Audit & Modernization (#6) ([ebcdf33](https://github.com/dxnzn/dxkit/commit/ebcdf3312584149eb579f134129e73690492a426)), closes [#6](https://github.com/dxnzn/dxkit/issues/6) [#6](https://github.com/dxnzn/dxkit/issues/6) [#6](https://github.com/dxnzn/dxkit/issues/6)
+
 ## [0.2.1](https://github.com/dxnzn/dxkit/compare/v0.2.0...v0.2.1) (2026-07-15)
 
 ## [0.2.0](https://github.com/dxnzn/dxkit/compare/v0.1.5...v0.2.0) (2026-07-15)
