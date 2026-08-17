@@ -10,7 +10,7 @@ by **Denizen.** // dnzn.wei
 
 | STATUS | VERSION | AUDIT |
 |:---|:---|:---|
-| `vibe/alpha` | 0.1.5 | [Self Review](audit/self/dxkit-0.1.0.md) |
+| `vibe/alpha` | 0.3.0 | [Self Review](audit/self/dxkit-0.1.0.md) |
 
 This is alpha software. Let it bake. Do not trust in production without thorough testing and review. 
 

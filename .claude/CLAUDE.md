@@ -11,7 +11,7 @@ and targets static/IPFS deployment via IIFE builds alongside ESM/CJS for bundler
 for developers assembling small, decoupled dapps (mounted one at a time into `#dx-mount`)
 that talk to the shell only through `window.__DXKIT__`.
 
-The framework is in alpha (0.1.5). This milestone hardens it toward beta — not beta yet,
+The framework is in alpha (0.3.0). This milestone hardens it toward beta — not beta yet,
 but meaningfully more robust — and brings all documentation back into truth with the code.
 
 **Core Value:** DxKit stays trustworthy for real use: failures are visible (never silent), the documented
@@ -49,11 +49,11 @@ confidence.
 
 ## Frameworks
 
-- @dnzn/dxkit 0.1.5 - Headless microframework for composable dapps
-- @dnzn/dxkit-wallet 0.1.5 - Wallet provider coordination and EIP-1193 support
-- @dnzn/dxkit-auth 0.1.5 - Passthrough authentication (wallet-based)
-- @dnzn/dxkit-theme 0.1.5 - CSS theme management with light/dark/system modes
-- @dnzn/dxkit-settings 0.1.5 - Per-dapp configuration and settings persistence
+- @dnzn/dxkit 0.3.0 - Headless microframework for composable dapps
+- @dnzn/dxkit-wallet 0.3.0 - Wallet provider coordination and EIP-1193 support
+- @dnzn/dxkit-auth 0.3.0 - Passthrough authentication (wallet-based)
+- @dnzn/dxkit-theme 0.3.0 - CSS theme management with light/dark/system modes
+- @dnzn/dxkit-settings 0.3.0 - Per-dapp configuration and settings persistence
 - vitest 4.1.10 - Unit and integration test runner
 - happy-dom 20.10.6 - Lightweight DOM implementation for test environment
 - tsup 8.5.1 - Bundler for ES2022 → ESM/CJS/IIFE outputs
