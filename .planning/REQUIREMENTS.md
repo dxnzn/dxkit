@@ -110,48 +110,48 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DEV-01 | — | Pending |
-| DEV-02 | — | Pending |
-| DEV-03 | — | Pending |
-| DEV-04 | — | Pending |
-| DEV-05 | — | Pending |
-| DEV-06 | — | Pending |
-| PUB-01 | — | Pending |
-| PUB-02 | — | Pending |
-| PUB-03 | — | Pending |
-| PUB-04 | — | Pending |
-| PUB-05 | — | Pending |
-| PUB-06 | — | Pending |
-| PUB-07 | — | Pending |
-| RES-01 | — | Pending |
-| RES-02 | — | Pending |
-| RES-03 | — | Pending |
-| RES-04 | — | Pending |
-| RES-05 | — | Pending |
-| RES-06 | — | Pending |
-| RES-07 | — | Pending |
-| RES-08 | — | Pending |
-| CORE-01 | — | Pending |
-| CORE-02 | — | Pending |
-| CORE-03 | — | Pending |
-| CORE-04 | — | Pending |
-| CORE-05 | — | Pending |
-| CORE-06 | — | Pending |
-| DEMO-01 | — | Pending |
-| DEMO-02 | — | Pending |
-| DEMO-03 | — | Pending |
-| DEMO-04 | — | Pending |
-| DOC-01 | — | Pending |
-| DOC-02 | — | Pending |
-| DOC-03 | — | Pending |
-| NET-01 | — | Pending |
-| NET-02 | — | Pending |
+| DEV-01 | Phase 11 | Pending |
+| DEV-02 | Phase 12 | Pending |
+| DEV-03 | Phase 11 | Pending |
+| DEV-04 | Phase 11 | Pending |
+| DEV-05 | Phase 13 | Pending |
+| DEV-06 | Phase 11 | Pending |
+| PUB-01 | Phase 12 | Pending |
+| PUB-02 | Phase 12 | Pending |
+| PUB-03 | Phase 12 | Pending |
+| PUB-04 | Phase 12 | Pending |
+| PUB-05 | Phase 12 | Pending |
+| PUB-06 | Phase 12 | Pending |
+| PUB-07 | Phase 11 | Pending |
+| RES-01 | Phase 13 | Pending |
+| RES-02 | Phase 13 | Pending |
+| RES-03 | Phase 13 | Pending |
+| RES-04 | Phase 13 | Pending |
+| RES-05 | Phase 13 | Pending |
+| RES-06 | Phase 13 | Pending |
+| RES-07 | Phase 13 | Pending |
+| RES-08 | Phase 13 | Pending |
+| CORE-01 | Phase 14 | Pending |
+| CORE-02 | Phase 14 | Pending |
+| CORE-03 | Phase 14 | Pending |
+| CORE-04 | Phase 14 | Pending |
+| CORE-05 | Phase 14 | Pending |
+| CORE-06 | Phase 14 | Pending |
+| DEMO-01 | Phase 15 | Pending |
+| DEMO-02 | Phase 15 | Pending |
+| DEMO-03 | Phase 15 | Pending |
+| DEMO-04 | Phase 15 | Pending |
+| DOC-01 | Phase 16 | Pending |
+| DOC-02 | Phase 16 | Pending |
+| DOC-03 | Phase 16 | Pending |
+| NET-01 | Phase 17 | Pending |
+| NET-02 | Phase 18 | Pending |
 
 **Coverage:**
 - v1 requirements: 36 total
-- Mapped to phases: 0
-- Unmapped: 36 ⚠️ (populated by roadmap)
+- Mapped to phases: 36 ✓ (Phases 11–18)
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-08-16*
-*Last updated: 2026-08-16 after initial definition*
+*Last updated: 2026-08-16 — traceability populated by roadmap (Phases 11–18)*

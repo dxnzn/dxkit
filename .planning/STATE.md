@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: On-Chain Deployment (ERC-8244)
 status: planning
-last_updated: "2026-08-17T03:55:34.322Z"
+last_updated: "2026-08-17T04:30:00.000Z"
 last_activity: 2026-08-16
 progress:
-  total_phases: 0
+  total_phases: 8
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,18 +20,45 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-16)
 
 **Core value:** DxKit stays trustworthy for real use — failures are visible (never silent), documented behavior matches actual behavior, and the alpha is stable enough to build on with confidence.
-**Current focus:** v1.2 On-Chain Deployment (ERC-8244) — defining requirements. Three co-equal deployment targets (bundler/webserver, IIFE/IPFS, on-chain); Foundry/Anvil local loop; Sepolia → mainnet as the final two phases.
+**Current focus:** v1.2 On-Chain Deployment (ERC-8244) — roadmap complete, Phases 11–18. Three co-equal deployment targets (bundler/webserver, IIFE/IPFS, on-chain); everything proven on the Foundry/Anvil local loop first; Sepolia → mainnet are the final two phases. Next: plan Phase 11.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-08-16 — Milestone v1.2 started
+Phase: 11 - Foundry/Anvil Dev Loop & Spec Pin (not started)
+Plan: — (not planned yet)
+Status: Not started
+Progress: [░░░░░░░░░░] 0% (0/8 phases, 0/36 requirements)
+Last activity: 2026-08-16 — v1.2 roadmap created (Phases 11–18, 36/36 requirements mapped)
 
 ## Milestone Phase Map (v1.2)
 
-_(populated by the roadmap — continues numbering from v1.1, which ended at Phase 10)_
+Continues numbering from v1.1 (which ended at Phase 10). 36/36 v1.2 requirements mapped; no orphans.
+
+| Phase | Name | Requirements | Depends on |
+|-------|------|--------------|------------|
+| 11 | Foundry/Anvil Dev Loop & Spec Pin | DEV-01, DEV-03, DEV-04, DEV-06, PUB-07 | — (v1.1 shipped) |
+| 12 | On-Chain Publish Tooling & Facade Contracts | DEV-02, PUB-01..06 | Phase 11 |
+| 13 | `web3://` Resolver & Loader Integration | RES-01..08, DEV-05 | Phase 12 |
+| 14 | Core Sandbox Hardening (additive) | CORE-01..06 | Phase 13 |
+| 15 | Bootstrap Snippet & On-Chain Demo Dapp | DEMO-01..04 | Phase 14 |
+| 16 | Documentation — On-Chain Target | DOC-01..03 | Phase 15 |
+| 17 | Sepolia Deploy | NET-01 | Phase 16 |
+| 18 | Ethereum Mainnet Deploy | NET-02 | Phase 17 |
+
+Key sequencing constraints (fixed by the user + research build order):
+
+- Everything is developed and verified on the local Foundry/Anvil loop first; Phases 17–18 are the
+  milestone's only public-network work and nothing follows them.
+- PUB-07 (pin the ERC-8244 draft text + SHA) lands at the *start* of contracts work (Phase 11) and is
+  re-checked at every phase boundary — contracts are immutable and the ERC is still Draft.
+- The publish pipeline (Phase 12) precedes the resolver (Phase 13) so the resolver is tested against
+  real deployed facades, not mocks.
+- Core sandbox hardening (Phase 14) lands *after* the resolver proves itself against unmodified core.
+  It is the milestone's highest-regression-risk phase and the only one touching shared
+  lifecycle/manifest code — sequenced for isolation and bisectability.
+- Docs (Phase 16) precede the network deploys; the project's per-phase docs ship gate still applies
+  to every phase touching `src/` or `plugins/*/src/` (Phases 13, 14, and possibly 15) — DOC-03 owns
+  that marker requirement.
 
 <details>
 <summary>v1.1 phase map (archived)</summary>
@@ -130,7 +157,14 @@ Phase 7) is a precondition — it must exist before/with the TS6 bump and before
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table (v1.0 and v1.1 rows are current there).
-No active-milestone decisions yet — next milestone not defined.
+
+**v1.2 roadmap decisions:**
+
+- v1.2 roadmap: 8-phase structure (Dev loop → Publish tooling → Resolver → Core hardening → Bootstrap+Demo → Docs → Sepolia → Mainnet), continuing phase numbering at 11 — follows the research build order with steps 3+4 (resolver, loader-integration proof) merged into one coherent package phase, and steps 6+7 (self-contained demo, full demo + bootstrap) merged into Phase 15.
+- v1.2: DEV-05 (CI Foundry + Anvil-backed integration tests) is placed in Phase 13, not Phase 11, because the requirement demands an end-to-end run across publish pipeline + resolver + gateway — the resolver must exist first.
+- v1.2: PUB-07 (spec pin) sits in Phase 11 at the start of contracts work, per Pitfall 0 — ERC-8244 is Draft and every deploy is immutable.
+- v1.2: Phase 14 (core hardening) is the only phase touching `src/`-shared lifecycle/manifest code; sequenced after the resolver so a bundler/IIFE regression bisects to one phase. No existing vitest spec may be modified to accommodate it.
+- v1.2: Phases 17 (Sepolia) and 18 (mainnet) are the final two phases by user decree — nothing ships after them.
 
 <details>
 <summary>v1.1 phase-level decisions (archived context)</summary>
@@ -229,11 +263,11 @@ Items acknowledged and carried forward:
 ## Session Continuity
 
 Last session: 2026-08-16T22:30:00.000Z
-Stopped at: v1.1 milestone closed and archived; 0.3.0 tagged (publish/push pending)
+Stopped at: v1.2 roadmap created (Phases 11–18); awaiting approval, then Phase 11 planning
 Resume file:
 None
 
 ## Operator Next Steps
 
 - `make publish` then `git push --follow-tags origin main` to release 0.3.0 (tag `v0.3.0` exists locally)
-- v1.2 milestone started — continue with requirements → roadmap, then `/gsd-discuss-phase 11`
+- v1.2 roadmap approved → `/gsd-discuss-phase 11` (Foundry/Anvil Dev Loop & Spec Pin), then `/gsd-plan-phase 11`
